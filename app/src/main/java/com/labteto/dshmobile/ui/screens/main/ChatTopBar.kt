@@ -115,6 +115,7 @@ internal fun ChatTopBar(
     onOpenDrawer: () -> Unit,
     onOpenModels: () -> Unit,
     onOpenHistory: () -> Unit,
+    onOpenTurns: () -> Unit,
     onOpenPresets: () -> Unit,
     onOpenSubagents: () -> Unit,
     onOpenDetails: () -> Unit,
@@ -123,6 +124,8 @@ internal fun ChatTopBar(
     workspaceEnabled: Boolean,
     /** False while no session is open, where there is no history to pick from yet. */
     historyEnabled: Boolean,
+    /** False while the transcript is empty, where the rail would have nothing to list. */
+    turnsEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val colors = DsTheme.colors
@@ -154,6 +157,18 @@ internal fun ChatTopBar(
                         icon = FeatherIcons.List,
                         contentDescription = stringResource(R.string.chat_history_title),
                         onClick = onOpenHistory,
+                        tint = colors.labelSecondary,
+                        iconSize = 18.dp,
+                    )
+                }
+                // The turn rail sits on the other side of the history button and takes the same
+                // fixed slot: both are "go somewhere in this session", and the reader reaches for
+                // one or the other by position, not by reading the label.
+                if (turnsEnabled) {
+                    DsIconButton(
+                        icon = FeatherIcons.Layers,
+                        contentDescription = stringResource(R.string.chat_turn_rail_title),
+                        onClick = onOpenTurns,
                         tint = colors.labelSecondary,
                         iconSize = 18.dp,
                     )

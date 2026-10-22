@@ -120,6 +120,7 @@ fun ChatScreen(
     val contextBreakdown by store.contextBreakdown.collectAsStateWithLifecycle()
     val contextPressure by store.contextPressure.collectAsStateWithLifecycle()
     val imageLimits by store.imageLimits.collectAsStateWithLifecycle()
+    val turnOutline by store.turnOutline.collectAsStateWithLifecycle()
 
     val currentSession = sessions.firstOrNull { it.sessionId == currentSessionId }
     val workingDirectory = com.labteto.dshmobile.core.session.effectiveWorkingDirectory(conversation?.projections, currentSession?.cwd)
@@ -485,6 +486,7 @@ fun ChatScreen(
                 onOpenDrawer = onOpenDrawer,
                 onOpenModels = { sheet = ChatSheet.Models },
                 onOpenHistory = { sheet = ChatSheet.History },
+                onOpenTurns = { sheet = ChatSheet.Turns },
                 onOpenPresets = {
                     scope.launch { store.refreshAgentPresets() }
                     sheet = ChatSheet.Presets
@@ -495,6 +497,9 @@ fun ChatScreen(
                 onOpenWorkspace = { panelKey = composer.key },
                 workspaceEnabled = currentSessionId != null,
                 historyEnabled = currentSessionId != null,
+                // Hidden until there is something to navigate. The rail lists the whole session,
+                // so an empty transcript means an empty rail.
+                turnsEnabled = conversation?.nodes?.isNotEmpty() == true,
             )
 
             AnimatedPresence(connectionError) {
@@ -857,6 +862,33 @@ fun ChatScreen(
             onDismiss = { sheet = null },
             onEdit = if (currentSessionId != null) ({ text -> editPrompt(text) }) else null,
         )
+        ChatSheet.Turns -> TurnRailSheet(
+            entries = remember(conversation?.nodes, conversation?.running, turnOutline) {
+                turnEntries(
+                    nodes = conversation?.nodes.orEmpty(),
+                    running = conversation?.running == true,
+                    outline = turnOutline,
+                )
+            },
+            onPick = { entry ->
+                // Closing first, like the history pick: the scroll happens on the transcript's
+                // next composition and the sheet would sit over it.
+                sheet = null
+                tab = ChatTab.Chat
+                // A turn older than the window has no row to land on, and the transcript consumes
+                // a pick it cannot resolve. So the history is paged back first and the pick is
+                // handed over only once the turn is in the window.
+                if (entry.loaded) {
+                    pendingJumpSeq = entry.seq
+                } else {
+                    scope.launch {
+                        store.loadUntil(entry.seq)
+                        pendingJumpSeq = entry.seq
+                    }
+                }
+            },
+            onDismiss = { sheet = null },
+        )
         ChatSheet.Presets -> PresetsSheet(
             presets = agentPresets,
             currentPreset = currentSession?.agentPreset,
@@ -876,7 +908,7 @@ fun ChatScreen(
 }
 
 /** Which sheet, if any, is open over the chat surface. */
-private enum class ChatSheet { Commands, Models, History, Presets, Subagents }
+private enum class ChatSheet { Commands, Models, History, Turns, Presets, Subagents }
 
 /**
  * A picked document's display name and size, as its provider reports them.

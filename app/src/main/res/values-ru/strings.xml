@@ -611,6 +611,10 @@
     <string name="chat_history_empty">Вы ещё ничего не отправляли.</string>
     <string name="chat_history_no_match">Нет подходящих сообщений.</string>
     <string name="chat_history_image">Изображение</string>
+    <string name="chat_turn_rail_title">Ходы</string>
+    <string name="chat_turn_rail_empty">Ходов пока нет.</string>
+    <string name="chat_turn_rail_no_match">Нет подходящих ходов.</string>
+    <string name="chat_turn_rail_no_prompt">Нет текста запроса</string>
     <string name="hold_message_actions">Действия с сообщением</string>
     <string name="hold_tool_actions">Действия с вызовом инструмента</string>
     <string name="hold_file_actions">Действия с файлом</string>

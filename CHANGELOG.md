@@ -3,6 +3,23 @@
 All notable changes to DSH Mobile are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/); the project uses SemVer.
 
+## [Unreleased]
+
+### Added
+
+- **A turn rail beside the history button** lists every turn of the session, not just the ones
+  loaded, and jumps to any of them. The history sheet answers "where did I ask that" and only
+  knows the messages the transcript has paged in; a long tool-heavy session opens on its last sixty
+  events, which is a handful of turns, and everything before that was unreachable without dragging
+  the transcript up screen by screen. The rail reads the harness's `turnOutline` projection, which
+  names a turn from the moment it opens, so the whole conversation stays navigable. Picking a turn
+  older than the window pages history back to it first, then lands on its prompt. Each row shows
+  the turn's number and the two previews the harness folds for it — the prompt and, once the turn
+  settles, the reply — and search matches the number as well as the text.
+- Where the host composes no `turnOutline` — an older deployment, or an assembly without the
+  projection registry — the rail lists the turns the transcript has loaded instead of offering a
+  control that cannot work.
+
 ## [0.18.0] - 2026-10-21
 
 Pressing and holding things in the app now opens a menu of what you can do with them. This

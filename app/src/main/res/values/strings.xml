@@ -613,6 +613,10 @@
     <string name="chat_history_empty">No prompts yet.</string>
     <string name="chat_history_no_match">No messages match that.</string>
     <string name="chat_history_image">Image</string>
+    <string name="chat_turn_rail_title">Turns</string>
+    <string name="chat_turn_rail_empty">No turns yet.</string>
+    <string name="chat_turn_rail_no_match">No turns match that.</string>
+    <string name="chat_turn_rail_no_prompt">No prompt text</string>
     <string name="hold_message_actions">Message actions</string>
     <string name="hold_tool_actions">Tool call actions</string>
     <string name="hold_file_actions">File actions</string>

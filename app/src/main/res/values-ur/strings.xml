@@ -611,6 +611,10 @@
     <string name="chat_history_empty">ابھی تک کوئی پیغام نہیں بھیجا گیا۔</string>
     <string name="chat_history_no_match">کوئی پیغام مماثل نہیں۔</string>
     <string name="chat_history_image">تصویر</string>
+    <string name="chat_turn_rail_title">ٹرن</string>
+    <string name="chat_turn_rail_empty">ابھی کوئی ٹرن نہیں۔</string>
+    <string name="chat_turn_rail_no_match">کوئی ٹرن مماثل نہیں۔</string>
+    <string name="chat_turn_rail_no_prompt">کوئی پرامپٹ متن نہیں</string>
     <string name="hold_message_actions">پیغام کے اختیارات</string>
     <string name="hold_tool_actions">ٹول کال کے اختیارات</string>
     <string name="hold_file_actions">فائل کے اختیارات</string>
