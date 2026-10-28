@@ -112,8 +112,20 @@ class NotificationObserver @Inject constructor(
                 classifier.classifyWaterfall(frame.event, frame.eventId, frame.agentId, frame.request)
                     ?.let { maybeNotify(it) }
 
-            is RemoteEventFrame.Emit ->
+            is RemoteEventFrame.Emit -> {
+                // The host's running/idle statement is a state signal, not just a notification.
+                // Handing it to the store keeps a session from showing "running" after a turn that
+                // ended while the reader was elsewhere (no `turn/end` was delivered to this app).
+                if (frame.event == "api-session/status") {
+                    val statusSessionId = frame.args.getOrNull(0)?.jsonPrimitive?.contentOrNull
+                    val statusRunning = frame.args.getOrNull(1)?.jsonPrimitive
+                        ?.let { runCatching { it.content.toBoolean() }.getOrNull() }
+                    if (statusSessionId != null && statusRunning != null) {
+                        store.applyHostSessionStatus(statusSessionId, statusRunning)
+                    }
+                }
                 classifier.classifyNotification(frame.event, frame.args)?.let { maybeNotify(it) }
+            }
 
             // A withdrawn request needs no notification of its own; the prompt it belongs to is
             // retired by whoever is showing it. Ready never reaches here, and an unknown frame
