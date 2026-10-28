@@ -46,26 +46,77 @@ class ProcessFoldTest {
         assertTrue(rows.none { it is TranscriptRow.Process })
     }
 
-    @Test fun `a running turn keeps its steps on screen`() {
+    @Test fun `a running turn folds its steps but keeps the reply being written`() {
+        // Local mod: the live turn folds too; what it must not swallow is the streaming answer.
+        val streaming = AssistantMessageNode(5, "a5", 1, 1, listOf(ChatBlock("text", "writing"))).copy(streaming = true)
         val rows = fold(
-            listOf(user(2), reasoning(3), call(4), answer(5)),
+            listOf(user(2), reasoning(3), call(4), streaming),
             turnStarts = listOf(1),
             running = true,
         )
-        assertEquals(4, rows.size)
-        assertTrue(rows.none { it is TranscriptRow.Process })
+        assertEquals(3, rows.size)
+        val process = rows[1] as TranscriptRow.Process
+        assertTrue(process.live)
+        assertEquals(listOf(3L, 4L), process.rows.map { it.seq })
+        assertEquals(5L, rows[2].seq)
     }
 
-    @Test fun `injected context keeps a row of its own`() {
+    @Test fun `a running turn with no text yet folds all of its work`() {
+        val rows = fold(
+            listOf(user(2), reasoning(3), call(4)),
+            turnStarts = listOf(1),
+            running = true,
+        )
+        assertEquals(2, rows.size)
+        val process = rows[1] as TranscriptRow.Process
+        assertTrue(process.live)
+        assertEquals(listOf(3L, 4L), process.rows.map { it.seq })
+    }
+
+    @Test fun `a settled turn is not marked live`() {
+        val rows = fold(listOf(user(2), reasoning(3), call(4), answer(5)), turnStarts = listOf(1))
+        assertFalse((rows[1] as TranscriptRow.Process).live)
+    }
+
+    @Test fun `the process row counts what it holds`() {
+        val skill = UserMessageNode(3, "s", listOf(ChatBlock("text", "skill body")), "skill-invocation")
+        val rows = fold(
+            listOf(user(2), skill, reasoning(4), call(5), call(6), answer(7)),
+            turnStarts = listOf(1),
+        )
+        val process = rows[1] as TranscriptRow.Process
+        assertEquals(1, process.contexts)
+        assertEquals(2, process.tools)
+        assertEquals(1, process.thinking)
+        assertEquals(4, process.steps)
+    }
+
+    @Test fun `injected context folds into the process row`() {
         val skill = UserMessageNode(3, "s", listOf(ChatBlock("text", "skill body")), "skill-invocation")
         val rows = fold(
             listOf(user(2), skill, reasoning(4), call(5), answer(6)),
             turnStarts = listOf(1),
         )
-        assertEquals(4, rows.size)
-        assertTrue(rows[1] is TranscriptRow.Context)
-        assertEquals(listOf(4L, 5L), (rows[2] as TranscriptRow.Process).rows.map { it.seq })
-        assertEquals(6L, rows[3].seq)
+        // Local mod: injected context folds into the process row instead of keeping its own row.
+        assertEquals(3, rows.size)
+        val process = rows[1] as TranscriptRow.Process
+        assertEquals(listOf(3L, 4L, 5L), process.rows.map { it.seq })
+        assertEquals(3, process.steps)
+        assertTrue(process.rows[0] is TranscriptRow.Context)
+        assertEquals(6L, rows[2].seq)
+    }
+
+    @Test fun `context between steps joins one process row instead of splitting it`() {
+        val note = UserMessageNode(4, "n", listOf(ChatBlock("text", "system note")), "agent-instructions")
+        val rows = fold(
+            listOf(user(2), reasoning(3), note, call(5), answer(6)),
+            turnStarts = listOf(1),
+        )
+        assertEquals(3, rows.size)
+        val process = rows[1] as TranscriptRow.Process
+        assertEquals(listOf(3L, 4L, 5L), process.rows.map { it.seq })
+        assertTrue(process.rows[1] is TranscriptRow.Context)
+        assertEquals(6L, rows[2].seq)
     }
 
     @Test fun `a steering message stays on screen and splits the fold`() {

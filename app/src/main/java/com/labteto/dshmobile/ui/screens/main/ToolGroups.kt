@@ -7,15 +7,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.labteto.dshmobile.core.session.*
 import com.labteto.dshmobile.ui.components.FeatherIcons
+import com.labteto.dshmobile.ui.components.StateDot
+import com.labteto.dshmobile.ui.components.StateDotState
 import com.labteto.dshmobile.ui.components.formatDurationMs
+import com.labteto.dshmobile.ui.theme.DsColors
 import com.labteto.dshmobile.ui.theme.DsShapes
 import com.labteto.dshmobile.ui.theme.DsTheme
 import com.labteto.dshmobile.ui.theme.DsType
@@ -32,11 +38,22 @@ internal sealed interface TranscriptRow {
     /**
      * What a turn did before it answered, folded into one row.
      *
-     * The prompt stays visible above this and the reply below it; the reasoning panels and tool
-     * groups in between are one tap away instead of a wall of collapsed headers. See
-     * [foldProcessRows] for exactly what gets folded.
+     * The prompt stays visible above this and the reply below it; the reasoning panels, context
+     * disclosures and tool groups in between are one tap away instead of a wall of collapsed
+     * headers. See [foldProcessRows] for exactly what gets folded.
+     *
+     * [live] marks the turn that is still running: its row is the only thing standing for the work
+     * in progress, so it carries a moving dot and counts what it is holding. [tools], [thinking]
+     * and [contexts] are those counts — numbers only, so the row needs no new translations.
      */
-    data class Process(val rows: List<TranscriptRow>, val steps: Int) : TranscriptRow {
+    data class Process(
+        val rows: List<TranscriptRow>,
+        val steps: Int,
+        val live: Boolean = false,
+        val tools: Int = 0,
+        val thinking: Int = 0,
+        val contexts: Int = 0,
+    ) : TranscriptRow {
         override val seq get() = rows.first().seq
     }
 }
@@ -74,9 +91,14 @@ internal fun groupToolRows(nodes: List<ChatNode>): List<TranscriptRow> {
  * nodes because a turn start draws no row of its own, so the rows alone cannot say where a turn
  * begins.
  *
- * Two turns are left alone on purpose. A turn with no settled reply has nothing to fold against. And
- * the last turn is skipped while [running], because its steps are happening in front of the reader
- * rather than behind an answer.
+ * Local mod: the turn that is still [running] folds too. It used to be left expanded ("its steps are
+ * happening in front of the reader"), which is exactly the wall this row exists to remove: on a
+ * long run the transcript was nothing but the prompt followed by a screen of live cards. The reply
+ * being written still stays outside the fold, so the reader watches the answer arrive rather than
+ * the machinery around it; the process row carries a moving dot instead of the steps it holds.
+ *
+ * A turn with no prompt (only harness-injected context before the first question) is left alone —
+ * there is nothing for the row to sit under.
  */
 internal fun foldProcessRows(
     rows: List<TranscriptRow>,
@@ -92,7 +114,7 @@ internal fun foldProcessRows(
         while (end < rows.size && turnIndexOf(rows[end].seq, turnStarts) == turn) end++
         val slice = rows.subList(index, end)
         val isLast = end >= rows.size
-        folded += if (turn < 0 || (running && isLast)) slice else foldTurnProcess(slice)
+        folded += if (turn < 0) slice else foldTurnProcess(slice, live = running && isLast)
         index = end
     }
     return folded
@@ -110,48 +132,88 @@ private fun turnIndexOf(seq: Long, turnStarts: List<Long>): Int {
     return found
 }
 
-/** One turn's rows, with the stretch between its prompt and its answer folded. */
-private fun foldTurnProcess(rows: List<TranscriptRow>): List<TranscriptRow> {
+/**
+ * One turn's rows, with the stretch between its prompt and its answer folded.
+ *
+ * [live] is the turn currently running: it has no settled answer yet, so the fold stops at the
+ * reply being written (or at the end, while the model is still thinking) instead of requiring one.
+ */
+private fun foldTurnProcess(rows: List<TranscriptRow>, live: Boolean = false): List<TranscriptRow> {
     val promptIndex = rows.indexOfFirst { row ->
         val node = (row as? TranscriptRow.Message)?.node
         node is UserMessageNode && !node.isInjectedContext && !node.isRewindMarker
     }
     if (promptIndex < 0) return rows
     // The last message with text is the answer; anything the turn wrote earlier was narration on the
-    // way to it, which is exactly what the fold is for.
+    // way to it, which is exactly what the fold is for. A live turn also counts the reply still
+    // being streamed — that is the answer arriving, and it has to stay on screen.
     val answerIndex = rows.indexOfLast { row ->
         val node = (row as? TranscriptRow.Message)?.node
-        node is AssistantMessageNode && !node.streaming && node.plainText.isNotBlank()
+        node is AssistantMessageNode && (node.streaming || node.plainText.isNotBlank())
     }
-    if (answerIndex <= promptIndex) return rows
+    // Nothing to separate from the prompt yet: while live, everything the turn has done so far is
+    // the process, and the fold runs to the end of the slice.
+    val stop = when {
+        answerIndex > promptIndex -> answerIndex
+        live -> rows.size
+        else -> return rows
+    }
     val folded = mutableListOf<TranscriptRow>()
     folded += rows.subList(0, promptIndex + 1)
     var run = mutableListOf<TranscriptRow>()
+    var tools = 0
+    var thinking = 0
+    var contexts = 0
     fun flush() {
         if (run.isEmpty()) return
         folded += if (run.size > 1) {
             val steps = run.sumOf { if (it is TranscriptRow.Tools) it.calls.size else 1 }
-            TranscriptRow.Process(run.toList(), steps)
+            TranscriptRow.Process(
+                rows = run.toList(),
+                steps = steps,
+                live = live,
+                tools = tools,
+                thinking = thinking,
+                contexts = contexts,
+            )
         } else {
+            // A single step is its own row already; the counts ride along with it only when the
+            // turn needs the process row at all.
             run.first()
         }
         run = mutableListOf()
+        tools = 0
+        thinking = 0
+        contexts = 0
     }
-    for (index in promptIndex + 1 until answerIndex) {
+    for (index in promptIndex + 1 until stop) {
         val row = rows[index]
-        // Injected context is its own disclosure with its own header. Burying it inside the fold
-        // would hide a control the reader may want on its own.
+        // Local mod: injected context folds with the steps now. It used to keep a row of its own
+        // ("its own disclosure with its own header"), but a context-heavy turn still stacked one
+        // header per skill or system note between the prompt and the reply. ProcessRow already
+        // renders a Context step through the same ContextGroupRow, so the disclosure survives one
+        // tap deeper instead of claiming a row of its own.
         //
-        // A user message is never a step either. Steering lands inside the running turn, not in a
-        // turn of its own, so a reader who corrected the agent halfway would find their own words
-        // folded away, and the history sheet's jump to them would land on nothing. The fold splits
-        // around it instead: what led up to the correction, the correction, what followed it.
-        val keep = row is TranscriptRow.Context ||
-            (row as? TranscriptRow.Message)?.node is UserMessageNode
-        if (keep) { flush(); folded += row } else run += row
+        // A user message is never a step. Steering lands inside the running turn, not in a turn of
+        // its own, so a reader who corrected the agent halfway would find their own words folded
+        // away, and the history sheet's jump to them would land on nothing. The fold splits around
+        // it instead: what led up to the correction, the correction, what followed it.
+        val keep = (row as? TranscriptRow.Message)?.node is UserMessageNode
+        if (keep) {
+            flush()
+            folded += row
+        } else {
+            run += row
+            when (row) {
+                is TranscriptRow.Tools -> tools += row.calls.size
+                is TranscriptRow.Context -> contexts += row.nodes.size
+                is TranscriptRow.Message -> if (row.node is AssistantMessageNode) thinking++
+                else -> Unit
+            }
+        }
     }
     flush()
-    folded += rows.subList(answerIndex, rows.size)
+    folded += rows.subList(stop, rows.size)
     return folded
 }
 
@@ -207,24 +269,39 @@ internal fun ContextGroupRow(nodes: List<ChatNode>, context: ChatNodeContext) {
  *
  * Deliberately the same shape as the two disclosures above — a 36dp header on `bgLayer1` with a
  * chevron — because it is the same gesture at a larger granularity: expand to see what happened.
+ *
+ * Local mod: the row now stands in for the running turn as well, so it says which it is. A live row
+ * leads with the same moving dot the top bar uses and counts what it is holding (tools, thinking
+ * steps, context blocks) as bare numbers beside small icons — no words, so no new translations.
+ * The expansion state survives the turn settling: `seq` is the first step's, and that does not
+ * change when the answer lands, so a reader who opened the process mid-run is not thrown out of it.
  */
 @Composable
 internal fun ProcessRow(row: TranscriptRow.Process, context: ChatNodeContext) {
-    var expanded by remember(row.seq) { mutableStateOf(false) }
+    var expanded by rememberSaveable(row.seq) { mutableStateOf(false) }
     val colors = DsTheme.colors
     Column(Modifier.fillMaxWidth().clip(DsShapes.block).background(colors.bgLayer1)
         .border(1.dp, colors.borderL2, DsShapes.block)) {
         Row(Modifier.fillMaxWidth().heightIn(min = 36.dp).clickable(role = Role.Button) { expanded = !expanded }
             .padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(FeatherIcons.Activity, null, Modifier.size(14.dp), tint = colors.labelTertiary)
+            if (row.live) {
+                StateDot(StateDotState.Running, size = 6.dp)
+            } else {
+                Icon(FeatherIcons.Activity, null, Modifier.size(14.dp), tint = colors.labelTertiary)
+            }
             Text(
                 stringResource(R.string.chat_process_title) + " · " +
                     pluralStringResource(R.plurals.trajectory_step_count, row.steps, row.steps),
                 style = DsType.small13,
                 color = colors.labelSecondary,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
+            HistogramCount(FeatherIcons.Tool, row.tools, colors)
+            HistogramCount(FeatherIcons.Activity, row.thinking, colors)
+            HistogramCount(FeatherIcons.Layers, row.contexts, colors)
             Spacer(Modifier.weight(1f))
             Icon(FeatherIcons.ChevronRight, null, Modifier.size(14.dp).graphicsLayer { rotationZ = if (expanded) 90f else 0f }, tint = colors.labelTertiary)
         }
@@ -240,5 +317,15 @@ internal fun ProcessRow(row: TranscriptRow.Process, context: ChatNodeContext) {
                 }
             }
         }
+    }
+}
+
+/** A small `icon N` count; hidden at zero so the header stays a single quiet line. */
+@Composable
+private fun HistogramCount(icon: ImageVector, count: Int, colors: DsColors) {
+    if (count <= 0) return
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        Icon(icon, null, Modifier.size(11.dp), tint = colors.labelCaption)
+        Text(count.toString(), style = DsType.caption11, color = colors.labelTertiary, maxLines = 1)
     }
 }

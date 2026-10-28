@@ -86,12 +86,15 @@ private const val LOAD_OLDER_THRESHOLD = 2
  * history in, four thousand events at a time, re-folding everything already held on each pass until
  * the heap gave out.
  *
- * One extra page is the whole of what the fill is for. A page carries up to sixty messages, which
- * is several screens' worth already; if it still does not reach the bottom of the viewport then the
- * session's log is mostly machinery, and pulling more of it is buying thousands more events for a
- * row or two. Past that the reader asks, via the row at the head of the list.
+ * A page carries up to [com.labteto.dshmobile.data.SessionStore.Companion.HISTORY_PAGE_SIZE]
+ * messages, which is several screens' worth already; if it still does not reach the bottom of the
+ * viewport then the session's log is mostly machinery, and pulling more of it is buying thousands
+ * more events for a row or two. Past that the reader asks, via the row at the head of the list.
+ *
+ * Local mod: 1 -> 3. With HISTORY_PAGE_SIZE raised to 500 the first page usually covers a long
+ * session; the extra budget only helps mid-size sessions whose window still opens on machinery.
  */
-private const val MAX_AUTO_PAGES = 1
+private const val MAX_AUTO_PAGES = 3
 
 /** Pages fetched back-to-back to get past a rewind's hidden range before a row appears. */
 private const val MAX_CUT_PAGES = 12
