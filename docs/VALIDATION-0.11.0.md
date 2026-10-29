@@ -1,7 +1,7 @@
 # DSH Mobile 0.11.0 validation
 
 Date: September 15, 2026. App version code: `1100`; debug application ID:
-`com.labteto.dshmobile.debug`. Minimum Android API: 26.
+`com.qgx1992.dshmobile.debug`. Minimum Android API: 26.
 
 ## Target and build
 

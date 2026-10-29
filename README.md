@@ -2,6 +2,31 @@
   <img src="docs/images/banner.jpg" alt="DSH Mobile, the DeepSeek Harness on your phone" width="100%">
 </p>
 
+> ### 二次修改版 / Modified fork
+>
+> This is an **unofficial modified build (二改)** of
+> **[sorsama/deepseek-harness-mobile](https://github.com/sorsama/deepseek-harness-mobile)** — the
+> original project by [@sorsama](https://github.com/sorsama), MIT licensed. All credit for the app
+> belongs there; this fork only carries the changes listed below.
+>
+> - Upstream: <https://github.com/sorsama/deepseek-harness-mobile>
+> - This fork: <https://github.com/qgx1992/deepseek-harness-mobile>
+> - Application ID: `com.qgx1992.dshmobile` (upstream ships `com.labteto.dshmobile`), so both can be
+>   installed side by side.
+>
+> Changes on top of upstream `93a7910`:
+>
+> - **A session no longer stays "running" after it finishes.** A complete follow snapshot now
+>   outranks the remembered live state, and `api-session/status` updates it as well.
+> - **Tool calls, injected context and thinking fold into one expandable `Process · N steps` row** —
+>   including the turn that is still running, which used to stay expanded.
+> - **`HISTORY_PAGE_SIZE` 60 → 500**, matching the desktop client, so the history sheet rarely has
+>   to be paged by hand.
+> - A turn rail beside the history button.
+>
+> Issues and pull requests are welcome here, but anything that is not one of the changes above is
+> better reported upstream.
+
 <h1 align="center">DSH Mobile</h1>
 
 <p align="center">

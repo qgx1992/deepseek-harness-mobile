@@ -2,6 +2,27 @@
   <img src="docs/images/banner.jpg" alt="DSH Mobile，手机上的 DeepSeek Harness" width="100%">
 </p>
 
+> ### 二次修改版（二改）
+>
+> 本项目是 **[sorsama/deepseek-harness-mobile](https://github.com/sorsama/deepseek-harness-mobile)**
+> 的非官方**二次修改版**，原作者 [@sorsama](https://github.com/sorsama)，MIT 协议。
+> 应用本身的功劳全部属于上游，这里只做了下面这几处改动。
+>
+> - 上游仓库：<https://github.com/sorsama/deepseek-harness-mobile>
+> - 本仓库（二改）：<https://github.com/qgx1992/deepseek-harness-mobile>
+> - 应用 ID：`com.qgx1992.dshmobile`（上游为 `com.labteto.dshmobile`），两者可同时安装
+>
+> 相对上游 `93a7910` 的改动：
+>
+> - **修掉「会话完成后一直显示运行中」**：完整的 follow 快照现在优先于记忆中的实时状态，
+>   同时消费 `api-session/status` 通知。
+> - **工具调用、注入上下文、思考折叠成一行可展开的「处理过程 · N 步」**，包括正在运行的回合
+>   （原来会一直展开）。
+> - **`HISTORY_PAGE_SIZE` 60 → 500**，与桌面端一致，历史面板基本不需要手动翻页。
+> - 历史按钮旁新增回合导轨（turn rail）。
+>
+> 欢迎在这里提 Issue / PR；不属于以上改动的 bug 建议反馈给上游。
+
 <h1 align="center">DSH Mobile</h1>
 
 <p align="center">

@@ -1,0 +1,575 @@
+package com.qgx1992.dshmobile.ui.screens.main
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.qgx1992.dshmobile.ui.components.StateDot
+import com.qgx1992.dshmobile.ui.components.StateDotState
+import com.qgx1992.dshmobile.ui.theme.DsAnimations
+import com.qgx1992.dshmobile.ui.theme.DsShapes
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.qgx1992.dshmobile.R
+import com.qgx1992.dshmobile.core.session.AssistantMessageNode
+import com.qgx1992.dshmobile.core.session.ConversationSnapshot
+import com.qgx1992.dshmobile.core.session.TurnStartNode
+import com.qgx1992.dshmobile.core.session.UserMessageNode
+import com.qgx1992.dshmobile.ui.components.DsButton
+import com.qgx1992.dshmobile.ui.components.DsButtonSize
+import com.qgx1992.dshmobile.ui.components.DsButtonVariant
+import com.qgx1992.dshmobile.ui.components.EmptyHero
+import com.qgx1992.dshmobile.ui.components.skeleton
+import com.qgx1992.dshmobile.ui.theme.DsTheme
+import com.qgx1992.dshmobile.ui.theme.DsType
+
+/**
+ * How close to the far end of the list — the oldest message — a reader must get before the next
+ * page is fetched.
+ *
+ * Deliberately not zero: firing a row or two early means the page is on its way before the reader
+ * reaches the end of what is loaded, so scrolling back stays continuous rather than stopping dead
+ * at a spinner.
+ *
+ * In reverse layout this no longer has a second job. The list is anchored at the newest message,
+ * older ones extend away from that anchor, and a page arriving at the far end cannot move anything
+ * the reader is looking at — which is what the pre-0.11.2 comment here was working around.
+ */
+private const val LOAD_OLDER_THRESHOLD = 2
+
+/**
+ * How many pages the transcript may fetch on its own before it needs to be asked.
+ *
+ * Paging used to be automatic without limit while the transcript was shorter than the screen. That
+ * reads as reasonable and is not: a page is counted in *events*, and most events — chunk deltas,
+ * tool traffic, turn boundaries — render nothing at all. A session whose log is mostly machinery
+ * therefore never fills the screen however much is loaded, so the fill loop pulled the entire
+ * history in, four thousand events at a time, re-folding everything already held on each pass until
+ * the heap gave out.
+ *
+ * A page carries up to [com.qgx1992.dshmobile.data.SessionStore.Companion.HISTORY_PAGE_SIZE]
+ * messages, which is several screens' worth already; if it still does not reach the bottom of the
+ * viewport then the session's log is mostly machinery, and pulling more of it is buying thousands
+ * more events for a row or two. Past that the reader asks, via the row at the head of the list.
+ *
+ * Local mod: 1 -> 3. With HISTORY_PAGE_SIZE raised to 500 the first page usually covers a long
+ * session; the extra budget only helps mid-size sessions whose window still opens on machinery.
+ */
+private const val MAX_AUTO_PAGES = 3
+
+/** Pages fetched back-to-back to get past a rewind's hidden range before a row appears. */
+private const val MAX_CUT_PAGES = 12
+
+/**
+ * The conversation itself.
+ *
+ * The list is laid out in reverse: the newest row is index 0, pinned at the bottom of the
+ * viewport, and older rows extend upward from it. That is what makes following a streaming reply
+ * free. A normally-ordered list anchors on its *first* visible row, so a tail row growing 20 times
+ * a second displaces every row after it, and each displacement was being animated — the text under
+ * the reader's eyes jittered, and a scroll was needed every frame just to stay at the bottom.
+ * Reversed, the growing row is the anchor: it extends in place, nothing else moves, and no scroll
+ * happens at all.
+ *
+ * It also makes reading history mid-turn stable for free. Scrolled up, the reader's anchor sits
+ * above index 0, so the tail can grow as much as it likes without touching the viewport — no
+ * freezing the tail and catching up later. And a page of older messages lands at the far end,
+ * where it cannot move anything on screen.
+ */
+@Composable
+internal fun ChatTranscript(
+    conversation: ConversationSnapshot?,
+    loading: Boolean,
+    loadingOlder: Boolean,
+    loadOlderFailed: Boolean,
+    context: ChatNodeContext,
+    listState: LazyListState,
+    onLoadOlder: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** A message the reader picked out of the history sheet, still waiting to be scrolled to. */
+    jumpToSeq: Long? = null,
+    onJumpConsumed: () -> Unit = {},
+    /** Fills the composer with a starter prompt from the empty state; null offers none. */
+    onSuggestion: ((String) -> Unit)? = null,
+    /** Bumped each time the reader sends: their own message is always worth landing on. */
+    sentTick: Int = 0,
+) {
+    // Only the nodes that draw something: a zero-height item still costs its 4dp gap, and a turn's
+    // worth of structural events stacks those gaps into a blank band under the chrome.
+    //
+    // Reversed here rather than at the call site: the fold's natural order is oldest-first, and
+    // that is the order every other reader of `nodes` wants.
+    val rows = remember(conversation?.nodes, context.running) {
+        val nodes = conversation?.nodes.orEmpty()
+        foldProcessRows(
+            rows = groupToolRows(renderableChatNodes(nodes, context.running)),
+            // Read from the unfiltered nodes: a turn start draws no row, so the row list alone
+            // cannot say where one turn ends and the next begins.
+            turnStarts = nodes.filterIsInstance<TurnStartNode>().map { it.seq }.sorted(),
+            running = context.running,
+        ).asReversed()
+    }
+    val hasMore = conversation?.hasMore == true
+    val itemCount = rows.size + if (hasMore) 1 else 0
+    val sessionId = conversation?.sessionId
+
+    // Opening a session lands on its newest message. In reverse layout that is index 0, which is
+    // also where the list starts, so this only has to undo a position inherited from the session
+    // that was open before. Following the tail is handled just below, where the anchoring the
+    // reversal buys is overridden only when it would otherwise cost the reader the newest row.
+    var lastSession by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(sessionId) {
+        if (sessionId == lastSession) return@LaunchedEffect
+        lastSession = sessionId
+        if (itemCount > 0) listState.scrollToItem(0)
+    }
+
+    // Following the tail is free only while the tail is one growing row. The layout keeps the first
+    // visible *key* anchored, and in a reversed list that key is the bottom row: insert a row below
+    // it — a tool card, the next message segment, a question card, the reader's own message — and
+    // the new row takes index 0 while the viewport holds the old bottom row exactly where it was,
+    // leaving the arrival one scroll past the edge. Nothing animated it into place either, so the
+    // reader watching a reply arrives at a dead screen until they drag.
+    //
+    // Pin index 0 again while the reader is at the bottom. `requestScrollToItem` is the one call
+    // that overrides the key anchoring for the coming measure; it is instant and schedules no
+    // animation, so it cannot race the next delta the way a per-frame scroll would.
+    //
+    // Following is intent, not position: the anchoring above moves the first visible index to 1 on
+    // its own when a row lands below, and reading that as "the reader scrolled away" would switch
+    // following off at the exact moment it is needed. Only a scroll session — a drag, or the fling
+    // that follows one, both of which `isScrollInProgress` covers — moves the reader on purpose, so
+    // where the list comes to rest at the end of one is the whole of the signal.
+    //
+    // Primed from the position rather than assumed: the list state is hoisted above the tab swap
+    // and outlives this composition. Today the session-open scroll above lands every new
+    // composition on the tail anyway, so this only matters if that scroll ever stops doing so.
+    fun atTail(): Boolean =
+        listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+    var followTail by remember(sessionId) { mutableStateOf(true) }
+    LaunchedEffect(listState, sessionId) {
+        followTail = atTail()
+        snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
+            if (scrolling) return@collect
+            followTail = atTail()
+        }
+    }
+    LaunchedEffect(itemCount, followTail) {
+        // itemCount rather than the rows themselves: a delta changes the text of a row, not how
+        // many rows there are, and only the arrival of a row can land the tail out of view.
+        if (followTail && itemCount > 0 && !listState.isScrollInProgress) {
+            listState.requestScrollToItem(0)
+        }
+    }
+
+    // Reaching the oldest loaded message pulls the next page. The guard matters: this effect sits
+    // above the `loading` early return, so without it the trigger would fire against an empty list
+    // and race the initial history fetch. It also re-arms once a page lands, which is what fills
+    // the first screen when a session opens on fewer messages than the viewport holds.
+    //
+    // Two different things want a page, and only one of them is safe to repeat without limit.
+    // Scrolling back to the oldest loaded row is the reader asking, and can page as far back as
+    // they care to go.
+    // Filling a screen that the transcript does not yet cover is the app asking, and is bounded by
+    // MAX_AUTO_PAGES — a page that adds thousands of events and no visible rows would otherwise
+    // keep the app asking forever.
+    var autoPages by rememberSaveable(sessionId) { mutableIntStateOf(0) }
+    val canPage = hasMore && !loading && !loadingOlder && !loadOlderFailed
+    val autoPagingExhausted = hasMore && !loading && autoPages >= MAX_AUTO_PAGES
+
+    // A rewind hides everything from its target through its marker. A page that lands entirely
+    // inside that range adds events and no rows, so a tap on "Load older" looks like it did
+    // nothing. When the oldest row loaded — the top of the transcript — is a rewind divider and a
+    // page just landed without changing the row count, keep paging (bounded) until something
+    // above the cut appears.
+    val rowCount = rows.size
+    val dividerOnTop = (rows.lastOrNull() as? TranscriptRow.Message)?.node.let { it is UserMessageNode && it.isRewindMarker }
+    var lastPagedRowCount by remember(sessionId) { mutableIntStateOf(-1) }
+    var cutPages by remember(sessionId) { mutableIntStateOf(0) }
+    LaunchedEffect(rowCount, loadingOlder, hasMore, dividerOnTop) {
+        if (loadingOlder || !hasMore || loadOlderFailed || !dividerOnTop) return@LaunchedEffect
+        if (lastPagedRowCount == -1) { lastPagedRowCount = rowCount; return@LaunchedEffect }
+        if (rowCount != lastPagedRowCount) { lastPagedRowCount = rowCount; cutPages = 0; return@LaunchedEffect }
+        if (cutPages >= MAX_CUT_PAGES) return@LaunchedEffect
+        cutPages++
+        onLoadOlder()
+    }
+    LaunchedEffect(listState, sessionId, canPage) {
+        if (!canPage) return@LaunchedEffect
+        snapshotFlow {
+            val info = listState.layoutInfo
+            val covered = info.visibleItemsInfo.sumOf { it.size }
+            val viewport = info.viewportEndOffset - info.viewportStartOffset
+            // The oldest row is at the *end* of a reversed list, so distance-to-history is measured
+            // from the last visible index rather than the first.
+            val last = info.visibleItemsInfo.lastOrNull()?.index ?: -1
+            val remaining = if (last < 0) Int.MAX_VALUE else info.totalItemsCount - 1 - last
+            remaining to (viewport > 0 && covered >= viewport)
+        }.collect { (remaining, fillsViewport) ->
+            if (remaining > LOAD_OLDER_THRESHOLD) return@collect
+            if (!fillsViewport) {
+                if (autoPages >= MAX_AUTO_PAGES) return@collect
+                autoPages++
+            }
+            onLoadOlder()
+        }
+    }
+
+    // A pick from the history sheet or the turn rail. The sheet knows only sequences; which row
+    // index a sequence owns is decided by the grouping above, so the lookup happens here rather
+    // than there.
+    //
+    // Keyed on the pick alone. Re-running on every row change would restart a jump halfway through
+    // whenever a running reply added a row, and both sheets page history in before they report a
+    // pick, so there is no later page worth waiting for. The pick is consumed however the jump
+    // ends — landed, missed, or cut short by the reader's own drag — so a leftover cannot fire
+    // later and pull them back.
+    //
+    // Following the tail is switched off first, or the next row a running reply adds would pin the
+    // tail back under a reader who deliberately left it. Picking the tail itself keeps it on.
+    LaunchedEffect(jumpToSeq) {
+        val seq = jumpToSeq ?: return@LaunchedEffect
+        try {
+            // A turn's own start event draws no row of its own, so a turn pick lands on the
+            // earliest row the turn produced rather than on an exact match.
+            val index = jumpRowIndex(rows, seq) ?: return@LaunchedEffect
+            val rowKey = transcriptRowKey(rows[index])
+            if (index == 0) {
+                followTail = true
+                listState.requestScrollToItem(0)
+                return@LaunchedEffect
+            }
+            followTail = false
+            // The prompt goes to the top of the viewport, not the bottom. A reversed list puts the
+            // item it scrolls to at its start, which is the bottom edge: the prompt would sit on the
+            // composer with the reply it asked for out of view below it, and the screen filled with
+            // the turn before. Both steps are instant; the second needs the prompt measured, since
+            // its height decides how far back to come, and clamps at the tail on its own.
+            listState.scrollToItem(index)
+            val info = listState.layoutInfo
+            val item = info.visibleItemsInfo.firstOrNull { it.key == rowKey } ?: return@LaunchedEffect
+            val contentEnd = info.viewportEndOffset - info.afterContentPadding
+            listState.scrollBy((item.offset + item.size - contentEnd).toFloat())
+            // Read where the jump came to rest rather than leaving it to the scroll-session watcher:
+            // both scrolls start and finish inside one frame, so it never sees them. A newest prompt
+            // whose turn is shorter than the screen stops at the tail, and a reader left at the tail
+            // with following off would watch the next reply land out of view.
+            followTail = atTail()
+        } finally {
+            onJumpConsumed()
+        }
+    }
+
+    if (loading) {
+        TranscriptSkeleton(modifier)
+        return
+    }
+
+    // Rows that arrived below the reader since they last left the tail, counted against the
+    // newest row they had seen. Paging adds rows too, but at the far end, so it cannot inflate this.
+    var seenNewestKey by remember(sessionId) { mutableStateOf<Any?>(null) }
+    // The streaming row's key is shared by every reply in turn, so it cannot mark a place.
+    val newestKey = rows.firstNotNullOfOrNull { row -> transcriptRowKey(row).takeIf { it != STREAMING_ROW_KEY } }
+    LaunchedEffect(followTail, newestKey) { if (followTail) seenNewestKey = newestKey }
+    // A step the reader saw can fold into its turn's Process row when the turn answers, which is
+    // exactly while they are away; that row then stands in for it, or the count drops to nothing
+    // just as the reply lands.
+    val unseen = remember(rows, seenNewestKey) {
+        if (seenNewestKey == null) 0
+        else rows.indexOfFirst { row ->
+            transcriptRowKey(row) == seenNewestKey ||
+                (row is TranscriptRow.Process && row.rows.any { transcriptRowKey(it) == seenNewestKey })
+        }.coerceAtLeast(0)
+    }
+    val awayFromTail by remember(listState) {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 240 }
+    }
+    val jumpScope = rememberCoroutineScope()
+    // Sending from halfway up the history used to leave the new message, and the reply to it, out
+    // of view below. A send is the clearest possible "take me to the end".
+    LaunchedEffect(sentTick) {
+        if (sentTick == 0) return@LaunchedEffect
+        followTail = true
+        if (listState.firstVisibleItemIndex > JUMP_SNAP_ROWS) listState.scrollToItem(JUMP_SNAP_ROWS)
+        listState.animateScrollToItem(0)
+    }
+
+    Box(modifier.fillMaxSize()) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        // Newest first, so the row the viewport anchors on is the one that grows.
+        reverseLayout = true,
+        // Still bottom-aligned: a transcript shorter than the viewport belongs above the composer,
+        // not pinned under the tab strip with the empty half below it. The alignment is in visual
+        // space, not the reversed one, so this reads the same as it always did — and it only has
+        // any effect while the content is shorter than the viewport, which is exactly when no row
+        // is growing under anyone's eyes.
+        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Bottom),
+    ) {
+        if (rows.isEmpty()) {
+            item(key = "empty") {
+                // A blank page with a blinking cursor is the hardest place to start from on a
+                // phone keyboard, so a new session offers a few starters. They fill the composer
+                // rather than sending, so each one is a draft to adjust, not a commitment.
+                val suggestions = listOf(
+                    stringResource(R.string.chat_suggest_overview),
+                    stringResource(R.string.chat_suggest_tests),
+                    stringResource(R.string.chat_suggest_changes),
+                )
+                EmptyHero(
+                    headline = stringResource(R.string.chat_empty_title),
+                    subtitle = stringResource(R.string.chat_empty_hint),
+                    chips = if (onSuggestion != null) suggestions else emptyList(),
+                    onChipClick = { onSuggestion?.invoke(it) },
+                )
+            }
+        } else {
+            items(
+                rows,
+                // A streaming row's seq is minted past the durable cursor and is explicitly not
+                // stable across folds, so keying on it destroyed and rebuilt the row the moment the
+                // settlement landed — a visible pop at the end of every reply. One constant key
+                // instead: there is only ever one provisional row, and it is the same row before
+                // and after it settles.
+                key = ::transcriptRowKey,
+            ) { row ->
+                val node = (row as? TranscriptRow.Message)?.node
+                val streaming = node is AssistantMessageNode && node.streaming
+                // Rows fade in as they land, and nothing slides. Every line a streaming reply adds
+                // pushes the rows above it up; a placement animation made them trail that push on
+                // a spring while the reply moved at once, so a tool card would ride over the text
+                // being written for a moment on every new line.
+                //
+                // A reply that just settled is a new key (the streaming key gives way to its seq),
+                // so the list would fade it in from nothing: every finished reply flashed to a
+                // ghost of itself and back. Its text has been on screen the whole time, so assistant
+                // rows take no arrival animation at all.
+                val arrival = when {
+                    streaming || node is AssistantMessageNode -> Modifier
+                    else -> Modifier.animateItem(placementSpec = null)
+                }
+                Column(arrival) {
+                    when (row) {
+                        is TranscriptRow.Message -> ChatNodeItem(node = row.node, context = context)
+                        is TranscriptRow.Tools -> ToolGroupRow(row.calls, context)
+                        is TranscriptRow.Context -> ContextGroupRow(row.nodes, context)
+                        is TranscriptRow.Process -> ProcessRow(row, context)
+                    }
+                }
+            }
+        }
+        if (hasMore) {
+            // The far end of a reversed list is the oldest message, so the paging row goes last.
+            item(key = "load-older") {
+                LoadOlderRow(
+                    loading = loadingOlder,
+                    failed = loadOlderFailed,
+                    offerManual = autoPagingExhausted,
+                    onRetry = onLoadOlder,
+                )
+            }
+        }
+    }
+
+    // The way back down. Reading history mid-turn is supported on purpose (see the anchoring notes
+    // above), but on a long session the only way back used to be dragging through everything in
+    // between. Shown only once the reader is clearly away, so it does not flicker in on a nudge.
+    AnimatedVisibility(
+        visible = awayFromTail && rows.isNotEmpty(),
+        enter = DsAnimations.popEnter,
+        exit = DsAnimations.popExit,
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 12.dp),
+    ) {
+        JumpToLatestButton(
+            unseen = unseen,
+            running = context.running,
+            onClick = {
+                followTail = true
+                jumpScope.launch {
+                    // A long way back is mostly rows nobody needs to watch go by: land near the tail
+                    // first, then animate the last stretch so the motion still reads as "down".
+                    if (listState.firstVisibleItemIndex > JUMP_SNAP_ROWS) listState.scrollToItem(JUMP_SNAP_ROWS)
+                    listState.animateScrollToItem(0)
+                }
+            },
+        )
+    }
+    }
+}
+
+/** How far from the tail a jump snaps before animating the rest of the way. */
+private const val JUMP_SNAP_ROWS = 6
+
+/** The lazy key of a transcript row; see the keying note in [ChatTranscript]. */
+private fun transcriptRowKey(row: TranscriptRow): Any {
+    val node = (row as? TranscriptRow.Message)?.node
+    return if (node is AssistantMessageNode && node.streaming) STREAMING_ROW_KEY else row.seq
+}
+
+/** A round "back to the newest message" button, with a count of what arrived while away. */
+@Composable
+private fun JumpToLatestButton(unseen: Int, running: Boolean, onClick: () -> Unit) {
+    val colors = DsTheme.colors
+    val label = if (unseen > 0) {
+        pluralStringResource(R.plurals.chat_jump_latest_new, unseen, unseen)
+    } else {
+        stringResource(R.string.chat_jump_latest)
+    }
+    Surface(
+        onClick = onClick,
+        shape = DsShapes.pillFull,
+        color = colors.bgLayer2,
+        border = BorderStroke(1.dp, colors.borderL2),
+        shadowElevation = 6.dp,
+        modifier = Modifier.semantics { contentDescription = label },
+    ) {
+        Row(
+            modifier = Modifier
+                .heightIn(min = 40.dp)
+                .padding(horizontal = if (unseen > 0) 14.dp else 10.dp)
+                .animateContentSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (running) StateDot(StateDotState.Running, size = 8.dp)
+            if (unseen > 0) {
+                Text(
+                    pluralStringResource(R.plurals.chat_jump_latest_new, unseen, unseen),
+                    style = DsType.small13Strong,
+                    color = colors.accent,
+                    maxLines = 1,
+                )
+            }
+            Icon(
+                Icons.Filled.ArrowDownward,
+                contentDescription = null,
+                tint = colors.labelSecondary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+}
+
+/** Stable identity for the one provisional streaming row; see the keying note above. */
+private const val STREAMING_ROW_KEY = "streaming-tail"
+
+/**
+ * Tail of the reversed list — visually the top of the transcript — while more history exists.
+ *
+ * Silent by default — paging is automatic, so an affordance would only invite a tap that does
+ * nothing. It speaks up while fetching, and offers a retry when a page failed, because the scroll
+ * trigger will not fire again on its own until the reader moves.
+ *
+ * [offerManual] is the third case: automatic paging has spent its budget on a session whose events
+ * are mostly not messages, so the list may still be too short to scroll. Without a button there
+ * would be nothing left to trigger a page, and the rest of the history would be unreachable. The
+ * history sheet always passes it: nothing scrolls a sheet to its end to page for it.
+ */
+@Composable
+internal fun LoadOlderRow(
+    loading: Boolean,
+    failed: Boolean,
+    offerManual: Boolean,
+    onRetry: () -> Unit,
+) {
+    val colors = DsTheme.colors
+    when {
+        failed -> DsButton(
+            text = stringResource(R.string.chat_load_older_retry),
+            onClick = onRetry,
+            variant = DsButtonVariant.Ghost,
+            size = DsButtonSize.Small,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        offerManual && !loading -> DsButton(
+            text = stringResource(R.string.chat_load_older),
+            onClick = onRetry,
+            variant = DsButtonVariant.Ghost,
+            size = DsButtonSize.Small,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        loading -> Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(14.dp),
+                strokeWidth = 2.dp,
+                color = colors.labelTertiary,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(R.string.chat_loading_older),
+                style = DsType.caption11,
+                color = colors.labelTertiary,
+            )
+        }
+
+        else -> Spacer(Modifier.height(1.dp))
+    }
+}
+
+/** Placeholder bubbles while a session's history loads, instead of an empty white screen. */
+@Composable
+private fun TranscriptSkeleton(modifier: Modifier = Modifier) {
+    val colors = DsTheme.colors
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        listOf(0.55f, 0.9f, 0.75f, 0.4f).forEach { fraction ->
+            Box(
+                Modifier
+                    .fillMaxWidth(fraction)
+                    .height(14.dp)
+                    .skeleton(colors.bgLayer2, colors.hover),
+            )
+        }
+    }
+}

@@ -93,8 +93,8 @@ body:
         silent failure, attach logcat:
 
         ```sh
-        adb logcat --pid=$(adb shell pidof -s com.labteto.dshmobile)
+        adb logcat --pid=$(adb shell pidof -s com.qgx1992.dshmobile)
         ```
 
-        Use `com.labteto.dshmobile.debug` for a debug build. Please redact your LAN
+        Use `com.qgx1992.dshmobile.debug` for a debug build. Please redact your LAN
         addresses and anything private in your session content.

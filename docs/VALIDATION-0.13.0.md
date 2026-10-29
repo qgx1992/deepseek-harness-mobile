@@ -4,7 +4,7 @@ Status: local validation complete; JVM tests, lint, debug assembly, real-host
 conformance, Android instrumentation and UX verification passed within the limits
 recorded below. Updated October 8, 2026.
 Delivered app version: `0.13.0`, version code: `1300`; debug application ID:
-`com.labteto.dshmobile.debug`. Minimum Android API: 26.
+`com.qgx1992.dshmobile.debug`. Minimum Android API: 26.
 
 Referenced `build/` reports, screenshots and logs are local validation artifacts
 that are not in the repository.

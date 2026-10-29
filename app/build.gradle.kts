@@ -30,11 +30,11 @@ val dshVersionCode: Int = dshVersionName
     .coerceAtLeast(1)
 
 android {
-    namespace = "com.labteto.dshmobile"
+    namespace = "com.qgx1992.dshmobile"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.labteto.dshmobile"
+        applicationId = "com.qgx1992.dshmobile"
         minSdk = 26
         targetSdk = 35
         versionCode = dshVersionCode

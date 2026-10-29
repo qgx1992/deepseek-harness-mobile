@@ -4,10 +4,10 @@
 # kotlinx.serialization
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.**
--keepclassmembers class com.labteto.dshmobile.core.wire.dto.** {
+-keepclassmembers class com.qgx1992.dshmobile.core.wire.dto.** {
     *** Companion;
 }
--keepclasseswithmembers class com.labteto.dshmobile.core.wire.dto.** {
+-keepclasseswithmembers class com.qgx1992.dshmobile.core.wire.dto.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 
