@@ -2740,7 +2740,11 @@ class SessionStore @Inject constructor(
 
         /** Largest file the base64 Remote fallback will carry; anything bigger needs the route. */
         const val MAX_ENCODED_UPLOAD_BYTES = 20L * 1024 * 1024
-        const val HISTORY_PAGE_SIZE = 60
+        // Matches the desktop client's HISTORY_PAGE_OPTIONS.maxMessages (500), so a cold open of a
+        // long session lands on several screens of prompts instead of one, and the history sheet
+        // rarely has to be paged by hand. Upstream keeps 60 because one host was observed answering
+        // a 60-message request with ~29k events; MAX_PAGE_EVENTS below still bounds every page.
+        const val HISTORY_PAGE_SIZE = 500
 
         /** Ceiling on events folded per page, whatever the host sends. */
         const val MAX_PAGE_EVENTS = 4_000

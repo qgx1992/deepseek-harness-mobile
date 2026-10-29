@@ -572,6 +572,7 @@
     <string name="chat_tool_group_count">工具调用：%1$d</string>
     <string name="chat_tool_group_failed">失败：%1$d</string>
     <string name="chat_thought_process">思考过程</string>
+    <string name="chat_process_title">过程</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">本机</string>
     <string name="connect_mode_loopback_hint">连接运行在本手机上的 harness：在 Termux 中运行，或通过 adb reverse 转发到本机。数据不会离开设备，harness 会把应用视为本地客户端。它仍会为本手机登录一次。</string>
@@ -636,4 +637,6 @@
     <string name="hold_replace_draft_title">替换草稿？</string>
     <string name="hold_replace_draft_body">输入框里已有内容，编辑这条消息会替换掉它。</string>
     <string name="hold_replace_draft_confirm">替换</string>
+    <string name="chatlist_show_all">显示全部 %1$d</string>
+    <string name="chatlist_show_less">收起</string>
 </resources>
