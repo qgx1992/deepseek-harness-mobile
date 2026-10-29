@@ -5,6 +5,14 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ## [Unreleased]
 
+### Changed
+
+- **The application id is `com.qgx1992.dshmobile`.** This fork renames the id and the Kotlin
+  namespace away from upstream's `com.labteto.dshmobile`, so the two builds install side by side
+  and neither replaces the other. Package declarations, imports, manifest attributes, backup rules
+  and resource references moved with it. Nothing migrates: hosts, tokens and settings stored by an
+  upstream install stay under the old id.
+
 ### Added
 
 - **A turn rail beside the history button** lists every turn of the session, not just the ones
