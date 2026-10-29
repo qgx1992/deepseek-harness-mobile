@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.labteto.dshmobile.R
 import com.labteto.dshmobile.core.session.AssistantMessageNode
 import com.labteto.dshmobile.core.session.ConversationSnapshot
+import com.labteto.dshmobile.core.session.TurnStartNode
 import com.labteto.dshmobile.core.session.UserMessageNode
 import com.labteto.dshmobile.ui.components.DsButton
 import com.labteto.dshmobile.ui.components.DsButtonSize
@@ -85,12 +86,15 @@ private const val LOAD_OLDER_THRESHOLD = 2
  * history in, four thousand events at a time, re-folding everything already held on each pass until
  * the heap gave out.
  *
- * One extra page is the whole of what the fill is for. A page carries up to sixty messages, which
- * is several screens' worth already; if it still does not reach the bottom of the viewport then the
- * session's log is mostly machinery, and pulling more of it is buying thousands more events for a
- * row or two. Past that the reader asks, via the row at the head of the list.
+ * A page carries up to [com.labteto.dshmobile.data.SessionStore.Companion.HISTORY_PAGE_SIZE]
+ * messages, which is several screens' worth already; if it still does not reach the bottom of the
+ * viewport then the session's log is mostly machinery, and pulling more of it is buying thousands
+ * more events for a row or two. Past that the reader asks, via the row at the head of the list.
+ *
+ * Local mod: 1 -> 3. With HISTORY_PAGE_SIZE raised to 500 the first page usually covers a long
+ * session; the extra budget only helps mid-size sessions whose window still opens on machinery.
  */
-private const val MAX_AUTO_PAGES = 1
+private const val MAX_AUTO_PAGES = 3
 
 /** Pages fetched back-to-back to get past a rewind's hidden range before a row appears. */
 private const val MAX_CUT_PAGES = 12
@@ -135,7 +139,14 @@ internal fun ChatTranscript(
     // Reversed here rather than at the call site: the fold's natural order is oldest-first, and
     // that is the order every other reader of `nodes` wants.
     val rows = remember(conversation?.nodes, context.running) {
-        groupToolRows(renderableChatNodes(conversation?.nodes.orEmpty(), context.running)).asReversed()
+        val nodes = conversation?.nodes.orEmpty()
+        foldProcessRows(
+            rows = groupToolRows(renderableChatNodes(nodes, context.running)),
+            // Read from the unfiltered nodes: a turn start draws no row, so the row list alone
+            // cannot say where one turn ends and the next begins.
+            turnStarts = nodes.filterIsInstance<TurnStartNode>().map { it.seq }.sorted(),
+            running = context.running,
+        ).asReversed()
     }
     val hasMore = conversation?.hasMore == true
     val itemCount = rows.size + if (hasMore) 1 else 0
@@ -299,9 +310,15 @@ internal fun ChatTranscript(
     // The streaming row's key is shared by every reply in turn, so it cannot mark a place.
     val newestKey = rows.firstNotNullOfOrNull { row -> transcriptRowKey(row).takeIf { it != STREAMING_ROW_KEY } }
     LaunchedEffect(followTail, newestKey) { if (followTail) seenNewestKey = newestKey }
+    // A step the reader saw can fold into its turn's Process row when the turn answers, which is
+    // exactly while they are away; that row then stands in for it, or the count drops to nothing
+    // just as the reply lands.
     val unseen = remember(rows, seenNewestKey) {
         if (seenNewestKey == null) 0
-        else rows.indexOfFirst { transcriptRowKey(it) == seenNewestKey }.coerceAtLeast(0)
+        else rows.indexOfFirst { row ->
+            transcriptRowKey(row) == seenNewestKey ||
+                (row is TranscriptRow.Process && row.rows.any { transcriptRowKey(it) == seenNewestKey })
+        }.coerceAtLeast(0)
     }
     val awayFromTail by remember(listState) {
         derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 240 }
@@ -377,6 +394,7 @@ internal fun ChatTranscript(
                         is TranscriptRow.Message -> ChatNodeItem(node = row.node, context = context)
                         is TranscriptRow.Tools -> ToolGroupRow(row.calls, context)
                         is TranscriptRow.Context -> ContextGroupRow(row.nodes, context)
+                        is TranscriptRow.Process -> ProcessRow(row, context)
                     }
                 }
             }

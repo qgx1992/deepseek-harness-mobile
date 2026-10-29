@@ -572,6 +572,7 @@
     <string name="chat_tool_group_count">टूल कॉल: %1$d</string>
     <string name="chat_tool_group_failed">%1$d विफल</string>
     <string name="chat_thought_process">विचार प्रक्रिया</string>
+    <string name="chat_process_title">कार्यप्रणाली</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">यह फ़ोन</string>
     <string name="connect_mode_loopback_hint">इसी फ़ोन पर चल रहे harness से बात करें — Termux में, या adb reverse से यहाँ फ़ॉरवर्ड किया हुआ। कुछ भी डिवाइस से बाहर नहीं जाता, और harness ऐप को लोकल मानता है। फिर भी यह इस फ़ोन को एक बार साइन इन करता है।</string>
@@ -640,4 +641,6 @@
     <string name="hold_replace_draft_title">ड्राफ़्ट बदलें?</string>
     <string name="hold_replace_draft_body">कंपोज़र में पहले से टेक्स्ट है। इस संदेश को संपादित करने से वह बदल जाएगा।</string>
     <string name="hold_replace_draft_confirm">बदलें</string>
+    <string name="chatlist_show_all">सभी %1$d दिखाएँ</string>
+    <string name="chatlist_show_less">कम दिखाएँ</string>
 </resources>

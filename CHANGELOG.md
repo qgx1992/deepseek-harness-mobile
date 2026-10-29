@@ -19,6 +19,25 @@ All notable changes to DSH Mobile are documented here. Format based on
 - Where the host composes no `turnOutline` — an older deployment, or an assembly without the
   projection registry — the rail lists the turns the transcript has loaded instead of offering a
   control that cannot work.
+- **Workspaces in the chat list preview their newest five sessions** instead of unfolding every
+  session at once. The rest sit behind a **Show all N** row under the preview, and **Show less**
+  puts them back away. A workspace that holds the session you are reading always keeps that
+  session visible, so opening the drawer mid-run never hides where you are.
+
+### Changed
+
+- **The changed-files card starts folded.** A turn that touched a dozen files ended with a dozen
+  pills stacked over the reply, which is the part you were still reading. The card now shows only
+  the count, and a tap opens the list; the files are one tap away and holding one still offers
+  copy-path and mention. The fold is remembered per turn, so opening one turn's list does not open
+  the next.
+
+- **A turn's steps fold into one row under its prompt.** Collapsed, a step still costs a row, so a
+  turn that thinks, reads a few files, thinks again and then answers left a stack of headers between
+  the question and the reply. Everything the turn did before the message it settled on now sits
+  behind a single "Process · N steps" row: prompt, folded process, answer. Tapping it opens the
+  reasoning panels and tool groups as they were. Turns that have not answered yet — and the turn
+  currently running — are left expanded, because their steps are the progress you are watching.
 
 ## [0.18.0] - 2026-10-21
 
