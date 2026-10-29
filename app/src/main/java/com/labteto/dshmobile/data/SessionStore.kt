@@ -286,6 +286,28 @@ data class PendingQuestions(
 internal fun nextHasMore(freshCount: Int, hostHasMore: Boolean, overDelivered: Boolean): Boolean =
     freshCount > 0 && (hostHasMore || overDelivered)
 
+/**
+ * Whether the open session should read as running.
+ *
+ * The store keeps `running` twice: the fold derives it from the events it holds (`turn/start` …
+ * `turn/end`), and `runningBySession` remembers the last value a *live* stream produced for it.
+ * The remembered value used to win unconditionally, and it is sticky by construction: a session's
+ * follow stream is cancelled the moment the reader opens another session, that session's
+ * `turn/end` then lands with nobody listening, and the `true` written by its `turn/start` is never
+ * corrected. Coming back opened a fresh snapshot that carried the whole `turn/start` … `turn/end`
+ * pair and folded to idle — and the stale `true` went on overriding it, so the session stayed
+ * "running" until the app was restarted.
+ *
+ * A complete host window is therefore authoritative: it contains the turn's end whenever the turn
+ * is over, and cannot contain one that has not happened yet. Between snapshots the remembered
+ * value still wins, because a live stream can be ahead of the fold for one frame (the store marks
+ * a turn running before it appends its `turn/start`, so the fold has not seen it yet).
+ *
+ * File-level so it is testable without standing up the whole store.
+ */
+internal fun resolveRunning(folded: Boolean, remembered: Boolean?, authoritative: Boolean): Boolean =
+    if (authoritative) folded else remembered ?: folded
+
 /** Projection key carrying the agent's pending input; the queue dock's source since 0.1.6-alpha.2. */
 private const val INBOX_PROJECTION = "inbox"
 
@@ -1275,6 +1297,23 @@ class SessionStore @Inject constructor(
         }
     }
 
+    /**
+     * Apply the host's own running/idle notification for a session.
+     *
+     * `api-session/status` is the host stating the fact, and it is the one signal that also covers
+     * sessions this client is not following — a turn that ends while the reader is looking at
+     * another session, or while the app is backgrounded, leaves no `turn/end` for the store to
+     * fold. Turning it into the same [setRunning] a `turn/start`/`turn/end` pair uses keeps the
+     * open transcript, the drawer row and the subagent catalog in one state.
+     *
+     * These notifications are never replayed after a reconnect, so this only ever *adds* to the
+     * durable picture; the follow snapshot still decides the state on (re)open.
+     */
+    fun applyHostSessionStatus(sessionId: String, running: Boolean) {
+        if (runningBySession[sessionId] == running) return
+        setRunning(sessionId, running)
+    }
+
     private fun setRunning(sessionId: String, running: Boolean) {
         synchronized(lock) {
             runningBySession[sessionId] = running
@@ -1396,12 +1435,31 @@ class SessionStore @Inject constructor(
         }
     }
 
-    private fun rebuildCurrentLocked() {
+    /**
+     * Publish the open session's transcript.
+     *
+     * [authoritativeRunning] marks the moment the transcript was rebuilt from a complete host
+     * window (a follow snapshot) rather than patched by one event. Then the window itself decides
+     * whether the session is running — see [resolveRunning].
+     */
+    private fun rebuildCurrentLocked(authoritativeRunning: Boolean = false) {
         val sid = currentId ?: return
         val events = currentEvents.toList()
         val snapshot = EventFold(sid).fold(events, liveAssistant.transientEnvelopes())
         val blank = if (events.isEmpty()) currentBlank else snapshot.blank
-        val running = runningBySession[sid] ?: snapshot.running
+        val running = resolveRunning(
+            folded = snapshot.running,
+            remembered = runningBySession[sid],
+            authoritative = authoritativeRunning,
+        )
+        if (authoritativeRunning) {
+            // The window just replaced everything we knew. If it disagrees with what the last live
+            // stream left behind, the window wins — and the list row and the map are corrected here
+            // so the drawer cannot keep showing a session as running after its transcript agrees it
+            // is idle.
+            runningBySession[sid] = running
+            sessionRows[sid]?.let { if (it.running != running) sessionRows[sid] = it.copy(running = running) }
+        }
         // The queue is the `inbox` projection wherever the host publishes one — it reaches us from
         // both the control stream and the follow snapshot, whichever is ahead. `currentQueue` is
         // the older `session/control` queue frame, kept for a host that still sends them.
@@ -1705,7 +1763,11 @@ class SessionStore @Inject constructor(
             // host that predates the feature sends no baseline, and the preview simply waits for
             // the settlement.
             liveAssistant.seed(frame.assistantStream)
-            rebuildCurrentLocked()
+            // This window replaces everything the previous stream taught us, running included. It
+            // carries the turn's `turn/end` whenever that turn is over, so it decides the state —
+            // see [resolveRunning] for the stale-`running` bug this closes.
+            rebuildCurrentLocked(authoritativeRunning = true)
+            emitSessionsLocked()
         }
     }
 
