@@ -612,6 +612,10 @@
     <string name="chat_history_empty">لا مطالبات بعد.</string>
     <string name="chat_history_no_match">لا توجد رسائل مطابقة.</string>
     <string name="chat_history_image">صورة</string>
+    <string name="chat_turn_rail_title">الأدوار</string>
+    <string name="chat_turn_rail_empty">لا توجد أدوار بعد.</string>
+    <string name="chat_turn_rail_no_match">لا توجد أدوار مطابقة.</string>
+    <string name="chat_turn_rail_no_prompt">لا يوجد نص للطلب</string>
     <string name="hold_message_actions">إجراءات الرسالة</string>
     <string name="hold_tool_actions">إجراءات استدعاء الأداة</string>
     <string name="hold_file_actions">إجراءات الملف</string>

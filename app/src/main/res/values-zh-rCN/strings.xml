@@ -612,6 +612,10 @@
     <string name="chat_history_empty">还没有发送过消息。</string>
     <string name="chat_history_no_match">没有匹配的消息。</string>
     <string name="chat_history_image">图片</string>
+    <string name="chat_turn_rail_title">轮次</string>
+    <string name="chat_turn_rail_empty">还没有轮次。</string>
+    <string name="chat_turn_rail_no_match">没有匹配的轮次。</string>
+    <string name="chat_turn_rail_no_prompt">没有提示词文本</string>
     <string name="hold_message_actions">消息操作</string>
     <string name="hold_tool_actions">工具调用操作</string>
     <string name="hold_file_actions">文件操作</string>

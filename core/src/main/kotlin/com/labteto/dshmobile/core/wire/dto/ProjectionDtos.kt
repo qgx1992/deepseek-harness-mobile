@@ -222,3 +222,28 @@ data class SessionListMetadataView(
     @SerialName("blank") val blank: Boolean = true,
     @SerialName("lastPromptAt") val lastPromptAt: Long? = null,
 )
+
+/**
+ * One turn of the `turnOutline` projection.
+ *
+ * The harness folds this on every `turn/start`, filling [prompt] from the turn's own user message
+ * and [response] once the turn ends, so a client can name a turn before its events have paged in.
+ * Both previews are already shortened host-side (50 and 120 characters) and carry no whitespace
+ * runs; a turn opened by an image or a slash command alone keeps an empty [prompt].
+ */
+@Serializable
+data class TurnOutlineEntryView(
+    @SerialName("turn") val turn: Int = 0,
+    @SerialName("seq") val seq: Long = 0,
+    @SerialName("prompt") val prompt: String = "",
+    @SerialName("response") val response: String = "",
+)
+
+/*
+ * The `turnOutline` projection arrives as a bare array of [TurnOutlineEntryView] — its wire view
+ * is the state's `turns` field, not the whole state — so it decodes through
+ * `ListSerializer(TurnOutlineEntryView.serializer())` rather than a wrapper type. The host keeps
+ * the array strictly increasing by turn and rewrites it on every settled turn, so it grows with
+ * the session: read it as the navigation skeleton, and take row-level detail from the loaded
+ * window.
+ */

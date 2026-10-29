@@ -612,6 +612,10 @@
     <string name="chat_history_empty">Nenhuma mensagem enviada ainda.</string>
     <string name="chat_history_no_match">Nenhuma mensagem corresponde.</string>
     <string name="chat_history_image">Imagem</string>
+    <string name="chat_turn_rail_title">Turnos</string>
+    <string name="chat_turn_rail_empty">Nenhum turno ainda.</string>
+    <string name="chat_turn_rail_no_match">Nenhum turno corresponde.</string>
+    <string name="chat_turn_rail_no_prompt">Nenhum texto de mensagem</string>
     <string name="hold_message_actions">Ações da mensagem</string>
     <string name="hold_tool_actions">Ações da chamada de ferramenta</string>
     <string name="hold_file_actions">Ações do arquivo</string>

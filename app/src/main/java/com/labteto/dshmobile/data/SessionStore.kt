@@ -87,6 +87,7 @@ import com.labteto.dshmobile.core.wire.dto.jobRowsOf
 import com.labteto.dshmobile.core.wire.dto.subagentEntriesFromCatalog
 import com.labteto.dshmobile.core.wire.dto.SubagentPromptRequest
 import com.labteto.dshmobile.core.wire.dto.TokenUsageView
+import com.labteto.dshmobile.core.wire.dto.TurnOutlineEntryView
 import com.labteto.dshmobile.core.wire.dto.USER_QUESTIONS_REQUEST_EVENT
 import com.labteto.dshmobile.core.wire.dto.UnknownSubagentListEntry
 import com.labteto.dshmobile.core.wire.dto.WorkspaceArchiveSessionRequest
@@ -126,6 +127,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -539,6 +541,19 @@ class SessionStore @Inject constructor(
     /** This session's durable model choice; the catalog alone no longer carries one. */
     val modelSelection: StateFlow<ModelSelectionProjection?> =
         projectionOf(ModelSelectionProjection.serializer(), "modelSelection")
+
+    /**
+     * Every turn of this session, from the `turnOutline` projection.
+     *
+     * The one projection that names turns the client has not loaded: the harness folds an entry
+     * on `turn/start` and settles its response at `turn/end`, so the whole conversation stays
+     * navigable however little of it has paged in. Its wire value is the bare `turns` array, hence
+     * the list serializer. Null means the host composes no outline at all — older deployments,
+     * and any assembly without the projection registry — and callers fall back to the loaded
+     * window instead of offering a dead control.
+     */
+    val turnOutline: StateFlow<List<TurnOutlineEntryView>?> =
+        projectionOf(ListSerializer(TurnOutlineEntryView.serializer()), "turnOutline")
 
     /**
      * The model surface every screen renders: the session's effective selection over the host's
@@ -1869,6 +1884,37 @@ class SessionStore @Inject constructor(
         }
     }
 
+    /**
+     * Page history backwards until [targetSeq] is loaded, or until paging runs out.
+     *
+     * The transcript can only scroll to a row it holds, and a turn picked out of the outline is
+     * usually older than the window, so a jump has to fetch before it can land. Paging stops on
+     * the first page that adds nothing — the same signal [loadOlder] uses to clear `hasMore` —
+     * so a target the host will not serve ends the loop instead of spinning on it.
+     *
+     * @return whether [targetSeq] is now inside the loaded window.
+     */
+    suspend fun loadUntil(targetSeq: Long): Boolean {
+        if (synchronized(lock) { currentEvents.firstOrNull()?.seq?.let { it <= targetSeq } == true }) {
+            return true
+        }
+        // A bounded loop: HISTORY_PAGE_SIZE events per page, so this is a generous ceiling for any
+        // real conversation and still guarantees the caller gets its turn back.
+        repeat(MAX_JUMP_PAGES) {
+            val before = synchronized(lock) { currentEvents.firstOrNull()?.seq }
+            loadOlder()
+            // No events at all means the page never arrived — nothing is loaded, so the target is
+            // certainly not in the window, and claiming otherwise would send a pick nowhere.
+            val after = synchronized(lock) { currentEvents.firstOrNull()?.seq } ?: return false
+            if (after >= targetSeq) return true
+            if (before != null && after >= before) return false
+            if (!currentHasMoreFlag()) return false
+        }
+        return synchronized(lock) { currentEvents.firstOrNull()?.seq?.let { it <= targetSeq } == true }
+    }
+
+    private fun currentHasMoreFlag(): Boolean = synchronized(lock) { currentHasMore }
+
     suspend fun createSession(cwd: String? = null, workspaceId: String? = null) {
         // Reuse the workspace's existing blank session instead of leaving another empty one behind
         // — the harness's own New Session does this, and it is why its list stays clean.
@@ -2810,6 +2856,15 @@ class SessionStore @Inject constructor(
 
         /** Ceiling on events folded per page, whatever the host sends. */
         const val MAX_PAGE_EVENTS = 4_000
+
+        /**
+         * Ceiling on pages one jump may pull.
+         *
+         * A jump to a turn picked out of the outline pages until that turn is loaded, which for a
+         * long session is many pages of 60 events each. This bounds the work so a target the host
+         * never delivers cannot hold the caller in a loop.
+         */
+        const val MAX_JUMP_PAGES = 40
 
         /** The event types that produce a visible message; everything else frames them. */
         val SURFACE_EVENT_TYPES = setOf("user/message", "assistant/message", "tool/result")

@@ -254,21 +254,25 @@ internal fun ChatTranscript(
         }
     }
 
-    // A pick from the history sheet. The sheet knows only sequences; which row index a sequence owns
-    // is decided by the grouping above, so the lookup happens here rather than there.
+    // A pick from the history sheet or the turn rail. The sheet knows only sequences; which row
+    // index a sequence owns is decided by the grouping above, so the lookup happens here rather
+    // than there.
     //
     // Keyed on the pick alone. Re-running on every row change would restart a jump halfway through
-    // whenever a running reply added a row, and the sheet only offers prompts that are loaded, so
-    // there is no later page worth waiting for. The pick is consumed however the jump ends —
-    // landed, missed, or cut short by the reader's own drag — so a leftover cannot fire later and
-    // pull them back.
+    // whenever a running reply added a row, and both sheets page history in before they report a
+    // pick, so there is no later page worth waiting for. The pick is consumed however the jump
+    // ends — landed, missed, or cut short by the reader's own drag — so a leftover cannot fire
+    // later and pull them back.
     //
     // Following the tail is switched off first, or the next row a running reply adds would pin the
     // tail back under a reader who deliberately left it. Picking the tail itself keeps it on.
     LaunchedEffect(jumpToSeq) {
         val seq = jumpToSeq ?: return@LaunchedEffect
         try {
-            val index = historyRowIndex(rows, seq) ?: return@LaunchedEffect
+            // A turn's own start event draws no row of its own, so a turn pick lands on the
+            // earliest row the turn produced rather than on an exact match.
+            val index = jumpRowIndex(rows, seq) ?: return@LaunchedEffect
+            val rowKey = transcriptRowKey(rows[index])
             if (index == 0) {
                 followTail = true
                 listState.requestScrollToItem(0)
@@ -282,7 +286,7 @@ internal fun ChatTranscript(
             // its height decides how far back to come, and clamps at the tail on its own.
             listState.scrollToItem(index)
             val info = listState.layoutInfo
-            val item = info.visibleItemsInfo.firstOrNull { it.key == seq } ?: return@LaunchedEffect
+            val item = info.visibleItemsInfo.firstOrNull { it.key == rowKey } ?: return@LaunchedEffect
             val contentEnd = info.viewportEndOffset - info.afterContentPadding
             listState.scrollBy((item.offset + item.size - contentEnd).toFloat())
             // Read where the jump came to rest rather than leaving it to the scroll-session watcher:

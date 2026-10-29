@@ -612,6 +612,10 @@
     <string name="chat_history_empty">এখনও কোনো বার্তা পাঠানো হয়নি।</string>
     <string name="chat_history_no_match">কোনো বার্তা মেলেনি।</string>
     <string name="chat_history_image">ছবি</string>
+    <string name="chat_turn_rail_title">টার্নসমূহ</string>
+    <string name="chat_turn_rail_empty">এখনও কোনো টার্ন নেই।</string>
+    <string name="chat_turn_rail_no_match">কোনো টার্ন মেলেনি।</string>
+    <string name="chat_turn_rail_no_prompt">কোনো প্রম্পট টেক্সট নেই</string>
     <string name="hold_message_actions">বার্তার বিকল্প</string>
     <string name="hold_tool_actions">টুল কলের বিকল্প</string>
     <string name="hold_file_actions">ফাইলের বিকল্প</string>

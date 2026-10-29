@@ -612,6 +612,10 @@
     <string name="chat_history_empty">ยังไม่มีข้อความที่ส่ง</string>
     <string name="chat_history_no_match">ไม่มีข้อความที่ตรงกัน</string>
     <string name="chat_history_image">รูปภาพ</string>
+    <string name="chat_turn_rail_title">เทิร์น</string>
+    <string name="chat_turn_rail_empty">ยังไม่มีเทิร์น</string>
+    <string name="chat_turn_rail_no_match">ไม่มีเทิร์นที่ตรงกัน</string>
+    <string name="chat_turn_rail_no_prompt">ไม่มีข้อความพรอมป์ต์</string>
     <string name="hold_message_actions">การทำงานกับข้อความ</string>
     <string name="hold_tool_actions">การทำงานกับการเรียกเครื่องมือ</string>
     <string name="hold_file_actions">การทำงานกับไฟล์</string>
