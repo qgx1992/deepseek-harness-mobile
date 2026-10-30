@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">استبدال</string>
     <string name="chatlist_show_all">عرض الكل %1$d</string>
     <string name="chatlist_show_less">عرض أقل</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">إملاء</string>
+    <string name="voice_input_stop">إيقاف ونسخ</string>
+    <string name="voice_input_cancel">تجاهل التسجيل</string>
+    <string name="voice_input_recording">جارٍ التسجيل…</string>
+    <string name="voice_input_transcribing">جارٍ النسخ…</string>
+    <string name="voice_input_preparing">جارٍ تحضير أداة التعرف…</string>
+    <string name="voice_input_failed">تعذر نسخ التسجيل.</string>
+    <string name="voice_input_permission">يلزم الوصول إلى الميكروفون للإملاء.</string>
+    <string name="voice_input_too_long">هذا التسجيل أطول مما يقبله الـ Harness.</string>
+    <string name="voice_input_empty">لم يتم التعرف على أي شيء في هذا التسجيل.</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">فريق الوكلاء</string>
+    <string name="team_open">فتح فريق الوكلاء</string>
+    <string name="team_members">الأعضاء</string>
+    <string name="team_board">لوحة المهام المشتركة</string>
+    <string name="team_board_empty">لم تُنشر أي مهمة على اللوحة.</string>
+    <string name="team_failed">تعذر بدء هذا الفريق: %1$s</string>
+    <string name="team_member_provisioning">جارٍ البدء…</string>
+    <string name="team_member_failed">تعذر البدء</string>
+    <string name="team_role_lead">القائد</string>
+    <string name="team_role_teammate">عضو</string>
+    <string name="team_open_member">فتح جلسة هذا العضو</string>
+    <string name="team_task_pending">قيد الانتظار</string>
+    <string name="team_task_in_progress">قيد التنفيذ</string>
+    <string name="team_task_completed">مكتملة</string>
+    <string name="team_task_blocked">محجوبة</string>
+    <string name="team_task_unowned">بلا مسؤول</string>
+    <string name="team_task_scope_warning">تداخل في نطاق الكتابة: %1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">المثبتة</string>
+    <string name="market_tab_discover">استكشاف</string>
+    <string name="market_search_hint">بحث في هذا السوق</string>
+    <string name="market_sources">مصادر السوق</string>
+    <string name="market_sources_empty">لا يوجد مصدر سوق مُهيأ في الـ Harness. أضف واحدًا هنا، أو من صفحة الإضافات ← استكشاف في عميل سطح المكتب.</string>
+    <string name="market_source_add">إضافة مصدر</string>
+    <string name="market_source_url">عنوان الفهرس</string>
+    <string name="market_loading">جارٍ تحميل السوق…</string>
+    <string name="market_empty">لا توجد إضافة تطابق هذا البحث.</string>
+    <string name="market_total">%1$d إضافة</string>
+    <string name="market_load_more">تحميل المزيد</string>
+    <string name="market_status_installed">مثبتة</string>
+    <string name="market_status_update">يتوفر تحديث</string>
+    <string name="market_status_different">نسخة أخرى مثبتة</string>
+    <string name="market_status_provided">مرفقة مع الـ Harness</string>
+    <string name="market_status_absent">غير مثبتة</string>
+    <string name="market_incompatible">يتطلب DSH %1$s</string>
+    <string name="market_incompatible_short">غير متوافقة مع هذا الـ Harness</string>
+    <string name="market_install">تثبيت</string>
+    <string name="market_update">تحديث</string>
+    <string name="market_versions">الإصدارات</string>
+    <string name="market_installs">تثبيت %1$s</string>
+    <string name="market_author">بواسطة %1$s</string>
+    <string name="market_sort">الترتيب</string>
+    <string name="market_sort_index">ترتيب السوق</string>
+    <string name="market_sort_newest">الأحدث أولًا</string>
+    <string name="market_sort_oldest">الأقدم أولًا</string>
+    <string name="market_sort_relevance">الأفضل تطابقًا</string>
+    <string name="market_confirm_title">تثبيت هذه الإضافة؟</string>
+    <string name="market_confirm_body">سيقوم الـ Harness بتثبيت %1$s. الإضافات التي تحتاج إلى إعادة تشغيل تظهر في جرد الإضافات حتى ذلك الحين.</string>
+    <string name="market_source_invalid">تعذر قراءة هذا المصدر.</string>
+    <string name="team_task_write_scopes">نطاقات الكتابة</string>
+    <string name="team_task_blocked_by">محجوبة بواسطة %1$s</string>
 </resources>

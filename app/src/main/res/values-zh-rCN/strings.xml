@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">替换</string>
     <string name="chatlist_show_all">显示全部 %1$d</string>
     <string name="chatlist_show_less">收起</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">语音输入</string>
+    <string name="voice_input_stop">停止并转写</string>
+    <string name="voice_input_cancel">放弃录音</string>
+    <string name="voice_input_recording">正在录音…</string>
+    <string name="voice_input_transcribing">正在转写…</string>
+    <string name="voice_input_preparing">正在准备识别器…</string>
+    <string name="voice_input_failed">这段录音无法转写。</string>
+    <string name="voice_input_permission">语音输入需要麦克风权限。</string>
+    <string name="voice_input_too_long">这段录音超过了此 Harness 允许的长度。</string>
+    <string name="voice_input_empty">这段录音里没有识别到内容。</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">智能体团队</string>
+    <string name="team_open">打开智能体团队</string>
+    <string name="team_members">成员</string>
+    <string name="team_board">共享任务板</string>
+    <string name="team_board_empty">任务板上还没有任务。</string>
+    <string name="team_failed">这个团队未能启动：%1$s</string>
+    <string name="team_member_provisioning">正在启动…</string>
+    <string name="team_member_failed">启动失败</string>
+    <string name="team_role_lead">Lead</string>
+    <string name="team_role_teammate">队友</string>
+    <string name="team_open_member">打开此成员的会话</string>
+    <string name="team_task_pending">待处理</string>
+    <string name="team_task_in_progress">进行中</string>
+    <string name="team_task_completed">已完成</string>
+    <string name="team_task_blocked">受阻</string>
+    <string name="team_task_unowned">无负责人</string>
+    <string name="team_task_scope_warning">写作用域重叠：%1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">已安装</string>
+    <string name="market_tab_discover">发现</string>
+    <string name="market_search_hint">在此市场中搜索</string>
+    <string name="market_sources">市场索引源</string>
+    <string name="market_sources_empty">此 Harness 尚未配置市场索引源。可在此添加，或在桌面端客户端的 插件 → 发现 页面添加。</string>
+    <string name="market_source_add">添加索引源</string>
+    <string name="market_source_url">索引地址</string>
+    <string name="market_loading">正在加载市场…</string>
+    <string name="market_empty">没有插件匹配该搜索。</string>
+    <string name="market_total">%1$d 个插件</string>
+    <string name="market_load_more">加载更多</string>
+    <string name="market_status_installed">已安装</string>
+    <string name="market_status_update">有可用更新</string>
+    <string name="market_status_different">已安装其他版本</string>
+    <string name="market_status_provided">随 Harness 内置</string>
+    <string name="market_status_absent">未安装</string>
+    <string name="market_incompatible">需要 DSH %1$s</string>
+    <string name="market_incompatible_short">与此 Harness 不兼容</string>
+    <string name="market_install">安装</string>
+    <string name="market_update">更新</string>
+    <string name="market_versions">版本</string>
+    <string name="market_installs">安装 %1$s</string>
+    <string name="market_author">作者 %1$s</string>
+    <string name="market_sort">排序</string>
+    <string name="market_sort_index">市场顺序</string>
+    <string name="market_sort_newest">最新优先</string>
+    <string name="market_sort_oldest">最早优先</string>
+    <string name="market_sort_relevance">最佳匹配</string>
+    <string name="market_confirm_title">安装此插件？</string>
+    <string name="market_confirm_body">Harness 将安装 %1$s。需要重启的插件在重启前会一直列在插件清单里。</string>
+    <string name="market_source_invalid">无法读取该索引源。</string>
+    <string name="team_task_write_scopes">写作用域</string>
+    <string name="team_task_blocked_by">被 %1$s 阻塞</string>
 </resources>

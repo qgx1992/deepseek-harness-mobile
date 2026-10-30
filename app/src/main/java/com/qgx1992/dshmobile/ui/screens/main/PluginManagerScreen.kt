@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qgx1992.dshmobile.data.HarnessFeature
@@ -52,6 +53,10 @@ internal fun PluginManagerScreen(onClose: () -> Unit, onDraftOpened: () -> Unit 
     var loaded by remember(host) { mutableStateOf(false) }
     var error by remember(host) { mutableStateOf<String?>(null) }
     var revision by remember { mutableIntStateOf(0) }
+    // Which of the page's two views is live. A string rather than an enum or index because it is the
+    // segment key [DsSegmented] already speaks, and a saved string survives process death without a
+    // Saver; the Discover half reads `revision` for its refresh, so it inherits the sheet's own.
+    var marketTab by rememberSaveable { mutableStateOf("installed") }
     val busy = loading || pending.any { it.host == host && it.busy }
     val offline = stringResource(R.string.common_offline)
     val creator = stringResource(R.string.harness_creator_draft)
@@ -118,65 +123,85 @@ internal fun PluginManagerScreen(onClose: () -> Unit, onDraftOpened: () -> Unit 
         } } }
     }
     FeaturePage(stringResource(R.string.settings_plugins), onClose, onRefresh = { if (!busy) revision++ }) {
-        FeatureField(search, { search = it }, R.string.plugins_search_hint, singleLine = true)
-        FeatureAction(stringResource(R.string.harness_install_update), !busy, DsButtonVariant.Primary) {
-            spec = ""; registry = ""; inspection = null; installedVersion = null; replacing = null; installOpen = true
-        }
-        if (presets?.presets?.any { it.id == "cordis" && it.broken == null } == true) {
-            FeatureAction(stringResource(if (loading) R.string.common_loading else R.string.harness_create_plugin), !busy) { run {
-                if (host != null && store.stageFeatureDraft(host, creator, "cordis")) onDraftOpened() else error(offline)
-            } }
-        }
-        if (loading) FeatureProgress()
-        Failure()
-        (pending.filter { it.host == host } + listOfNotNull(current?.takeIf { it.result != null })).forEach { state ->
-            DsCard(onClick = { operationOpen = true }) {
-                Text(state.displaySubject()?.let(::technicalDisplay) ?: stringResource(R.string.ux_a_previous_install), style = DsType.std14Strong, color = DsTheme.colors.labelPrimary)
-                Text(stringResource(when {
-                    state.unknown -> R.string.ux_a_check_status
-                    state.busy -> pluginPhase(state.phase)
-                    state.result?.application == "restart-required" -> R.string.harness_restart
-                    state.result?.application == "applied" -> R.string.harness_applied
-                    state.result?.application == "cancelled" -> R.string.harness_cancelled
-                    else -> R.string.harness_failed
-                }), style = DsType.small13, color = if (state.unknown || state.result?.application == "restart-required") DsTheme.colors.warnText else DsTheme.colors.labelSecondary)
-                if (state.busy) FeatureProgress()
+        // The desktop splits this into Plugins (installed) and Plugins → Discover. On a phone the two
+        // are one page: the market lives inline here instead of opening its own sheet, because a sheet
+        // inside a sheet is a second ModalBottomSheet and the inner one cannot be dismissed by gesture.
+        DsSegmented(
+            listOf(
+                DsSegment("installed", stringResource(R.string.market_tab_installed)),
+                DsSegment("discover", stringResource(R.string.market_tab_discover)),
+            ),
+            marketTab,
+            { marketTab = it },
+            stretch = true,
+            minSegmentHeight = DsSpacing.touchTarget,
+            maxLabelLines = Int.MAX_VALUE,
+        )
+        if (marketTab == "installed") {
+            FeatureField(search, { search = it }, R.string.plugins_search_hint, singleLine = true)
+            FeatureAction(stringResource(R.string.harness_install_update), !busy, DsButtonVariant.Primary) {
+                spec = ""; registry = ""; inspection = null; installedVersion = null; replacing = null; installOpen = true
             }
-        }
-        val bundledEntries = bundles.flatMap { it.rows }.mapNotNull { it.entryId }.toSet()
-        val standalone = plugins.filter { it.entryId !in bundledEntries && it.moduleName.contains(search, true) }
-        val matching = bundles.filter { it.name.contains(search, true) || it.description.orEmpty().contains(search, true) || it.rows.any { row -> row.moduleName.contains(search, true) } }
-        if (loaded && matching.isEmpty() && standalone.isEmpty()) EmptyHero(
-            stringResource(if (search.isBlank()) R.string.plugins_empty else R.string.harness_automation_no_matches), null, showPreview = false)
-        listOf(true, false).forEach { installed ->
-            val group = matching.filter { (it.availability?.let { location -> location != "missing" } ?: it.installed) == installed }
-            if (group.isNotEmpty() || installed && standalone.isNotEmpty()) SectionHeader(stringResource(if (installed) R.string.ux_a_installed else R.string.ux_a_available))
-            if (installed) standalone.forEach { plugin -> DsCard { PluginToggle(plugin) } }
-            group.forEach { bundle -> DsCard {
-                Text(technicalDisplay(bundle.name), style = DsType.std14Strong, color = DsTheme.colors.labelPrimary)
-                bundle.version?.let { Text(technicalDisplay(it), style = DsType.small13, color = DsTheme.colors.labelSecondary) }
-                bundle.description?.let { Text(it, style = DsType.std14, color = DsTheme.colors.labelSecondary) }
-                bundle.error?.let { Text(stringResource(pluginReason(it.code)), color = DsTheme.colors.error, style = DsType.small13); FeatureDiagnostics(it.diagnostic) }
-                ToggleRow(technicalDisplay(bundle.name), bundle.enabled, bundle.readOnlyReason?.let { stringResource(pluginReason(it)) },
-                    enabled = !busy && bundle.readOnlyReason == null) {
-                    if (!bundle.enabled && bundle.availability == "missing" && bundle.installTarget != null) {
-                        confirm = bundle.catalogInstall(enabled = true)
-                    } else run { api ->
-                    val result = store.featureCall(HarnessFeature.PLUGIN_MANAGEMENT, api) { api.setBundleEnabled(bundle.name, !bundle.enabled) }.featureValue()
-                    if (host != null) store.pluginOperations.changed(host, result); revision++
+            if (presets?.presets?.any { it.id == "cordis" && it.broken == null } == true) {
+                FeatureAction(stringResource(if (loading) R.string.common_loading else R.string.harness_create_plugin), !busy) { run {
+                    if (host != null && store.stageFeatureDraft(host, creator, "cordis")) onDraftOpened() else error(offline)
                 } }
-                bundle.rows.forEach { row ->
-                    val plugin = plugins.firstOrNull { it.entryId == row.entryId }
-                    if (plugin != null) PluginToggle(plugin)
-                    else Text(technicalDisplay(row.moduleName), style = DsType.small13, color = DsTheme.colors.labelSecondary)
+            }
+            if (loading) FeatureProgress()
+            Failure()
+            (pending.filter { it.host == host } + listOfNotNull(current?.takeIf { it.result != null })).forEach { state ->
+                DsCard(onClick = { operationOpen = true }) {
+                    Text(state.displaySubject()?.let(::technicalDisplay) ?: stringResource(R.string.ux_a_previous_install), style = DsType.std14Strong, color = DsTheme.colors.labelPrimary)
+                    Text(stringResource(when {
+                        state.unknown -> R.string.ux_a_check_status
+                        state.busy -> pluginPhase(state.phase)
+                        state.result?.application == "restart-required" -> R.string.harness_restart
+                        state.result?.application == "applied" -> R.string.harness_applied
+                        state.result?.application == "cancelled" -> R.string.harness_cancelled
+                        else -> R.string.harness_failed
+                    }), style = DsType.small13, color = if (state.unknown || state.result?.application == "restart-required") DsTheme.colors.warnText else DsTheme.colors.labelSecondary)
+                    if (state.busy) FeatureProgress()
                 }
-                 if (bundle.availability != "installation" && (bundle.installed || bundle.installTarget != null)) FeatureAction(stringResource(if (bundle.availability == "missing") R.string.harness_install_update else R.string.ux_a_update), !busy) {
-                    val catalog = bundle.catalogInstall(enabled = bundle.enabled)
-                    if (catalog != null) confirm = catalog
-                    else { spec = bundle.source ?: bundle.name; registry = ""; inspection = null; installedVersion = bundle.version; replacing = bundle.name.takeIf { bundle.installed }; installOpen = true }
-                }
-                if (bundle.removable && bundle.readOnlyReason == null) FeatureAction(stringResource(R.string.common_remove), !busy) { remove = bundle }
-            } }
+            }
+            val bundledEntries = bundles.flatMap { it.rows }.mapNotNull { it.entryId }.toSet()
+            val standalone = plugins.filter { it.entryId !in bundledEntries && it.moduleName.contains(search, true) }
+            val matching = bundles.filter { it.name.contains(search, true) || it.description.orEmpty().contains(search, true) || it.rows.any { row -> row.moduleName.contains(search, true) } }
+            if (loaded && matching.isEmpty() && standalone.isEmpty()) EmptyHero(
+                stringResource(if (search.isBlank()) R.string.plugins_empty else R.string.harness_automation_no_matches), null, showPreview = false)
+            listOf(true, false).forEach { installed ->
+                val group = matching.filter { (it.availability?.let { location -> location != "missing" } ?: it.installed) == installed }
+                if (group.isNotEmpty() || installed && standalone.isNotEmpty()) SectionHeader(stringResource(if (installed) R.string.ux_a_installed else R.string.ux_a_available))
+                if (installed) standalone.forEach { plugin -> DsCard { PluginToggle(plugin) } }
+                group.forEach { bundle -> DsCard {
+                    Text(technicalDisplay(bundle.name), style = DsType.std14Strong, color = DsTheme.colors.labelPrimary)
+                    bundle.version?.let { Text(technicalDisplay(it), style = DsType.small13, color = DsTheme.colors.labelSecondary) }
+                    bundle.description?.let { Text(it, style = DsType.std14, color = DsTheme.colors.labelSecondary) }
+                    bundle.error?.let { Text(stringResource(pluginReason(it.code)), color = DsTheme.colors.error, style = DsType.small13); FeatureDiagnostics(it.diagnostic) }
+                    ToggleRow(technicalDisplay(bundle.name), bundle.enabled, bundle.readOnlyReason?.let { stringResource(pluginReason(it)) },
+                        enabled = !busy && bundle.readOnlyReason == null) {
+                        if (!bundle.enabled && bundle.availability == "missing" && bundle.installTarget != null) {
+                            confirm = bundle.catalogInstall(enabled = true)
+                        } else run { api ->
+                        val result = store.featureCall(HarnessFeature.PLUGIN_MANAGEMENT, api) { api.setBundleEnabled(bundle.name, !bundle.enabled) }.featureValue()
+                        if (host != null) store.pluginOperations.changed(host, result); revision++
+                    } }
+                    bundle.rows.forEach { row ->
+                        val plugin = plugins.firstOrNull { it.entryId == row.entryId }
+                        if (plugin != null) PluginToggle(plugin)
+                        else Text(technicalDisplay(row.moduleName), style = DsType.small13, color = DsTheme.colors.labelSecondary)
+                    }
+                     if (bundle.availability != "installation" && (bundle.installed || bundle.installTarget != null)) FeatureAction(stringResource(if (bundle.availability == "missing") R.string.harness_install_update else R.string.ux_a_update), !busy) {
+                        val catalog = bundle.catalogInstall(enabled = bundle.enabled)
+                        if (catalog != null) confirm = catalog
+                        else { spec = bundle.source ?: bundle.name; registry = ""; inspection = null; installedVersion = bundle.version; replacing = bundle.name.takeIf { bundle.installed }; installOpen = true }
+                    }
+                    if (bundle.removable && bundle.readOnlyReason == null) FeatureAction(stringResource(R.string.common_remove), !busy) { remove = bundle }
+                } }
+            }
+        } else {
+            // `embedded = true`: this sheet is already the page, so the market must not stack a second
+            // one for an entry's details — it swaps the list out inline instead.
+            PluginMarketContent(host, onClose, refreshSignal = revision, embedded = true)
         }
     }
     if (operationOpen) FeaturePage(stringResource(R.string.harness_install_update), { operationOpen = false }) { Operations() }

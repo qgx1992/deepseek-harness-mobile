@@ -2,6 +2,8 @@ package com.qgx1992.dshmobile.data
 
 import com.qgx1992.dshmobile.core.wire.automationCatalog
 import com.qgx1992.dshmobile.core.wire.pluginBundles
+import com.qgx1992.dshmobile.core.wire.speechCatalog
+import com.qgx1992.dshmobile.core.wire.speechTranscribe
 
 import android.util.Base64
 import android.util.Log
@@ -19,6 +21,7 @@ import com.qgx1992.dshmobile.core.wire.RpcResult
 import com.qgx1992.dshmobile.core.wire.decodeFromJsonElement
 import com.qgx1992.dshmobile.core.wire.dto.APPROVAL_REQUEST_EVENT
 import com.qgx1992.dshmobile.core.wire.dto.AgentPresetListValue
+import com.qgx1992.dshmobile.core.wire.dto.AgentTeamView
 import com.qgx1992.dshmobile.core.wire.dto.ApprovalOutcome
 import com.qgx1992.dshmobile.core.wire.dto.ApprovalRequestEvent
 import com.qgx1992.dshmobile.core.wire.dto.AskUserQuestionAnswer
@@ -75,6 +78,8 @@ import com.qgx1992.dshmobile.core.wire.dto.SessionStatsView
 import com.qgx1992.dshmobile.core.wire.dto.SessionSummary
 import com.qgx1992.dshmobile.core.wire.dto.SessionUpdateQueueRequest
 import com.qgx1992.dshmobile.core.wire.dto.SkillEntry
+import com.qgx1992.dshmobile.core.wire.dto.SpeechCatalogView
+import com.qgx1992.dshmobile.core.wire.dto.SpeechTranscriptionView
 import com.qgx1992.dshmobile.core.wire.dto.SkillListRequest
 import com.qgx1992.dshmobile.core.wire.dto.SubagentListEntry
 import com.qgx1992.dshmobile.core.wire.dto.JobFollowFrame
@@ -352,6 +357,23 @@ class SessionStore @Inject constructor(
     val pluginManagementAvailable = featureAvailability.state(HarnessFeature.PLUGIN_MANAGEMENT)
     val timedQuestionsAvailable = featureAvailability.state(HarnessFeature.TIMED_QUESTIONS)
     val sessionReferencesAvailable = featureAvailability.state(HarnessFeature.SESSION_REFERENCES)
+
+    /** Whether this host composes a speech recognizer at all; null until the catalog has answered. */
+    val speechAvailable = featureAvailability.state(HarnessFeature.SPEECH)
+
+    /** Whether this host exposes a plugin market; null until a market call has answered. */
+    val pluginMarketAvailable = featureAvailability.state(HarnessFeature.PLUGIN_MARKET)
+
+    private val speechCatalogState = MutableStateFlow<SpeechCatalogView?>(null)
+
+    /**
+     * The host's speech recognizers, or null when it composes none (or has not answered yet).
+     *
+     * Read once per connection rather than folded from a projection: `speech/catalog` is a plain RPC
+     * and the answer only changes when someone installs or configures a recognizer on the desktop.
+     * The composer draws the microphone off this, so null has to mean "no button" and not "loading".
+     */
+    val speechCatalog: StateFlow<SpeechCatalogView?> = speechCatalogState.asStateFlow()
     val questionSessions = QuestionSessions(scope, { connectionManager.connectedApi },
         { connectionManager.generation?.mux }, { connectionManager.generation?.clientId },
         onCapability = { clientId, result ->
@@ -395,7 +417,40 @@ class SessionStore @Inject constructor(
         val api = connectionManager.connectedApi ?: return
         scope.launch { featureCall(HarnessFeature.AUTOMATION, api) { api.automationCatalog() } }
         scope.launch { featureCall(HarnessFeature.PLUGIN_MANAGEMENT, api) { api.pluginBundles() } }
+        // The catalog doubles as the capability probe: a host that composes no recognizer answers
+        // with no `speech` namespace at all, which the observer records as capability-unavailable and
+        // the composer then reads as "draw no microphone" rather than "something went wrong".
+        scope.launch { featureCall(HarnessFeature.SPEECH, api) { api.speechCatalog() }.also { store(it) } }
     }
+
+    /** Keeps the last good catalog: a failed re-probe must not take the microphone away. */
+    private fun store(result: RpcResult<SpeechCatalogView>) {
+        (result as? RpcResult.Ok)?.let { speechCatalogState.value = it.value }
+    }
+
+    /** Re-reads the recognizer catalog, for the retry affordance on a transcription failure. */
+    suspend fun refreshSpeechCatalog() {
+        val api = apiOrNull() ?: return
+        store(featureCall(HarnessFeature.SPEECH, api) { api.speechCatalog() })
+    }
+
+    /**
+     * Transcribes one finished take.
+     *
+     * The base64 hop lives here rather than in the composer because it is the wire's shape, not the
+     * UI's: the host takes an encoded body and rejects one whose encoding is not canonical, so doing
+     * it in two places would be two chances to disagree. The chosen provider travels with the request
+     * because the host's own default is not necessarily the one this session picked.
+     */
+    suspend fun transcribeSpeech(wav: ByteArray, language: String? = null): RpcResult<SpeechTranscriptionView> {
+        val api = apiOrNull()
+            ?: return RpcResult.Err(RpcError("gateway/invocation-unavailable", "No host is connected."))
+        val providerId = speechCatalogState.value?.selectedProvider?.id
+        return featureCall(HarnessFeature.SPEECH, api) {
+            api.speechTranscribe(Base64.encodeToString(wav, Base64.NO_WRAP), providerId, language)
+        }
+    }
+
     private val permissionCatalog = MutableStateFlow<PermissionCatalog?>(null)
     private var permissionCatalogEpoch = 0L
     private val queuesBySession = MutableStateFlow<Map<String, List<QueueItem>>>(emptyMap())
@@ -578,6 +633,15 @@ class SessionStore @Inject constructor(
             )
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
+    /**
+     * The lead's agent team, from the `agentTeam` projection.
+     *
+     * Only a session that owns a team carries this key, and only while the team is alive: the
+     * harness stops emitting once it folds a failure, so a terminal value stays on screen rather
+     * than disappearing. Null means no team — the button that opens the panel hides itself.
+     */
+    val agentTeam: StateFlow<AgentTeamView?> = projectionOf(AgentTeamView.serializer(), "agentTeam")
+
     /** One projection key, decoded leniently: unknown or malformed payloads read as absent. */
     private fun <T> projectionOf(serializer: KSerializer<T>, key: String): StateFlow<T?> =
         currentConversation
@@ -715,6 +779,11 @@ class SessionStore @Inject constructor(
                 if (prev.host?.id != state.host?.id || prev.host?.baseUrl != state.host?.baseUrl ||
                     (prev.phase != state.phase && (prev.phase == ConnectionPhase.CONNECTED || state.phase == ConnectionPhase.CONNECTED))) {
                     featureAvailability.reset()
+                }
+                // Another host may compose different recognizers, so its catalog cannot be reused.
+                // A reconnect to the same host keeps it: the same desktop still has the same voices.
+                if (prev.host?.id != state.host?.id || prev.host?.baseUrl != state.host?.baseUrl) {
+                    speechCatalogState.value = null
                 }
                 if (prev.host?.id != state.host?.id || prev.host?.baseUrl != state.host?.baseUrl) questionSessions.reset()
                 else if (prev.phase == ConnectionPhase.CONNECTED && state.phase != ConnectionPhase.CONNECTED) questionSessions.disconnect()

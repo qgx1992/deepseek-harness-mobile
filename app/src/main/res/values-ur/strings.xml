@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">بدلیں</string>
     <string name="chatlist_show_all">سب %1$d دکھائیں</string>
     <string name="chatlist_show_less">کم دکھائیں</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">بول کر لکھیں</string>
+    <string name="voice_input_stop">روکیں اور ٹرانسکرائب کریں</string>
+    <string name="voice_input_cancel">ریکارڈنگ رد کریں</string>
+    <string name="voice_input_recording">ریکارڈ ہو رہا ہے…</string>
+    <string name="voice_input_transcribing">ٹرانسکرائب ہو رہا ہے…</string>
+    <string name="voice_input_preparing">شناخت کنندہ تیار ہو رہا ہے…</string>
+    <string name="voice_input_failed">یہ ریکارڈنگ ٹرانسکرائب نہیں ہو سکی۔</string>
+    <string name="voice_input_permission">بول کر لکھنے کے لیے مائیکروفون تک رسائی درکار ہے۔</string>
+    <string name="voice_input_too_long">یہ ریکارڈنگ اس ہارنیس کی قبول کردہ حد سے طویل ہے۔</string>
+    <string name="voice_input_empty">اس ریکارڈنگ میں کچھ شناخت نہیں ہوا۔</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">ایجنٹ ٹیم</string>
+    <string name="team_open">ایجنٹ ٹیم کھولیں</string>
+    <string name="team_members">ارکان</string>
+    <string name="team_board">مشترکہ ٹاسک بورڈ</string>
+    <string name="team_board_empty">بورڈ پر کوئی ٹاسک پوسٹ نہیں ہوا۔</string>
+    <string name="team_failed">یہ ٹیم شروع نہیں ہو سکی: %1$s</string>
+    <string name="team_member_provisioning">شروع ہو رہا ہے…</string>
+    <string name="team_member_failed">شروع نہیں ہو سکا</string>
+    <string name="team_role_lead">لیڈ</string>
+    <string name="team_role_teammate">ٹیم میٹ</string>
+    <string name="team_open_member">اس رکن کا سیشن کھولیں</string>
+    <string name="team_task_pending">زیرِ التوا</string>
+    <string name="team_task_in_progress">جاری</string>
+    <string name="team_task_completed">مکمل</string>
+    <string name="team_task_blocked">مسدود</string>
+    <string name="team_task_unowned">بغیر ذمہ دار</string>
+    <string name="team_task_scope_warning">رائٹ اسکوپ میں اوورلیپ: %1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">نصب شدہ</string>
+    <string name="market_tab_discover">دریافت کریں</string>
+    <string name="market_search_hint">اس مارکیٹ میں تلاش کریں</string>
+    <string name="market_sources">مارکیٹ کے ذرائع</string>
+    <string name="market_sources_empty">اس ہارنیس میں کوئی مارکیٹ ذریعہ ترتیب نہیں دیا گیا۔ یہاں ایک شامل کریں، یا ڈیسک ٹاپ کلائنٹ کے پلگ انز → دریافت کریں صفحے پر۔</string>
+    <string name="market_source_add">ذریعہ شامل کریں</string>
+    <string name="market_source_url">انڈیکس URL</string>
+    <string name="market_loading">مارکیٹ لوڈ ہو رہی ہے…</string>
+    <string name="market_empty">اس تلاش سے کوئی پلگ ان نہیں ملتا۔</string>
+    <string name="market_total">%1$d پلگ انز</string>
+    <string name="market_load_more">مزید لوڈ کریں</string>
+    <string name="market_status_installed">نصب ہے</string>
+    <string name="market_status_update">اپ ڈیٹ دستیاب</string>
+    <string name="market_status_different">دوسرا ورژن نصب ہے</string>
+    <string name="market_status_provided">ہارنیس کے ساتھ شامل</string>
+    <string name="market_status_absent">نصب نہیں</string>
+    <string name="market_incompatible">DSH %1$s درکار ہے</string>
+    <string name="market_incompatible_short">اس ہارنیس سے غیر مطابق</string>
+    <string name="market_install">نصب کریں</string>
+    <string name="market_update">اپ ڈیٹ کریں</string>
+    <string name="market_versions">ورژنز</string>
+    <string name="market_installs">%1$s نصب کرتا ہے</string>
+    <string name="market_author">از %1$s</string>
+    <string name="market_sort">ترتیب دیں</string>
+    <string name="market_sort_index">مارکیٹ ترتیب</string>
+    <string name="market_sort_newest">نئے پہلے</string>
+    <string name="market_sort_oldest">پرانے پہلے</string>
+    <string name="market_sort_relevance">بہترین مطابقت</string>
+    <string name="market_confirm_title">یہ پلگ ان نصب کریں؟</string>
+    <string name="market_confirm_body">ہارنیس %1$s نصب کرے گا۔ جن پلگ انز کو دوبارہ آغاز درکار ہے وہ تب تک پلگ ان فہرست میں دکھیں گے۔</string>
+    <string name="market_source_invalid">یہ ذریعہ پڑھا نہیں جا سکا۔</string>
+    <string name="team_task_write_scopes">رائٹ اسکوپس</string>
+    <string name="team_task_blocked_by">%1$s کی طرف سے مسدود</string>
 </resources>

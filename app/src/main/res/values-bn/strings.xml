@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">বদলান</string>
     <string name="chatlist_show_all">সব %1$d দেখান</string>
     <string name="chatlist_show_less">কম দেখান</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">ডিক্টেট করুন</string>
+    <string name="voice_input_stop">থামিয়ে ট্রান্সক্রাইব করুন</string>
+    <string name="voice_input_cancel">রেকর্ডিং বাতিল করুন</string>
+    <string name="voice_input_recording">রেকর্ড হচ্ছে…</string>
+    <string name="voice_input_transcribing">ট্রান্সক্রাইব হচ্ছে…</string>
+    <string name="voice_input_preparing">রিকগনাইজার প্রস্তুত হচ্ছে…</string>
+    <string name="voice_input_failed">রেকর্ডিংটি ট্রান্সক্রাইব করা যায়নি।</string>
+    <string name="voice_input_permission">ডিক্টেট করতে মাইক্রোফোন অ্যাক্সেস দরকার।</string>
+    <string name="voice_input_too_long">রেকর্ডিংটি এই হারনেস যতটা গ্রহণ করে তার চেয়ে দীর্ঘ।</string>
+    <string name="voice_input_empty">ওই রেকর্ডিংয়ে কিছু চেনা যায়নি।</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">এজেন্ট টিম</string>
+    <string name="team_open">এজেন্ট টিম খুলুন</string>
+    <string name="team_members">সদস্য</string>
+    <string name="team_board">শেয়ার করা টাস্ক বোর্ড</string>
+    <string name="team_board_empty">বোর্ডে কোনো টাস্ক পোস্ট করা হয়নি।</string>
+    <string name="team_failed">এই টিম শুরু করা যায়নি: %1$s</string>
+    <string name="team_member_provisioning">শুরু হচ্ছে…</string>
+    <string name="team_member_failed">শুরু করা যায়নি</string>
+    <string name="team_role_lead">লিড</string>
+    <string name="team_role_teammate">টিমমেট</string>
+    <string name="team_open_member">এই সদস্যের সেশন খুলুন</string>
+    <string name="team_task_pending">বাকি</string>
+    <string name="team_task_in_progress">চলছে</string>
+    <string name="team_task_completed">সম্পন্ন</string>
+    <string name="team_task_blocked">অবরুদ্ধ</string>
+    <string name="team_task_unowned">মালিকহীন</string>
+    <string name="team_task_scope_warning">রাইট স্কোপ ওভারল্যাপ: %1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">ইনস্টল করা</string>
+    <string name="market_tab_discover">আবিষ্কার</string>
+    <string name="market_search_hint">এই মার্কেটে খুঁজুন</string>
+    <string name="market_sources">মার্কেট সোর্স</string>
+    <string name="market_sources_empty">এই হারনেসে কোনো মার্কেট সোর্স কনফিগার করা নেই। এখানে একটি যোগ করুন, অথবা ডেস্কটপ ক্লায়েন্টের প্লাগইন → আবিষ্কার পৃষ্ঠায়।</string>
+    <string name="market_source_add">সোর্স যোগ করুন</string>
+    <string name="market_source_url">ইনডেক্স URL</string>
+    <string name="market_loading">মার্কেট লোড হচ্ছে…</string>
+    <string name="market_empty">এই অনুসন্ধানে কোনো প্লাগইন মেলেনি।</string>
+    <string name="market_total">%1$d প্লাগইন</string>
+    <string name="market_load_more">আরও লোড করুন</string>
+    <string name="market_status_installed">ইনস্টল করা</string>
+    <string name="market_status_update">আপডেট আছে</string>
+    <string name="market_status_different">অন্য সংস্করণ ইনস্টল করা</string>
+    <string name="market_status_provided">হারনেসের সাথে বান্ডল করা</string>
+    <string name="market_status_absent">ইনস্টল করা নেই</string>
+    <string name="market_incompatible">DSH %1$s দরকার</string>
+    <string name="market_incompatible_short">এই হারনেসের সাথে অসামঞ্জস্যপূর্ণ</string>
+    <string name="market_install">ইনস্টল</string>
+    <string name="market_update">আপডেট</string>
+    <string name="market_versions">সংস্করণ</string>
+    <string name="market_installs">%1$s ইনস্টল করে</string>
+    <string name="market_author">%1$s লিখেছেন</string>
+    <string name="market_sort">সাজান</string>
+    <string name="market_sort_index">মার্কেট ক্রম</string>
+    <string name="market_sort_newest">নতুন আগে</string>
+    <string name="market_sort_oldest">পুরোনো আগে</string>
+    <string name="market_sort_relevance">সেরা মিল</string>
+    <string name="market_confirm_title">এই প্লাগইন ইনস্টল করবেন?</string>
+    <string name="market_confirm_body">হারনেসটি %1$s ইনস্টল করবে। যে প্লাগইনগুলো রিস্টার্ট দরকার সেগুলো ততক্ষণ প্লাগইন তালিকায় দেখাবে।</string>
+    <string name="market_source_invalid">এই সোর্সটি পড়া যায়নি।</string>
+    <string name="team_task_write_scopes">রাইট স্কোপ</string>
+    <string name="team_task_blocked_by">%1$s দ্বারা অবরুদ্ধ</string>
 </resources>

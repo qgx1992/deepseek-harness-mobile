@@ -5,6 +5,20 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ## [Unreleased]
 
+### Internal
+
+- `docs/DESKTOP-PARITY.md` compares the desktop harness (0.2.1-rc.5: 58 client UI plugins and the
+  host API packages behind them) with this client, and records what is already covered, what is
+  worth porting with the contract each item needs, and what deliberately stays desktop-only. Its
+  first batch — voice input, the plugin market and Agent Teams — landed in this release, so the
+  `speech`, `pluginMarket` and `agentTeam` sections below are written rather than listed as gaps.
+  The settings RPCs it notes as implemented-but-never-called are still unwired.
+- The three rc.5 surfaces are documented in `docs/PROTOCOL.md` under
+  [0.19.0 contract additions](docs/PROTOCOL.md#0190-contract-additions-harness-021-rc5), and
+  `MarketScenario` in `mock-harness` answers all of them so
+  `DesktopParityContractsEndToEndTest` can hold the client to the real argument names and the host's
+  own validation order.
+
 ### Changed
 
 - **The application id is `com.qgx1992.dshmobile`.** This fork renames the id and the Kotlin
@@ -14,6 +28,28 @@ All notable changes to DSH Mobile are documented here. Format based on
   upstream install stay under the old id.
 
 ### Added
+
+- **Dictation in the composer.** A microphone sits beside the send button wherever the host composes
+  a recognizer; talk, and the transcript is appended to whatever is already in the box. The host
+  does the work — this client records 16 kHz mono PCM, wraps it in a RIFF header (`WavWriter`) and
+  posts one finished take to `speech/transcribe` — so a cloud recognizer and a local Whisper are
+  the same code path here, and which one runs stays the desktop's setting rather than the phone's.
+  The recording bar shows a level meter and Cancel/Stop, and a take that runs past the host's
+  `maxDurationSeconds` stops itself instead of being refused after upload. The microphone is drawn
+  only when `speech/catalog` answers with a usable provider, so a host without the namespace shows
+  nothing to tap and never asks for the permission.
+- **A Discover tab for plugins.** The plugins screen now has Installed and Discover, the second
+  listing whatever the host's configured market indexes publish: search, category and sort, paging
+  through `nextOffset`, and an entry page with its versions, publisher and why a version is
+  incompatible. Index sources are managed from the same tab. Installing reuses the existing
+  `pluginManager/installBundle` path with the `spec` the host prepared, so the approval, resume and
+  unknown-outcome bookkeeping is the code that was already there. Which entries are installed,
+  updatable, provided by the host itself, or not installable at all is the host's `installation`
+  field; this screen draws that answer rather than recomputing it.
+- **An Agent Teams sheet.** A session that is a team lead carries a chip in the header opening its
+  roster and shared task board, and tapping a teammate opens that agent's conversation. The board is
+  read-only on purpose: its `revision` field is a compare-and-set and the lead's own tools are its
+  only writer, so writing from the phone would either lose the race or win one it should not.
 
 - **A turn rail beside the history button** lists every turn of the session, not just the ones
   loaded, and jumps to any of them. The history sheet answers "where did I ask that" and only

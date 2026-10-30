@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">แทนที่</string>
     <string name="chatlist_show_all">แสดงทั้งหมด %1$d</string>
     <string name="chatlist_show_less">แสดงน้อยลง</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">พูดเพื่อพิมพ์</string>
+    <string name="voice_input_stop">หยุดและถอดเสียง</string>
+    <string name="voice_input_cancel">ทิ้งการบันทึก</string>
+    <string name="voice_input_recording">กำลังบันทึก…</string>
+    <string name="voice_input_transcribing">กำลังถอดเสียง…</string>
+    <string name="voice_input_preparing">กำลังเตรียมตัวรู้จำ…</string>
+    <string name="voice_input_failed">ถอดเสียงจากการบันทึกไม่ได้</string>
+    <string name="voice_input_permission">ต้องเข้าถึงไมโครโฟนเพื่อพูดเพื่อพิมพ์</string>
+    <string name="voice_input_too_long">การบันทึกนี้ยาวเกินกว่าที่ Harness นี้รับได้</string>
+    <string name="voice_input_empty">ไม่รู้จำอะไรได้ในการบันทึกนั้น</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">ทีมเอเจนต์</string>
+    <string name="team_open">เปิดทีมเอเจนต์</string>
+    <string name="team_members">สมาชิก</string>
+    <string name="team_board">บอร์ดงานที่ใช้ร่วมกัน</string>
+    <string name="team_board_empty">ยังไม่มีงานถูกโพสต์บนบอร์ด</string>
+    <string name="team_failed">ทีมนี้เริ่มไม่ได้: %1$s</string>
+    <string name="team_member_provisioning">กำลังเริ่ม…</string>
+    <string name="team_member_failed">เริ่มไม่สำเร็จ</string>
+    <string name="team_role_lead">หัวหน้า</string>
+    <string name="team_role_teammate">เพื่อนร่วมทีม</string>
+    <string name="team_open_member">เปิดเซสชันของสมาชิกคนนี้</string>
+    <string name="team_task_pending">รอดำเนินการ</string>
+    <string name="team_task_in_progress">กำลังดำเนินการ</string>
+    <string name="team_task_completed">เสร็จแล้ว</string>
+    <string name="team_task_blocked">ถูกบล็อก</string>
+    <string name="team_task_unowned">ไม่มีผู้รับผิดชอบ</string>
+    <string name="team_task_scope_warning">ขอบเขตการเขียนทับซ้อน: %1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">ติดตั้งแล้ว</string>
+    <string name="market_tab_discover">ค้นหา</string>
+    <string name="market_search_hint">ค้นหาในมาร์เก็ตนี้</string>
+    <string name="market_sources">แหล่งมาร์เก็ต</string>
+    <string name="market_sources_empty">Harness นี้ยังไม่ได้ตั้งค่าแหล่งมาร์เก็ต เพิ่มได้ที่นี่ หรือที่หน้า ปลั๊กอิน → ค้นหา ในไคลเอนต์เดสก์ท็อป</string>
+    <string name="market_source_add">เพิ่มแหล่ง</string>
+    <string name="market_source_url">URL ของดัชนี</string>
+    <string name="market_loading">กำลังโหลดมาร์เก็ต…</string>
+    <string name="market_empty">ไม่มีปลั๊กอินที่ตรงกับการค้นหานั้น</string>
+    <string name="market_total">%1$d ปลั๊กอิน</string>
+    <string name="market_load_more">โหลดเพิ่ม</string>
+    <string name="market_status_installed">ติดตั้งแล้ว</string>
+    <string name="market_status_update">มีอัปเดต</string>
+    <string name="market_status_different">ติดตั้งเวอร์ชันอื่นอยู่</string>
+    <string name="market_status_provided">มาพร้อมกับ Harness</string>
+    <string name="market_status_absent">ยังไม่ได้ติดตั้ง</string>
+    <string name="market_incompatible">ต้องใช้ DSH %1$s</string>
+    <string name="market_incompatible_short">ไม่เข้ากันกับ Harness นี้</string>
+    <string name="market_install">ติดตั้ง</string>
+    <string name="market_update">อัปเดต</string>
+    <string name="market_versions">เวอร์ชัน</string>
+    <string name="market_installs">ติดตั้ง %1$s</string>
+    <string name="market_author">โดย %1$s</string>
+    <string name="market_sort">เรียงลำดับ</string>
+    <string name="market_sort_index">ลำดับมาร์เก็ต</string>
+    <string name="market_sort_newest">ใหม่ก่อน</string>
+    <string name="market_sort_oldest">เก่าก่อน</string>
+    <string name="market_sort_relevance">ตรงที่สุด</string>
+    <string name="market_confirm_title">ติดตั้งปลั๊กอินนี้?</string>
+    <string name="market_confirm_body">Harness จะติดตั้ง %1$s ปลั๊กอินที่ต้องรีสตาร์ทจะแสดงในรายการปลั๊กอินจนกว่าจะถึงตอนนั้น</string>
+    <string name="market_source_invalid">อ่านแหล่งนี้ไม่ได้</string>
+    <string name="team_task_write_scopes">ขอบเขตการเขียน</string>
+    <string name="team_task_blocked_by">ถูกบล็อกโดย %1$s</string>
 </resources>

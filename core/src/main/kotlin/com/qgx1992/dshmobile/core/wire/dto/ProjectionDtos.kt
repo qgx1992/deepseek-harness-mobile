@@ -247,3 +247,98 @@ data class TurnOutlineEntryView(
  * the session: read it as the navigation skeleton, and take row-level detail from the loaded
  * window.
  */
+
+/**
+ * The `agentTeam` projection: who is on the team, and what the shared board holds.
+ *
+ * Only a session that leads a team carries it, and only the host composes teams, so its presence is
+ * the whole capability test. This client reads it and writes nothing: tasks are owned and claimed by
+ * the agents through the host's compare-and-set board, and a second writer would only produce
+ * conflicting revisions.
+ */
+@Serializable
+data class AgentTeamView(
+    @SerialName("members") val members: List<TeamMemberView> = emptyList(),
+    @SerialName("tasks") val tasks: List<TeamTaskView> = emptyList(),
+    /**
+     * Set when the team could not be brought up. Its arrival is terminal: the projection is not
+     * rewritten afterwards, so a failed team stays failed for the session's lifetime.
+     */
+    @SerialName("failure") val failure: String? = null,
+) {
+    /** The lead is always first; the rest are the named teammates, in provisioning order. */
+    val lead: TeamMemberView? get() = members.firstOrNull { it.role == ROLE_LEAD } ?: members.firstOrNull()
+    val teammates: List<TeamMemberView> get() = members.filter { it.role != ROLE_LEAD }
+    val failed: Boolean get() = failure != null
+
+    /** Tasks the board still considers work: everything the host has not deleted. */
+    val openTasks: List<TeamTaskView> get() = tasks.filter { it.status != TeamTaskView.STATUS_COMPLETED }
+
+    fun member(name: String?): TeamMemberView? = members.firstOrNull { it.name == name }
+
+    companion object {
+        const val ROLE_LEAD = "lead"
+        const val ROLE_TEAMMATE = "teammate"
+    }
+}
+
+/** One member of a team: the lead, or a teammate the lead created. */
+@Serializable
+data class TeamMemberView(
+    /** The member's session id: what a client opens to read that agent's conversation. */
+    @SerialName("id") val id: String = "",
+    @SerialName("name") val name: String = "",
+    @SerialName("role") val role: String = ROLE_TEAMMATE,
+    /** `provisioning` while the member is being created, `active` once it can be messaged. */
+    @SerialName("phase") val phase: String = PHASE_ACTIVE,
+    /** Why creation failed; present only with `phase == failed`. */
+    @SerialName("error") val error: String? = null,
+) {
+    val isLead: Boolean get() = role == ROLE_LEAD
+
+    /** Still being created: it has a session id but cannot be messaged yet. */
+    val provisioning: Boolean get() = phase == PHASE_PROVISIONING
+
+    /** It exists and can take messages. */
+    val active: Boolean get() = phase == PHASE_ACTIVE
+    val failed: Boolean get() = phase == PHASE_FAILED
+
+    companion object {
+        const val ROLE_LEAD = AgentTeamView.ROLE_LEAD
+        const val ROLE_TEAMMATE = AgentTeamView.ROLE_TEAMMATE
+        const val PHASE_PROVISIONING = "provisioning"
+        const val PHASE_ACTIVE = "active"
+        const val PHASE_FAILED = "failed"
+    }
+}
+
+/** One row of the shared task board, as the host projects it. */
+@Serializable
+data class TeamTaskView(
+    /** `task-N`, stable for the task's lifetime. */
+    @SerialName("id") val id: String = "",
+    /** Bumped on every accepted write; the board is compare-and-set on this. */
+    @SerialName("revision") val revision: Int = 1,
+    @SerialName("subject") val subject: String = "",
+    @SerialName("description") val description: String = "",
+    @SerialName("status") val status: String = STATUS_PENDING,
+    @SerialName("blockedBy") val blockedBy: List<String> = emptyList(),
+    /** Workspace-relative paths the task expects to write; advisory, not a lock. */
+    @SerialName("writeScopes") val writeScopes: List<String> = emptyList(),
+    /** The member that claimed it; null while unowned. */
+    @SerialName("ownerName") val ownerName: String? = null,
+    /** Whether every blocker is complete, as computed by the host. */
+    @SerialName("ready") val ready: Boolean = true,
+    @SerialName("writeScopeWarnings") val writeScopeWarnings: List<String> = emptyList(),
+) {
+    val completed: Boolean get() = status == STATUS_COMPLETED
+    val inProgress: Boolean get() = status == STATUS_IN_PROGRESS
+    val blocked: Boolean get() = !ready && !completed
+
+    companion object {
+        const val STATUS_PENDING = "pending"
+        const val STATUS_IN_PROGRESS = "in_progress"
+        const val STATUS_COMPLETED = "completed"
+        const val STATUS_DELETED = "deleted"
+    }
+}

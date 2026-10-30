@@ -4,10 +4,134 @@ What DSH Mobile speaks, in one page. Authoritative shapes live in the harness
 repository — `packages/api/*/src/types.ts`,
 `packages/api/gateway/src/stream-protocol.ts`, `packages/llm/llm/src/assistant-stream.ts`
 and `packages/client/file-upload/src/*` — and this document records the
-subset the app implements, against harness **0.2.1-rc.2**. New management and
+subset the app implements, against harness **0.2.1-rc.2**, plus three surfaces taken from
+**0.2.1-rc.5** that the app treats as optional additions. New management and
 question surfaces are additive. Where 0.1.7 changed a shape the app still reads the
 0.1.6 one too; [0.12.0 contract additions](#0120-contract-additions-harness-017)
 lists both.
+
+## 0.19.0 contract additions (harness 0.2.1-rc.5)
+
+Three surfaces the desktop client (0.2.1-rc.5) serves and this app now speaks. They
+landed after the alpha.1 baseline this client pins, so **every one of them is optional**:
+a host that does not compose the service answers `gateway/definition-unavailable` (folded
+to `capability-unavailable`), and the app then draws no control rather than a dead one.
+`FeatureAvailability` records that answer per feature; `speech/catalog` doubles as its own
+probe because the catalog is the only method the composer needs before it can draw.
+
+```kotlin
+// core/.../wire/Harness021Api.kt
+speechCatalog()                                   // speech/catalog
+speechTranscribe(audioBase64, providerId?, lang)  // speech/transcribe, wrapped in `request`
+speechPrepare(providerId, downloadSource?)        // speech/prepare
+speechCancelPreparation(providerId)               // speech/cancelPreparation
+speechConfigure(providerId?, language?)           // speech/configure, wrapped in `patch`
+marketIndexes()                                   // pluginMarket/listIndexes
+marketSearch(url, query)                          // pluginMarket/search
+marketSetIndexes(urls)                            // pluginMarket/setIndexes
+```
+
+Argument names are load-bearing: the gateway matches `args` by **parameter name**, not by
+position, and `strictObject` schemas reject unknown keys. Two of these wrap their payload
+(`speech/transcribe` takes `{request}`, `speech/configure` takes `{patch}`) while
+`speech/cancelPreparation` and `speech/prepare` take a bare `providerId`. Both `prepare`
+and `cancelPreparation` answer with no value and are read as `JsonElement`.
+
+### `speech` — dictation
+
+One shot per take: the client records, encodes a WAV, sends it, and gets text back.
+There is no streaming transcription and **no session event** — a transcript is a draft,
+not history, so nothing about it reaches the conversation log.
+
+`speech/catalog()` answers:
+
+```
+{providers: [{id, name, location: "host-local"|"cloud", languages: [string],
+              setupEstimate?: {recommendedDiskBytes, expectedMemoryBytes,
+                               minimumMinutes, maximumMinutes},
+              downloadSources?: [string],
+              preparation: {phase, message?, step?, steps?, resource?,
+                            completedBytes?, totalBytes?, download?, startedAt?}}],
+ selection: {providerId, language},
+ maxAudioBytes, maxDurationSeconds}
+```
+
+`preparation.phase` decides what the client may do: `ready` and `standby` transcribe now;
+`unprepared` and `cancelled` need a `speech/prepare` (which may download a model first);
+`checking`, `loading`, `waking`, `downloading` and `cancelling` are busy; `failed` carries
+a message. `languages` includes `auto`.
+
+`speech/transcribe({audioBase64, providerId?, language?})` answers
+`{text, audioSeconds, inferenceSeconds}`. The host validates in this order, and the app
+mirrors the same limits client-side so a too-long take is refused before it is uploaded:
+
+1. `len(base64) > ceil(maxAudioBytes / 3) * 4` → `speech/invalid-audio`
+   `{reason: "encoding-or-size"}`. Defaults are 4 MiB and 120 s.
+2. The body must be **canonical** base64 (`decode(re-encode(x)) == x`) and within the byte
+   limit; otherwise `speech/transcription-failed`.
+3. The bytes must be a WAV whose duration fits `maxDurationSeconds`.
+4. Any failure from the recognizer is reported as `speech/transcription-failed` with the
+   underlying reason in `details.reason`.
+
+### `pluginMarket` — the plugin catalogue
+
+Read-only over a user-configured index; installation is not part of this namespace and
+still goes through `pluginManager/installBundle` with the `install.spec` the host
+prepared. `pluginMarket/listIndexes()` answers `[{url, title?, description?, error?}]`,
+where a source carrying `error` is listed but will never be fetched.
+
+`pluginMarket/search(url, {text?, category?, labels?, sort, offset, limit, refresh?,
+fetchedAt?})` — **`sort`, `offset` and `limit` are required**, and the query object is
+strict, so a client must omit absent keys rather than send `null`:
+
+- `sort` is a closed union: `{kind:"index"}`, `{kind:"relevance"}`,
+  `{kind:"published", direction:"asc"|"desc"}`, `{kind:"key", id, direction}`.
+- `offset` is a non-negative integer and `limit` an integer in 1..100, or
+  `plugin-market/invalid-query` with `{field, reason:"range"}`.
+- `refresh` re-reads the index document; `fetchedAt` continues paging over the snapshot a
+  previous page came from, which is what makes `nextOffset` meaningful across a cache
+  expiry.
+
+The answer is `{url, title, description?, metadata: {categories, labels, sortKeys},
+fetchedAt, entries, total, nextOffset}`. Each entry is the index's plugin — `name, title?,
+description?, icon?, author?, homepage?, repository?, metadata, versions` — plus two facts
+the host computes and the client must not re-derive:
+
+- `versions[].install`: `{spec, registry?}` ready to hand to `pluginManager/installBundle`,
+  and `versions[].compatibility`: `{compatible: true}` or
+  `{compatible: false, runtimeVersion, requirements, exempted}`.
+- `installation`: `{status, installedVersion?}` with status one of `not-installed`,
+  `installed`, `update-available`, `different-version`, `provided`. `provided` means the
+  running host ships the package itself and it cannot be installed; `different-version`
+  means what is installed is not what the index would pick.
+
+Titles, descriptions and category/label names are localized text: either a plain string
+or a map keyed by lower-case language id that **must** contain `en`.
+
+`pluginMarket/setIndexes(urls)` replaces the whole list. It refuses a non-http(s) URL, one
+carrying credentials or a fragment, and a duplicate (`plugin-market/invalid-index-url`),
+and answers `plugin-market/settings-unavailable` when the host has no market settings
+entry. Other codes: `plugin-market/{invalid-query, unknown-index, fetch-failed,
+invalid-index}`.
+
+### `agentTeam` — a lead session's team
+
+Pushed as a projection on the **lead's own session only**:
+
+| Key | Carries |
+|---|---|
+| `agentTeam` | `{members: [{id, name, role: "lead"\|"teammate", phase: "provisioning"\|"active"\|"failed", error?}], tasks: [{id, revision, subject, description, status: "pending"\|"in_progress"\|"completed"\|"deleted", blockedBy, writeScopes, ownerName?, ready, writeScopeWarnings}], failure?}` |
+
+`members[0]` is always the lead; a member's `id` is its session id, which is what a client
+opens to read that agent's conversation. The host filters `deleted` tasks out before
+projecting. `failure` is terminal: it appears when the team could not be brought up and
+the projection is not rewritten afterwards.
+
+The board is **compare-and-set on `revision`** and the lead's own `team_task_*` tools are
+its only writer, so this client renders it read-only. Offering assign/complete from a
+phone would either lose the race against the lead's next write or win it and hand the lead
+a revision it never asked for; the desktop client draws the same line.
+
 
 ## 0.17.0 contract changes (harness 0.2.1-rc.2)
 
@@ -508,7 +632,9 @@ watermark.
 | `agentPreset` | `string \| null` — the preset this session runs |
 | `subagentCatalog` | `[{id, createdAt, mode: one-shot\|continuable\|unknown, label?}]` — the direct children, and since 0.1.7 the **only** source of them (`subagents/list` is gone). Activity is not in it: a child's running state is its own session row's `running` and `api-session/status` |
 | `subagentTiming`, `subagent` | a child's active-turn duration, and a descriptor-backed child's identity |
-| `turnOutline`, `schedule` | new in 0.1.2–0.1.3; carried but not yet read by this client |
+| `turnOutline` | new in 0.1.2; the turn rail reads it |
+| `schedule` | new in 0.1.3; carried but not yet read by this client |
+| `agentTeam` | 0.2.1-rc.5 only — a lead session's roster and task board, see [the section above](#agentteam--a-lead-sessions-team). Absent on every other session, so the composer's team chip keys off it being non-null |
 
 `turnBoundary` is **not** on this list, though 0.11.4 said it was: it is declared
 in `SessionProjectionStateMap` only, which is host-side fold state, so it never

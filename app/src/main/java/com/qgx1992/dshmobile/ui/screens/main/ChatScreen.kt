@@ -56,6 +56,7 @@ import com.qgx1992.dshmobile.ui.components.PlanReviewPanel
 import com.qgx1992.dshmobile.ui.components.planReviewOf
 import com.qgx1992.dshmobile.ui.components.QuestionsPanel
 import com.qgx1992.dshmobile.ui.components.rememberDsToast
+import com.qgx1992.dshmobile.ui.components.rememberVoiceInput
 import com.qgx1992.dshmobile.ui.rememberSessionStore
 import com.qgx1992.dshmobile.ui.screens.main.commands.CommandContext
 import com.qgx1992.dshmobile.ui.screens.main.commands.CommandDecorations
@@ -121,6 +122,7 @@ fun ChatScreen(
     val contextPressure by store.contextPressure.collectAsStateWithLifecycle()
     val imageLimits by store.imageLimits.collectAsStateWithLifecycle()
     val turnOutline by store.turnOutline.collectAsStateWithLifecycle()
+    val agentTeam by store.agentTeam.collectAsStateWithLifecycle()
 
     val currentSession = sessions.firstOrNull { it.sessionId == currentSessionId }
     val workingDirectory = com.qgx1992.dshmobile.core.session.effectiveWorkingDirectory(conversation?.projections, currentSession?.cwd)
@@ -160,6 +162,21 @@ fun ChatScreen(
     // A held prompt waiting on the reader's say-so before it replaces a draft they had started.
     var replaceDraftWith by remember(composer.key) { mutableStateOf<String?>(null) }
     var composerFocusTick by remember { mutableIntStateOf(0) }
+
+    // Dictation is an input method, not a mode: a transcript is appended to whatever is already in
+    // the box rather than replacing it, and the caret is pushed to the end so the keyboard lands
+    // where the words did.
+    val speechCatalog by store.speechCatalog.collectAsStateWithLifecycle()
+    val voice = rememberVoiceInput(
+        catalog = speechCatalog,
+        onTranscribe = { wav -> store.transcribeSpeech(wav) },
+        onTranscript = { text ->
+            val separator = if (draft.isBlank() || draft.endsWith(" ")) "" else " "
+            composer.text = draft + separator + text
+            composer.selection = composer.text.length
+            composerFocusTick++
+        },
+    )
 
     // Hoisted above the tab swap so each view keeps its own scroll position across switches.
     val chatListState = rememberLazyListState()
@@ -481,6 +498,9 @@ fun ChatScreen(
                     ?.takeIf { agentPresets?.modeSelectionEnabled != false && currentSession.blank }
                     ?.let { agentPresetLabel(it, agentPresets) },
                 subagentCount = subagents.size,
+                // Only the lead session of a team carries this projection, so the chip's absence is
+                // itself the answer for every other conversation.
+                teamCount = agentTeam?.members?.size ?: 0,
                 detailsOpen = detailsOpen,
                 tab = tab,
                 onOpenDrawer = onOpenDrawer,
@@ -492,6 +512,7 @@ fun ChatScreen(
                     sheet = ChatSheet.Presets
                 },
                 onOpenSubagents = { sheet = ChatSheet.Subagents },
+                onOpenTeam = { sheet = ChatSheet.Team },
                 onOpenDetails = onOpenDetails,
                 onTabChange = { tab = it },
                 onOpenWorkspace = { panelKey = composer.key },
@@ -753,6 +774,7 @@ fun ChatScreen(
                     onSendWith = { text, delivery -> send(text, delivery) },
                     onStop = { scope.launch { store.cancelTurn() } },
                     focusTick = composerFocusTick,
+                    voice = voice,
                 )
 
                 StatsFooter(stats = sessionStats, usage = tokenUsage)
@@ -903,12 +925,25 @@ fun ChatScreen(
             mode = subagentMode,
             onDismiss = { sheet = null },
         )
+        // Re-read on open rather than captured: a member's session id is what the drawer and the
+        // session store already navigate by, and the sheet closes first so the chat surface is the
+        // thing the switch lands on.
+        ChatSheet.Team -> agentTeam?.let { team ->
+            AgentTeamSheet(
+                team = team,
+                onDismiss = { sheet = null },
+                onOpenMember = { sessionId ->
+                    sheet = null
+                    scope.launch { store.openSession(sessionId) }
+                },
+            )
+        }
         null -> Unit
     }
 }
 
 /** Which sheet, if any, is open over the chat surface. */
-private enum class ChatSheet { Commands, Models, History, Turns, Presets, Subagents }
+private enum class ChatSheet { Commands, Models, History, Turns, Presets, Subagents, Team }
 
 /**
  * A picked document's display name and size, as its provider reports them.

@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Schedule
@@ -47,6 +48,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.input.key.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,12 +92,16 @@ import com.qgx1992.dshmobile.core.wire.dto.displayPermissionPreset
 import com.qgx1992.dshmobile.ui.components.ContextMeter
 import com.qgx1992.dshmobile.ui.components.FeatherIcons
 import com.qgx1992.dshmobile.ui.components.DsIconButton
+import com.qgx1992.dshmobile.ui.components.VoiceInputState
+import com.qgx1992.dshmobile.ui.components.VoicePhase
+import com.qgx1992.dshmobile.ui.components.VoiceRecordingBar
 import com.qgx1992.dshmobile.ui.components.skeleton
 import com.qgx1992.dshmobile.ui.theme.DsAnimations
 import com.qgx1992.dshmobile.ui.theme.DsShapes
 import com.qgx1992.dshmobile.ui.theme.DsSpacing
 import com.qgx1992.dshmobile.ui.theme.DsTheme
 import com.qgx1992.dshmobile.ui.theme.DsType
+import kotlinx.coroutines.delay
 
 /**
  * Something picked and waiting to be sent with the next message.
@@ -194,6 +200,11 @@ internal fun Composer(
     onSendWith: ((text: String, mode: String) -> Unit)? = null,
     /** Bumped to move focus into the field, after something outside it fills the draft. */
     focusTick: Int = 0,
+    /**
+     * Dictation, once the screen has a recognizer to offer. Null draws no microphone at all,
+     * which is the right answer for a harness that composes no speech service.
+     */
+    voice: VoiceInputState? = null,
 ) {
     var editor by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(draft, androidx.compose.ui.text.TextRange(cursor))) }
     androidx.compose.runtime.LaunchedEffect(draft, cursor) {
@@ -330,6 +341,25 @@ internal fun Composer(
                 )
 
                 if (preparing) Text(stringResource(R.string.photos_preparing), style = DsType.caption11)
+                // A dictation failure is reported here, above the field, instead of beside the
+                // microphone: by the time the error arrives the take is gone, so this line is the
+                // only thing left saying what happened, and it sits where the words would have
+                // appeared.
+                val voiceMessage = voice?.message
+                if (voiceMessage != null) {
+                    Text(
+                        stringResource(voiceMessage),
+                        style = DsType.caption11,
+                        color = colors.error,
+                    )
+                    // Cleared a beat after it is shown rather than in the same frame: a message
+                    // that leaves the screen before it can be read is the same as no message, and
+                    // holding it forever would make the composer look stuck in a failure.
+                    LaunchedEffect(voiceMessage) {
+                        delay(VOICE_MESSAGE_MS)
+                        voice?.clearMessage()
+                    }
+                }
                 AnimatedVisibility(visible = attachments.isNotEmpty()) {
                     AttachmentStrip(attachments, onRemoveAttachment, onRetryAttachment)
                 }
@@ -361,12 +391,60 @@ internal fun Composer(
                     )
 
                     Box(Modifier.weight(1f)) {
-                        PermissionChip(
-                            select = permissions,
-                            pending = pendingPermission,
-                            enabled = enabled,
-                            onPick = onPermissionPick,
-                        )
+                        // The strip takes the chip's slot for the duration of a take rather than
+                        // sitting beside it: the middle of this row is the only space wide enough
+                        // for a meter, and the permission chip is not something to change while
+                        // talking.
+                        if (voice != null && voice.phase == VoicePhase.RECORDING) {
+                            VoiceRecordingBar(voice)
+                        } else {
+                            PermissionChip(
+                                select = permissions,
+                                pending = pendingPermission,
+                                enabled = enabled,
+                                onPick = onPermissionPick,
+                            )
+                        }
+                    }
+
+                    // The microphone goes before the context meter so it sits with the other input
+                    // affordances, on the side of the row a thumb already covers.
+                    if (voice != null) {
+                        when (voice.phase) {
+                            VoicePhase.IDLE -> CircleAction(
+                                icon = Icons.Filled.Mic,
+                                description = stringResource(R.string.voice_input_record),
+                                size = 30,
+                                background = colors.hoverSolid,
+                                tint = colors.labelPrimary,
+                                enabled = enabled,
+                                onClick = { voice.start() },
+                            )
+
+                            // Recording draws nothing here: the strip carries its own cancel and
+                            // stop, and a second stop button a centimetre from the first is how a
+                            // take gets ended by a stray tap.
+                            VoicePhase.RECORDING -> Unit
+
+                            VoicePhase.TRANSCRIBING -> CircleAction(
+                                icon = null,
+                                description = stringResource(R.string.voice_input_transcribing),
+                                size = 30,
+                                background = colors.hoverSolid,
+                                tint = colors.accent,
+                                enabled = false,
+                                onClick = {},
+                            ) {
+                                // A ring in the button's own footprint, so the send button and the
+                                // meter beside it do not shift when the request starts or ends.
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    color = colors.accent,
+                                    strokeWidth = 2.dp,
+                                    trackColor = colors.borderL3,
+                                )
+                            }
+                        }
                     }
 
                     ContextMeter(contextBreakdown, contextPressure)
@@ -769,3 +847,11 @@ private fun CircleGlyph(
         }
     }
 }
+
+/**
+ * How long a dictation failure stays on screen.
+ *
+ * Long enough to read one short sentence, short enough that the composer does not look like it is
+ * stuck on the error — the recording is already gone, so the line is a notice, not a state.
+ */
+private const val VOICE_MESSAGE_MS = 4_000L

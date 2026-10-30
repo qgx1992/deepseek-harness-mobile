@@ -81,6 +81,68 @@ suspend fun DshApiClient.removePluginBundle(name: String): RpcResult<PluginChang
 suspend fun DshApiClient.sessionReferenceCandidates(sessionId: String, query: String): RpcResult<List<ReferenceCandidate>> =
     featureCall("sessionReferenceResolver/candidates", named("agentId" to str(sessionId), "query" to str(query)))
 
+/*
+ * Speech recognition (experimental `speech` namespace).
+ *
+ * The namespace exists only on a host that composed the speech-to-text plugin. A recording is
+ * validated and transcribed entirely host-side and never becomes a session event: the answer is
+ * the transcript, and putting it in the draft is the client's business.
+ */
+
+suspend fun DshApiClient.speechCatalog(): RpcResult<SpeechCatalogView> = featureCall("speech/catalog")
+
+/** Transcribe one WAV, already base64-encoded by the caller; see [SpeechCatalogView.maxAudioBytes]. */
+suspend fun DshApiClient.speechTranscribe(
+    audioBase64: String,
+    providerId: String? = null,
+    language: String? = null,
+): RpcResult<SpeechTranscriptionView> = featureCall("speech/transcribe", request(buildJsonObject {
+    put("audioBase64", audioBase64)
+    providerId?.takeIf { it.isNotBlank() }?.let { put("providerId", it) }
+    language?.takeIf { it.isNotBlank() }?.let { put("language", it) }
+}))
+
+/** Start (or join) the host-side preparation of one recognizer; the phase is reported by [speechCatalog]. */
+suspend fun DshApiClient.speechPrepare(providerId: String, downloadSource: String? = null): RpcResult<JsonElement> =
+    featureCall("speech/prepare", buildJsonObject {
+        put("providerId", providerId)
+        downloadSource?.takeIf { it.isNotBlank() }?.let { put("options", named("downloadSource" to str(it))) }
+    })
+
+suspend fun DshApiClient.speechCancelPreparation(providerId: String): RpcResult<JsonElement> =
+    featureCall("speech/cancelPreparation", named("providerId" to str(providerId)))
+
+/** Persist the recognizer and language hint the host should use next time. */
+suspend fun DshApiClient.speechConfigure(providerId: String? = null, language: String? = null): RpcResult<JsonElement> =
+    featureCall("speech/configure", named("patch" to buildJsonObject {
+        providerId?.takeIf { it.isNotBlank() }?.let { put("providerId", it) }
+        language?.takeIf { it.isNotBlank() }?.let { put("language", it) }
+    }))
+
+/*
+ * Plugin market (the `pluginMarket` namespace behind the desktop Plugins → Discover tab).
+ *
+ * The host validates, fetches, searches, and annotates; this side only renders. Installation is not
+ * part of the namespace — an entry carries the exact `install.spec` that `pluginManager/installBundle`
+ * takes.
+ */
+
+suspend fun DshApiClient.marketIndexes(): RpcResult<List<MarketIndexSourceView>> =
+    featureCall("pluginMarket/listIndexes")
+
+/**
+ * One page of one market.
+ *
+ * [MarketQuery] always writes `sort`, `offset` and `limit`: the host's schema requires all three and
+ * rejects unknown members, so the shape of the query is fixed rather than inferred.
+ */
+suspend fun DshApiClient.marketSearch(url: String, query: MarketQuery): RpcResult<MarketSearchResultView> =
+    featureCall("pluginMarket/search", named("url" to str(url), "query" to query.toJson()))
+
+/** Replace the configured index sources; the host validates each URL and refuses duplicates. */
+suspend fun DshApiClient.marketSetIndexes(urls: List<String>): RpcResult<JsonElement> =
+    featureCall("pluginMarket/setIndexes", named("urls" to JsonArray(urls.map(::str))))
+
 class HarnessFeatureException(val code: String, message: String) : Exception(message)
 fun <T> RpcResult<T>.featureValue(): T = when (this) {
     is RpcResult.Ok -> value

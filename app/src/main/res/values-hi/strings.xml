@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">बदलें</string>
     <string name="chatlist_show_all">सभी %1$d दिखाएँ</string>
     <string name="chatlist_show_less">कम दिखाएँ</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">बोलकर लिखें</string>
+    <string name="voice_input_stop">रोकें और ट्रांसक्राइब करें</string>
+    <string name="voice_input_cancel">रिकॉर्डिंग हटाएँ</string>
+    <string name="voice_input_recording">रिकॉर्ड हो रहा है…</string>
+    <string name="voice_input_transcribing">ट्रांसक्राइब हो रहा है…</string>
+    <string name="voice_input_preparing">पहचानकर्ता तैयार हो रहा है…</string>
+    <string name="voice_input_failed">इस रिकॉर्डिंग को ट्रांसक्राइब नहीं किया जा सका।</string>
+    <string name="voice_input_permission">बोलकर लिखने के लिए माइक्रोफ़ोन की अनुमति चाहिए।</string>
+    <string name="voice_input_too_long">यह रिकॉर्डिंग इस हार्नेस की स्वीकार्य सीमा से लंबी है।</string>
+    <string name="voice_input_empty">उस रिकॉर्डिंग में कुछ भी पहचाना नहीं गया।</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">एजेंट टीम</string>
+    <string name="team_open">एजेंट टीम खोलें</string>
+    <string name="team_members">सदस्य</string>
+    <string name="team_board">साझा कार्य बोर्ड</string>
+    <string name="team_board_empty">बोर्ड पर कोई कार्य पोस्ट नहीं किया गया है।</string>
+    <string name="team_failed">यह टीम शुरू नहीं हो सकी: %1$s</string>
+    <string name="team_member_provisioning">शुरू हो रहा है…</string>
+    <string name="team_member_failed">शुरू नहीं हो सका</string>
+    <string name="team_role_lead">लीड</string>
+    <string name="team_role_teammate">टीममेट</string>
+    <string name="team_open_member">इस सदस्य का सत्र खोलें</string>
+    <string name="team_task_pending">लंबित</string>
+    <string name="team_task_in_progress">चल रहा है</string>
+    <string name="team_task_completed">पूर्ण</string>
+    <string name="team_task_blocked">अवरुद्ध</string>
+    <string name="team_task_unowned">बिना ज़िम्मेदार</string>
+    <string name="team_task_scope_warning">राइट स्कोप ओवरलैप: %1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">इंस्टॉल किए गए</string>
+    <string name="market_tab_discover">अन्वेषण</string>
+    <string name="market_search_hint">इस मार्केट में खोजें</string>
+    <string name="market_sources">मार्केट स्रोत</string>
+    <string name="market_sources_empty">इस हार्नेस में कोई मार्केट स्रोत कॉन्फ़िगर नहीं है। यहाँ एक जोड़ें, या डेस्कटॉप क्लाइंट के प्लगइन → अन्वेषण पृष्ठ पर।</string>
+    <string name="market_source_add">स्रोत जोड़ें</string>
+    <string name="market_source_url">इंडेक्स URL</string>
+    <string name="market_loading">मार्केट लोड हो रहा है…</string>
+    <string name="market_empty">उस खोज से कोई प्लगइन मेल नहीं खाता।</string>
+    <string name="market_total">%1$d प्लगइन</string>
+    <string name="market_load_more">और लोड करें</string>
+    <string name="market_status_installed">इंस्टॉल है</string>
+    <string name="market_status_update">अपडेट उपलब्ध</string>
+    <string name="market_status_different">दूसरा संस्करण इंस्टॉल है</string>
+    <string name="market_status_provided">हार्नेस के साथ शामिल</string>
+    <string name="market_status_absent">इंस्टॉल नहीं है</string>
+    <string name="market_incompatible">DSH %1$s चाहिए</string>
+    <string name="market_incompatible_short">इस हार्नेस से असंगत</string>
+    <string name="market_install">इंस्टॉल करें</string>
+    <string name="market_update">अपडेट करें</string>
+    <string name="market_versions">संस्करण</string>
+    <string name="market_installs">%1$s इंस्टॉल करता है</string>
+    <string name="market_author">%1$s द्वारा</string>
+    <string name="market_sort">क्रमबद्ध करें</string>
+    <string name="market_sort_index">मार्केट क्रम</string>
+    <string name="market_sort_newest">नए पहले</string>
+    <string name="market_sort_oldest">पुराने पहले</string>
+    <string name="market_sort_relevance">सर्वोत्तम मेल</string>
+    <string name="market_confirm_title">यह प्लगइन इंस्टॉल करें?</string>
+    <string name="market_confirm_body">हार्नेस %1$s इंस्टॉल करेगा। जिन प्लगइन्स को पुनः आरंभ चाहिए, वे तब तक प्लगइन सूची में दिखेंगे।</string>
+    <string name="market_source_invalid">यह स्रोत पढ़ा नहीं जा सका।</string>
+    <string name="team_task_write_scopes">राइट स्कोप</string>
+    <string name="team_task_blocked_by">%1$s द्वारा अवरुद्ध</string>
 </resources>

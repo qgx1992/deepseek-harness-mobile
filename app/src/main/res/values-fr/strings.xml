@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">Remplacer</string>
     <string name="chatlist_show_all">Afficher tout %1$d</string>
     <string name="chatlist_show_less">Afficher moins</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">Dicter</string>
+    <string name="voice_input_stop">Arrêter et transcrire</string>
+    <string name="voice_input_cancel">Écarter l\'enregistrement</string>
+    <string name="voice_input_recording">Enregistrement…</string>
+    <string name="voice_input_transcribing">Transcription…</string>
+    <string name="voice_input_preparing">Préparation du reconnaisseur…</string>
+    <string name="voice_input_failed">L\'enregistrement n\'a pas pu être transcrit.</string>
+    <string name="voice_input_permission">L\'accès au microphone est nécessaire pour dicter.</string>
+    <string name="voice_input_too_long">Cet enregistrement dépasse ce que ce harness accepte.</string>
+    <string name="voice_input_empty">Rien n\'a été reconnu dans cet enregistrement.</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">Équipe d\'agents</string>
+    <string name="team_open">Ouvrir l\'équipe d\'agents</string>
+    <string name="team_members">Membres</string>
+    <string name="team_board">Tableau des tâches partagé</string>
+    <string name="team_board_empty">Aucune tâche n\'a été publiée sur le tableau.</string>
+    <string name="team_failed">Cette équipe n\'a pas pu démarrer : %1$s</string>
+    <string name="team_member_provisioning">Démarrage…</string>
+    <string name="team_member_failed">Échec du démarrage</string>
+    <string name="team_role_lead">Chef</string>
+    <string name="team_role_teammate">Coéquipier</string>
+    <string name="team_open_member">Ouvrir la session de ce membre</string>
+    <string name="team_task_pending">En attente</string>
+    <string name="team_task_in_progress">En cours</string>
+    <string name="team_task_completed">Terminée</string>
+    <string name="team_task_blocked">Bloquée</string>
+    <string name="team_task_unowned">Sans responsable</string>
+    <string name="team_task_scope_warning">Chevauchement de portée d\'écriture : %1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">Installés</string>
+    <string name="market_tab_discover">Découvrir</string>
+    <string name="market_search_hint">Rechercher dans ce marché</string>
+    <string name="market_sources">Sources du marché</string>
+    <string name="market_sources_empty">Ce harness n\'a aucune source de marché configurée. Ajoutez-en une ici, ou sur la page Plugins → Découvrir du client de bureau.</string>
+    <string name="market_source_add">Ajouter une source</string>
+    <string name="market_source_url">URL de l\'index</string>
+    <string name="market_loading">Chargement du marché…</string>
+    <string name="market_empty">Aucun plugin ne correspond à cette recherche.</string>
+    <string name="market_total">%1$d plugins</string>
+    <string name="market_load_more">Charger plus</string>
+    <string name="market_status_installed">Installé</string>
+    <string name="market_status_update">Mise à jour disponible</string>
+    <string name="market_status_different">Autre version installée</string>
+    <string name="market_status_provided">Fourni avec le harness</string>
+    <string name="market_status_absent">Non installé</string>
+    <string name="market_incompatible">Nécessite DSH %1$s</string>
+    <string name="market_incompatible_short">Incompatible avec ce harness</string>
+    <string name="market_install">Installer</string>
+    <string name="market_update">Mettre à jour</string>
+    <string name="market_versions">Versions</string>
+    <string name="market_installs">Installe %1$s</string>
+    <string name="market_author">Par %1$s</string>
+    <string name="market_sort">Trier</string>
+    <string name="market_sort_index">Ordre du marché</string>
+    <string name="market_sort_newest">Plus récents d\'abord</string>
+    <string name="market_sort_oldest">Plus anciens d\'abord</string>
+    <string name="market_sort_relevance">Meilleure correspondance</string>
+    <string name="market_confirm_title">Installer ce plugin ?</string>
+    <string name="market_confirm_body">Le harness va installer %1$s. Les plugins qui demandent un redémarrage apparaissent dans l\'inventaire des plugins jusque-là.</string>
+    <string name="market_source_invalid">Cette source n\'a pas pu être lue.</string>
+    <string name="team_task_write_scopes">Portées d\'écriture</string>
+    <string name="team_task_blocked_by">Bloquée par %1$s</string>
 </resources>

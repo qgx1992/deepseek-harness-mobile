@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Diversity3
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -110,6 +111,8 @@ internal fun ChatTopBar(
     models: SessionModelsValue?,
     agentPresetLabel: String?,
     subagentCount: Int,
+    /** Members on this session's agent team, or 0 when the host projects none. */
+    teamCount: Int,
     detailsOpen: Boolean,
     tab: ChatTab,
     onOpenDrawer: () -> Unit,
@@ -118,6 +121,7 @@ internal fun ChatTopBar(
     onOpenTurns: () -> Unit,
     onOpenPresets: () -> Unit,
     onOpenSubagents: () -> Unit,
+    onOpenTeam: () -> Unit,
     onOpenDetails: () -> Unit,
     onTabChange: (ChatTab) -> Unit,
     onOpenWorkspace: () -> Unit,
@@ -186,7 +190,7 @@ internal fun ChatTopBar(
             }
         }
 
-        val hasChips = agentPresetLabel != null || subagentCount > 0
+        val hasChips = agentPresetLabel != null || subagentCount > 0 || teamCount > 0
         if (title.isNotBlank() || hasChips) {
             Row(
                 modifier = Modifier
@@ -215,6 +219,16 @@ internal fun ChatTopBar(
                         icon = Icons.Outlined.Groups,
                         label = "$subagentCount",
                         onClick = onOpenSubagents,
+                    )
+                }
+                // A team is not a subagent list: the subagent chip counts sessions this conversation
+                // spawned, while this one counts the members sharing a task board with it. Same
+                // affordance, different glyph, because they answer different questions.
+                if (teamCount > 0) {
+                    MetaChip(
+                        icon = Icons.Outlined.Diversity3,
+                        label = stringResource(R.string.team_open),
+                        onClick = onOpenTeam,
                     )
                 }
             }

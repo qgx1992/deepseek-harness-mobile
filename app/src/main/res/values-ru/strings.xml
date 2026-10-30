@@ -643,4 +643,70 @@
     <string name="hold_replace_draft_confirm">Заменить</string>
     <string name="chatlist_show_all">Показать все %1$d</string>
     <string name="chatlist_show_less">Показать меньше</string>
+
+    <!-- Voice input: recording a prompt instead of typing it. -->
+    <string name="voice_input_record">Диктовать</string>
+    <string name="voice_input_stop">Остановить и расшифровать</string>
+    <string name="voice_input_cancel">Отменить запись</string>
+    <string name="voice_input_recording">Идёт запись…</string>
+    <string name="voice_input_transcribing">Расшифровка…</string>
+    <string name="voice_input_preparing">Подготовка распознавателя…</string>
+    <string name="voice_input_failed">Не удалось расшифровать запись.</string>
+    <string name="voice_input_permission">Для диктовки нужен доступ к микрофону.</string>
+    <string name="voice_input_too_long">Эта запись длиннее, чем допускает этот harness.</string>
+    <string name="voice_input_empty">В этой записи ничего не распознано.</string>
+
+    <!-- Agent teams: the lead's roster and the shared task board. -->
+    <string name="team_title">Команда агентов</string>
+    <string name="team_open">Открыть команду агентов</string>
+    <string name="team_members">Участники</string>
+    <string name="team_board">Общая доска задач</string>
+    <string name="team_board_empty">На доску не добавлено ни одной задачи.</string>
+    <string name="team_failed">Эта команда не смогла запуститься: %1$s</string>
+    <string name="team_member_provisioning">Запуск…</string>
+    <string name="team_member_failed">Не удалось запустить</string>
+    <string name="team_role_lead">Ведущий</string>
+    <string name="team_role_teammate">Напарник</string>
+    <string name="team_open_member">Открыть сессию этого участника</string>
+    <string name="team_task_pending">В ожидании</string>
+    <string name="team_task_in_progress">В работе</string>
+    <string name="team_task_completed">Завершена</string>
+    <string name="team_task_blocked">Заблокирована</string>
+    <string name="team_task_unowned">Без исполнителя</string>
+    <string name="team_task_scope_warning">Пересечение области записи: %1$s</string>
+
+    <!-- Plugin market: the Discover tab behind the installed-plugin list. -->
+    <string name="market_tab_installed">Установленные</string>
+    <string name="market_tab_discover">Обзор</string>
+    <string name="market_search_hint">Поиск по этому маркету</string>
+    <string name="market_sources">Источники маркета</string>
+    <string name="market_sources_empty">В этом harness не настроен ни один источник маркета. Добавьте его здесь или на странице «Плагины → Обзор» в клиенте для компьютера.</string>
+    <string name="market_source_add">Добавить источник</string>
+    <string name="market_source_url">URL индекса</string>
+    <string name="market_loading">Загрузка маркета…</string>
+    <string name="market_empty">Ни один плагин не соответствует этому поиску.</string>
+    <string name="market_total">Плагинов: %1$d</string>
+    <string name="market_load_more">Загрузить ещё</string>
+    <string name="market_status_installed">Установлен</string>
+    <string name="market_status_update">Доступно обновление</string>
+    <string name="market_status_different">Установлена другая версия</string>
+    <string name="market_status_provided">Входит в harness</string>
+    <string name="market_status_absent">Не установлен</string>
+    <string name="market_incompatible">Нужен DSH %1$s</string>
+    <string name="market_incompatible_short">Несовместим с этим harness</string>
+    <string name="market_install">Установить</string>
+    <string name="market_update">Обновить</string>
+    <string name="market_versions">Версии</string>
+    <string name="market_installs">Устанавливает %1$s</string>
+    <string name="market_author">Автор: %1$s</string>
+    <string name="market_sort">Сортировка</string>
+    <string name="market_sort_index">Порядок маркета</string>
+    <string name="market_sort_newest">Сначала новые</string>
+    <string name="market_sort_oldest">Сначала старые</string>
+    <string name="market_sort_relevance">Лучшее совпадение</string>
+    <string name="market_confirm_title">Установить этот плагин?</string>
+    <string name="market_confirm_body">Harness установит %1$s. Плагины, которым нужен перезапуск, до тех пор отображаются в каталоге плагинов.</string>
+    <string name="market_source_invalid">Не удалось прочитать этот источник.</string>
+    <string name="team_task_write_scopes">Области записи</string>
+    <string name="team_task_blocked_by">Блокирует %1$s</string>
 </resources>
