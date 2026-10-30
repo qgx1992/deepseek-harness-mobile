@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -53,18 +55,32 @@ android {
         }
     }
 
-    // Optional release signing: provide DSH_KEYSTORE / DSH_KEYSTORE_PASSWORD /
-    // DSH_KEY_ALIAS / DSH_KEY_PASSWORD (env vars, e.g. from GitHub secrets).
-    // Signing activates only when the keystore file actually exists, so a
-    // missing keystore silently falls back to an unsigned release APK.
+    // Optional release signing. Two sources, environment first:
+    //
+    //  * DSH_KEYSTORE / DSH_KEYSTORE_PASSWORD / DSH_KEY_ALIAS / DSH_KEY_PASSWORD — what the release
+    //    workflow feeds from repository secrets, so CI and a workstation can sign with one key.
+    //  * `keystore.properties` at the repository root — gitignored, so a workstation signs with the
+    //    same certificate as the published releases after a plain `assembleRelease`, without
+    //    exporting anything into the shell. Keys: storeFile, storePassword, keyAlias, keyPassword.
+    //
+    // Signing activates only when the keystore file actually exists, so a missing keystore silently
+    // falls back to an unsigned release APK.
     signingConfigs {
-        val keystore = System.getenv("DSH_KEYSTORE")
+        val signingProperties = Properties().apply {
+            rootProject.file("keystore.properties")
+                .takeIf { it.exists() }
+                ?.inputStream()
+                ?.use { load(it) }
+        }
+        fun setting(environment: String, property: String): String? =
+            System.getenv(environment) ?: signingProperties.getProperty(property)
+        val keystore = setting("DSH_KEYSTORE", "storeFile")
         if (!keystore.isNullOrBlank() && file(keystore).exists()) {
             create("release") {
                 storeFile = file(keystore)
-                storePassword = System.getenv("DSH_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("DSH_KEY_ALIAS")
-                keyPassword = System.getenv("DSH_KEY_PASSWORD")
+                storePassword = setting("DSH_KEYSTORE_PASSWORD", "storePassword")
+                keyAlias = setting("DSH_KEY_ALIAS", "keyAlias")
+                keyPassword = setting("DSH_KEY_PASSWORD", "keyPassword")
             }
             buildTypes.getByName("release") {
                 signingConfig = signingConfigs.getByName("release")

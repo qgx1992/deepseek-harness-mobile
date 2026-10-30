@@ -18,6 +18,11 @@ All notable changes to DSH Mobile are documented here. Format based on
   `MarketScenario` in `mock-harness` answers all of them so
   `DesktopParityContractsEndToEndTest` can hold the client to the real argument names and the host's
   own validation order.
+- A local `assembleRelease` now signs with the same certificate as the published releases. The
+  signing config reads `keystore.properties` at the repository root (gitignored) when the `DSH_*`
+  environment variables are absent, so CI keeps taking the key from repository secrets and a
+  workstation takes it from that file — either way one certificate signs every build, and an APK
+  built here installs over a downloaded release instead of colliding with it.
 
 ### Changed
 
