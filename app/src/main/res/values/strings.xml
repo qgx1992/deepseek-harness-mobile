@@ -71,7 +71,7 @@
     <string name="connect_fail_other">Could not connect to %1$s. %2$s</string>
     <string name="connect_version_mismatch">Harness version %1$s may be incompatible with this app (built for %2$s).</string>
     <string name="connect_harness_home">Home %1$s</string>
-    <string name="connect_protocol_baseline">Protocol %1$s</string>
+    <string name="connect_protocol_baseline">Protocol baseline %1$s</string>
     <string name="connect_disconnect">Disconnect</string>
     <string name="connect_unreachable">Unreachable</string>
     <string name="connect_reachable">Reachable</string>

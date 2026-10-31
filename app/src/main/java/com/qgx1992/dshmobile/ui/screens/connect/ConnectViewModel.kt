@@ -1,6 +1,7 @@
 package com.qgx1992.dshmobile.ui.screens.connect
 
 import android.content.Intent
+import android.os.SystemClock
 import com.qgx1992.dshmobile.core.wire.SessionExchange
 import com.qgx1992.dshmobile.connection.HarnessSessionStore
 import androidx.lifecycle.ViewModel
@@ -57,6 +58,35 @@ sealed interface HostProbe {
 
 /** How far the subnet sweep has got, so the UI can show more than a spinner. */
 data class ScanProgress(val probed: Int, val total: Int)
+
+/**
+ * What the Recent rows should say after one manager emission.
+ *
+ * Deliberately pure so the rule with the subtle failure is testable: a row may only be greyed by a
+ * *terminal* outcome, never by the miss of a loop that is still retrying. [ConnectionManager] keeps
+ * `failure` set across retries, so folding it in unconditionally marked a healthy harness as
+ * unreachable after the first cold-start miss — the app then sat on "cannot connect" while the loop
+ * behind it was still trying, and auto-connect never even started.
+ *
+ * A connection, on the other hand, is proof the row is alive, so it clears whatever a failed probe
+ * had written — that is what makes a card recover without leaving the screen.
+ */
+internal fun recentStatusAfter(
+    current: Map<String, HostProbe>,
+    attempted: String?,
+    connected: Boolean,
+    phase: ConnectionPhase,
+    reached: String?,
+    description: HostDescription?,
+    owned: Boolean,
+    hasFailure: Boolean,
+): Map<String, HostProbe> = when {
+    connected && reached != null && description != null ->
+        current + (reached to HostProbe.Reachable(description))
+    !owned && hasFailure && phase == ConnectionPhase.DISCONNECTED ->
+        attempted?.let { current + (it to HostProbe.Unreachable) } ?: current
+    else -> current
+}
 
 /** Why a launch-token exchange did not produce a browser session. */
 enum class SignInError {
@@ -188,6 +218,12 @@ class ConnectViewModel @Inject constructor(
     /** Set by Start: connect as soon as the harness the user just asked for answers. */
     private var connectWhenReady = false
 
+    /** When this screen was first composed, for the cold-start allowances below. */
+    private val startedAtMs = SystemClock.elapsedRealtime()
+
+    /** A delayed re-probe is worth one attempt per launch, not one per redraw. */
+    private var coldReprobeDone = false
+
     /**
      * Non-null while this ViewModel owns the outcome rather than the manager.
      *
@@ -254,6 +290,7 @@ class ConnectViewModel @Inject constructor(
                 _state.update { current ->
                     val connected = conn.phase == ConnectionPhase.CONNECTED
                     val owned = localStage != null
+                    val attempted = current.attempted ?: conn.host?.authority
                     current.copy(
                         stage = localStage ?: conn.stage,
                         failure = when {
@@ -264,14 +301,23 @@ class ConnectViewModel @Inject constructor(
                         // Whoever started the attempt owns this normally, but pairing connects
                         // through the manager directly — so a failure after pairing arrived with
                         // no address at all, and the message read "Something answered at , but…".
-                        attempted = current.attempted ?: conn.host?.authority,
+                        attempted = attempted,
                         retrying = !owned && !connected && conn.attempts > 0,
-                        // The Recent card's liveness dot used to be greyed by the failure callback
-                        // that no longer exists; without this a dead entry keeps looking healthy.
-                        recentStatus = current.attempted
-                            ?.takeIf { !owned && conn.failure != null }
-                            ?.let { current.recentStatus + (it to HostProbe.Unreachable) }
-                            ?: current.recentStatus,
+                        // A Recent row's dot reports what a *probe* found, or a terminal outcome —
+                        // never the transient miss of a loop that is still retrying. The first
+                        // request after a cold start regularly fails while the radio re-attaches,
+                        // and reading that as "this host is unreachable" greyed out the very row
+                        // the app was about to connect to.
+                        recentStatus = recentStatusAfter(
+                            current = current.recentStatus,
+                            attempted = attempted,
+                            connected = connected,
+                            phase = conn.phase,
+                            reached = conn.host?.authority,
+                            description = conn.description,
+                            owned = owned,
+                            hasFailure = conn.failure != null,
+                        ),
                     )
                 }
             }
@@ -326,27 +372,67 @@ class ConnectViewModel @Inject constructor(
         _state.update { current ->
             current.copy(recentStatus = hosts.associate { it.authority to HostProbe.Probing })
         }
+        val missed = supervisorScope {
+            hosts.map { host -> async { host.takeIf { !probeOne(it) } } }.awaitAll().filterNotNull()
+        }
+        // One more pass for the rows a cold start missed.
+        //
+        // The patient probe above already forgives ~1.2 s of radio warm-up; when the phone was
+        // asleep for hours or just joined the network that is not always enough, and the card then
+        // says "unreachable" about a harness that is up and answering. A single delayed re-check
+        // (only during launch, only for the rows that missed) makes the screen tell the truth
+        // without the user having to leave and come back.
+        if (missed.isEmpty() || coldReprobeDone) return
+        if (SystemClock.elapsedRealtime() - startedAtMs > COLD_START_WINDOW_MS) return
+        coldReprobeDone = true
+        delay(COLD_REPROBE_DELAY_MS)
         supervisorScope {
-            hosts.map { host ->
+            missed.map { host ->
                 async {
-                    val description = runCatching {
-                        // A remembered host is named, not swept — worth waiting for.
-                        discoveryEngine.probe(host.host, host.port, ProbeTimeouts.Manual, config = host)
-                    }.getOrNull()
-                    _state.update { current ->
-                        current.copy(
-                            recentStatus = current.recentStatus + (
-                                host.authority to (
-                                    description?.let { HostProbe.Reachable(it) } ?: HostProbe.Unreachable
-                                    )
-                                ),
-                        )
-                    }
-                    if (description != null) {
-                        hostsStore.cacheDescription(host.id, description)
-                    }
+                    _state.update { current -> current.copy(recentStatus = current.recentStatus + (host.authority to HostProbe.Probing)) }
+                    probeOne(host)
                 }
             }.awaitAll()
+        }
+    }
+
+    /** Probe one row, publish what it found, and report whether it answered. */
+    private suspend fun probeOne(host: HostConfig): Boolean {
+        val description = probePatiently(host)
+        _state.update { current ->
+            current.copy(
+                recentStatus = current.recentStatus + (
+                    host.authority to (
+                        description?.let { HostProbe.Reachable(it) } ?: HostProbe.Unreachable
+                        )
+                    ),
+            )
+        }
+        if (description != null) hostsStore.cacheDescription(host.id, description)
+        return description != null
+    }
+
+    /**
+     * Probe a named host, forgiving the first misses of a cold start.
+     *
+     * The probe is one request, and on a phone the first request after the process starts
+     * regularly fails for reasons that have nothing to do with the harness: the radio is still
+     * re-attaching, the Wi-Fi association has not completed, or a relay's TLS session is being
+     * rebuilt. A single miss used to mean "unreachable" on the card and "do not auto-connect at
+     * all" during launch, so a perfectly healthy host was reported dead every time the app was
+     * opened from cold. Three attempts with a little backoff cost nothing when the host is up
+     * (the first attempt answers in milliseconds) and roughly a second when it is not.
+     */
+    private suspend fun probePatiently(host: HostConfig): HostDescription? {
+        var attempt = 0
+        while (true) {
+            val description = runCatching {
+                // A remembered host is named, not swept — worth waiting for.
+                discoveryEngine.probe(host.host, host.port, ProbeTimeouts.Manual, config = host)
+            }.getOrNull()
+            if (description != null || attempt >= PROBE_ATTEMPTS - 1) return description
+            attempt++
+            delay(PROBE_BACKOFF_MS * attempt)
         }
     }
 
@@ -385,7 +471,7 @@ class ConnectViewModel @Inject constructor(
         if (settings.autoConnectLast) {
             val last = hostsStore.hosts.first().firstOrNull { it.belongsTo(mode) }
             if (last != null) {
-                val desc = discoveryEngine.probe(last.host, last.port, ProbeTimeouts.Manual, config = last)
+                val desc = probePatiently(last)
                 if (desc != null) {
                     connectTo(last)
                     return
@@ -928,5 +1014,17 @@ class ConnectViewModel @Inject constructor(
 
         /** Between ticks of the "this phone" watch — a refused loopback connect costs nothing. */
         const val WATCH_INTERVAL_MS = 2_000L
+
+        /** Attempts per named-host probe: one answer, plus two chances for a cold radio. */
+        const val PROBE_ATTEMPTS = 3
+
+        /** Backoff between those attempts, multiplied by the attempt number (400 ms, then 800 ms). */
+        const val PROBE_BACKOFF_MS = 400L
+
+        /** How long after launch a missed probe is still blamed on the radio rather than the host. */
+        const val COLD_START_WINDOW_MS = 20_000L
+
+        /** How long to let the radio settle before the one delayed re-probe. */
+        const val COLD_REPROBE_DELAY_MS = 3_000L
     }
 }

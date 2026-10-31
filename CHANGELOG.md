@@ -135,6 +135,26 @@ All notable changes to DSH Mobile are documented here. Format based on
   reasoning panels and tool groups as they were. Turns that have not answered yet — and the turn
   currently running — are left expanded, because their steps are the progress you are watching.
 
+### Fixed
+
+- **Check for updates asks this fork now.** The GitHub lookup pointed at the upstream repository,
+  whose releases carry the same tag and asset names but a different signing certificate. Every
+  phone on this build was therefore offered an "update" as soon as upstream published a version the
+  fork had not reached — and the APK it downloaded could not be installed over this one. The check,
+  and the release page it opens, now name `qgx1992/deepseek-harness-mobile`; a unit test holds both
+  URLs to that repository so the old value cannot come back silently.
+- **A healthy host is no longer reported as unreachable at launch.** The connection loop keeps its
+  last failure while it retries, and the connect screen was folding that into the Recent rows: the
+  first probe to miss — which happens routinely in the second after a cold start, while the radio
+  re-attaches — greyed out the very row the app was about to use, and auto-connect gave up without
+  starting at all, leaving the screen saying "cannot connect" beside a harness that was up. Named
+  hosts are now probed up to three times with backoff, a launch that missed every attempt gets one
+  delayed re-check, auto-connect retries instead of dropping the attempt, and a row is greyed only
+  by a terminal outcome — while a connection repaints it, so a card recovers where it stands.
+- The host card's protocol line reads **Protocol baseline** in all eleven languages. The value is
+  this client's pinned baseline, not the desktop harness's version, and no wire field carries the
+  latter: `host.describe` went away in 0.1.2 and the ready frame has held only `home` ever since.
+
 ## [0.18.0] - 2026-10-21
 
 Pressing and holding things in the app now opens a menu of what you can do with them. This

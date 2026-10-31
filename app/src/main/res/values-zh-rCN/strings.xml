@@ -62,7 +62,7 @@
     <string name="connect_fail_other">无法连接到 %1$s。%2$s</string>
     <string name="connect_version_mismatch">Harness %1$s 版本可能与本应用（为 %2$s 构建）不兼容。</string>
     <string name="connect_harness_home">主目录 %1$s</string>
-    <string name="connect_protocol_baseline">协议 %1$s</string>
+    <string name="connect_protocol_baseline">协议基线 %1$s</string>
     <string name="connect_disconnect">断开连接</string>
     <string name="connect_unreachable">无法连接</string>
     <string name="connect_reachable">可连接</string>

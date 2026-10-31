@@ -185,10 +185,25 @@ class UpdateChecker @Inject constructor(
         data object Unreachable : CheckOutcome
     }
 
-    private companion object {
+    internal companion object {
         /** Six hours: often enough to notice a release the same day, rare enough to be free. */
         const val AUTO_CHECK_INTERVAL_MS = 6L * 60 * 60 * 1000
-        const val REPO = "sorsama/deepseek-harness-mobile"
+
+        /**
+         * The fork this app is built from — not upstream.
+         *
+         * This used to point at the upstream repository, whose releases carry the same tag names
+         * and the same asset names but a different signing certificate. A phone on this build was
+         * therefore told "an update is available" whenever upstream published a version this fork
+         * had not reached yet, and tapping it downloaded an APK Android then refused to install
+         * over this one. Only the repository whose releases can be installed over this build is
+         * worth asking.
+         */
+        const val REPO = "qgx1992/deepseek-harness-mobile"
+
+        /** The repository the old builds asked, kept only so a test can assert it is not this. */
+        const val UPSTREAM_REPO = "sorsama/deepseek-harness-mobile"
+
         const val LATEST_RELEASE_API = "https://api.github.com/repos/$REPO/releases/latest"
         const val RELEASES_URL = "https://github.com/$REPO/releases/latest"
     }

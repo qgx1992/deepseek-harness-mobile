@@ -62,7 +62,7 @@
     <string name="connect_fail_other">تعذّر الاتصال بـ %1$s. %2$s</string>
     <string name="connect_version_mismatch">قد يكون إصدار Harness %1$s غير متوافق مع هذا التطبيق (المبني للإصدار %2$s).</string>
     <string name="connect_harness_home">المجلد الرئيسي %1$s</string>
-    <string name="connect_protocol_baseline">البروتوكول %1$s</string>
+    <string name="connect_protocol_baseline">أساس البروتوكول %1$s</string>
     <string name="connect_disconnect">قطع الاتصال</string>
     <string name="connect_unreachable">غير قابل للوصول</string>
     <string name="connect_reachable">يمكن الوصول إليه</string>

@@ -68,8 +68,8 @@ class TermuxScriptsTest {
 
     @Test
     fun `the install script verifies against the checksum file when there is one`() {
-        val url = "https://github.com/sorsama/deepseek-harness-mobile/releases/download/v0.11.0/app-release.apk"
-        val sums = "https://github.com/sorsama/deepseek-harness-mobile/releases/download/v0.11.0/SHA256SUMS.txt"
+        val url = "https://github.com/qgx1992/deepseek-harness-mobile/releases/download/v0.11.0/app-release.apk"
+        val sums = "https://github.com/qgx1992/deepseek-harness-mobile/releases/download/v0.11.0/SHA256SUMS.txt"
         val script = TermuxScripts.installApk(url, "app-release.apk", sums)
         assertTrue(script.contains("curl -fL --retry 3 -o \"\$APK\" '$url'"))
         assertTrue(script.contains("sha256sum -c --ignore-missing SHA256SUMS.txt"))

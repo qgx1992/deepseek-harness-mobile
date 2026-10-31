@@ -62,7 +62,7 @@
     <string name="connect_fail_other">Не удалось подключиться к %1$s. %2$s</string>
     <string name="connect_version_mismatch">Версия Harness %1$s может быть несовместима с этим приложением (создано для %2$s).</string>
     <string name="connect_harness_home">Домашний каталог %1$s</string>
-    <string name="connect_protocol_baseline">Протокол %1$s</string>
+    <string name="connect_protocol_baseline">Базовая версия протокола %1$s</string>
     <string name="connect_disconnect">Отключиться</string>
     <string name="connect_unreachable">Недоступен</string>
     <string name="connect_reachable">Доступен</string>

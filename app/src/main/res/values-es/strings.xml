@@ -62,7 +62,7 @@
     <string name="connect_fail_other">No se pudo conectar con %1$s. %2$s</string>
     <string name="connect_version_mismatch">La versión %1$s del Harness puede ser incompatible con esta app (diseñada para %2$s).</string>
     <string name="connect_harness_home">Inicio %1$s</string>
-    <string name="connect_protocol_baseline">Protocolo %1$s</string>
+    <string name="connect_protocol_baseline">Base del protocolo %1$s</string>
     <string name="connect_disconnect">Desconectar</string>
     <string name="connect_unreachable">No disponible</string>
     <string name="connect_reachable">Disponible</string>

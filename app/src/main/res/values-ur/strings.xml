@@ -62,7 +62,7 @@
     <string name="connect_fail_other">%1$s سے جڑنا ممکن نہیں ہوا۔ %2$s</string>
     <string name="connect_version_mismatch">Harness ورژن %1$s اس ایپ (جو %2$s کے لیے بنائی گئی ہے) کے ساتھ مطابقت نہیں رکھتا۔</string>
     <string name="connect_harness_home">ہوم %1$s</string>
-    <string name="connect_protocol_baseline">پروٹوکول %1$s</string>
+    <string name="connect_protocol_baseline">پروٹوکول بیس لائن %1$s</string>
     <string name="connect_disconnect">کنکشن ختم کریں</string>
     <string name="connect_unreachable">ناقابل رسائی</string>
     <string name="connect_reachable">قابل رسائی</string>

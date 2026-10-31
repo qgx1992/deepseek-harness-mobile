@@ -11,7 +11,7 @@ import org.junit.Test
  */
 class UpdateAssetsTest {
 
-    private val base = "https://github.com/sorsama/deepseek-harness-mobile/releases/download/v0.11.0"
+    private val base = "https://github.com/qgx1992/deepseek-harness-mobile/releases/download/v0.11.0"
 
     @Test
     fun `the release APK and its checksum file are picked by name`() {

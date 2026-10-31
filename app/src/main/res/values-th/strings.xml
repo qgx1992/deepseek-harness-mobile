@@ -62,7 +62,7 @@
     <string name="connect_fail_other">เชื่อมต่อ %1$s ไม่สำเร็จ %2$s</string>
     <string name="connect_version_mismatch">Harness เวอร์ชัน %1$s อาจเข้ากันไม่ได้กับแอปนี้ (สร้างสำหรับ %2$s)</string>
     <string name="connect_harness_home">โฮม %1$s</string>
-    <string name="connect_protocol_baseline">โปรโตคอล %1$s</string>
+    <string name="connect_protocol_baseline">พื้นฐานโปรโตคอล %1$s</string>
     <string name="connect_disconnect">ตัดการเชื่อมต่อ</string>
     <string name="connect_unreachable">เข้าถึงไม่ได้</string>
     <string name="connect_reachable">เข้าถึงได้</string>
