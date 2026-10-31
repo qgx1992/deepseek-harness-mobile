@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, th -->
+<resources>
+    <string name="host_settings_title">การตั้งค่าโฮสต์</string>
+    <string name="host_settings_entry">แก้ไขการตั้งค่าโฮสต์</string>
+    <string name="host_settings_subtitle">นี่คือการตั้งค่าขณะทำงานของฮาร์เนสบนเดสก์ท็อป อ่านแบบสด ๆ การเปลี่ยนแปลงมีผลที่นั่น ไม่ใช่บนโทรศัพท์</string>
+    <string name="host_settings_revision">รีวิชัน %1$d</string>
+    <string name="host_settings_applies_live">มีผลทันที</string>
+    <string name="host_settings_applies_restart">มีผลหลังรีสตาร์ต</string>
+    <string name="host_settings_applies_other">มีผล: %1$s</string>
+    <string name="host_settings_writable_off">การติดตั้งนี้เก็บการตั้งค่าเป็นอ่านอย่างเดียว จึงแก้ไขอะไรตรงนี้ไม่ได้ ไฟล์บนเดสก์ท็อปยังแก้ไขได้ที่นั่น</string>
+    <string name="host_settings_empty">โฮสต์นี้ไม่ได้ประกาศเนมสเปซการตั้งค่าใดเลย</string>
+    <string name="host_settings_namespace_empty">ไม่มีฟิลด์ที่แก้ไขได้ในเนมสเปซนี้</string>
+    <string name="host_settings_conflict">ไคลเอนต์อื่นเพิ่งเปลี่ยนการตั้งค่าเหล่านี้ หน้าเว็บถูกรีโหลดด้วยค่าของมันแล้ว</string>
+    <string name="host_settings_saved">บันทึกแล้ว</string>
+    <string name="host_settings_error">โฮสต์ปฏิเสธคำขอ</string>
+    <string name="host_settings_secret_set">ตั้งค่าแล้ว</string>
+    <string name="host_settings_secret_unset">ยังไม่ตั้งค่า</string>
+    <string name="host_settings_secret_hint">ค่าที่เก็บไว้จะไม่ถูกส่งกลับมาที่แอปนี้ เขียนใหม่เพื่อแทนที่</string>
+    <string name="host_settings_secret_clear">ล้าง</string>
+    <string name="host_settings_secret_label">ค่าใหม่</string>
+    <string name="host_settings_invalid_number">นั่นไม่ใช่ตัวเลข</string>
+    <string name="host_settings_read_only">อ่านอย่างเดียว</string>
+    <string name="host_settings_read_only_type">อ่านอย่างเดียว · %1$s</string>
+    <string name="host_settings_value_missing">ว่าง</string>
+</resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, pt -->
+<resources>
+    <string name="host_settings_title">Definições do host</string>
+    <string name="host_settings_entry">Editar definições do host</string>
+    <string name="host_settings_subtitle">São as definições em execução do harness de desktop, lidas ao vivo. As alterações aplicam-se lá, não no telemóvel.</string>
+    <string name="host_settings_revision">Revisão %1$d</string>
+    <string name="host_settings_applies_live">Aplica-se de imediato</string>
+    <string name="host_settings_applies_restart">Aplica-se após reiniciar</string>
+    <string name="host_settings_applies_other">Aplica-se: %1$s</string>
+    <string name="host_settings_writable_off">Esta instalação mantém as definições só de leitura, por isso nada aqui pode ser editado. Os ficheiros no desktop continuam editáveis lá.</string>
+    <string name="host_settings_empty">Este host não publica nenhum espaço de definições.</string>
+    <string name="host_settings_namespace_empty">Não há campos editáveis neste espaço.</string>
+    <string name="host_settings_conflict">Outro cliente alterou estas definições agora mesmo. A página foi recarregada com os valores dele.</string>
+    <string name="host_settings_saved">Guardado.</string>
+    <string name="host_settings_error">O host recusou o pedido.</string>
+    <string name="host_settings_secret_set">Definido</string>
+    <string name="host_settings_secret_unset">Não definido</string>
+    <string name="host_settings_secret_hint">O valor guardado nunca é devolvido a esta app. Escrever um novo substitui-o.</string>
+    <string name="host_settings_secret_clear">Limpar</string>
+    <string name="host_settings_secret_label">Novo valor</string>
+    <string name="host_settings_invalid_number">Isso não é um número.</string>
+    <string name="host_settings_read_only">Só de leitura</string>
+    <string name="host_settings_read_only_type">Só de leitura · %1$s</string>
+    <string name="host_settings_value_missing">Vazio</string>
+</resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, pt -->
+<resources>
+    <string name="panel_share">Partilhar</string>
+    <string name="panel_share_failed">Nenhuma aplicação neste telemóvel pode receber este ficheiro</string>
+    <string name="panel_open_with">Abrir com</string>
+    <string name="panel_open_with_failed">Nenhuma aplicação neste telemóvel pode abrir este ficheiro</string>
+</resources>

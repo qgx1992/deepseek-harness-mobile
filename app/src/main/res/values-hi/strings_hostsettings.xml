@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, hi -->
+<resources>
+    <string name="host_settings_title">होस्ट सेटिंग्स</string>
+    <string name="host_settings_entry">होस्ट सेटिंग्स संपादित करें</string>
+    <string name="host_settings_subtitle">ये डेस्कटॉप हार्नेस की रनटाइम सेटिंग्स हैं, सीधे पढ़ी जाती हैं। बदलाव वहीं लागू होते हैं, फ़ोन पर नहीं।</string>
+    <string name="host_settings_revision">संशोधन %1$d</string>
+    <string name="host_settings_applies_live">तुरंत लागू होता है</string>
+    <string name="host_settings_applies_restart">रीस्टार्ट के बाद लागू होता है</string>
+    <string name="host_settings_applies_other">लागू: %1$s</string>
+    <string name="host_settings_writable_off">यह इंस्टॉलेशन अपनी सेटिंग्स को केवल-पढ़ने योग्य रखता है, इसलिए यहाँ कुछ भी संपादित नहीं किया जा सकता। डेस्कटॉप की फ़ाइलें वहाँ अब भी संपादन योग्य हैं।</string>
+    <string name="host_settings_empty">यह होस्ट कोई सेटिंग्स नेमस्पेस प्रकाशित नहीं करता।</string>
+    <string name="host_settings_namespace_empty">इस नेमस्पेस में कोई संपादन योग्य फ़ील्ड नहीं है।</string>
+    <string name="host_settings_conflict">किसी अन्य क्लाइंट ने अभी ये सेटिंग्स बदलीं। पेज उनके मानों के साथ फिर से लोड किया गया।</string>
+    <string name="host_settings_saved">सहेजा गया।</string>
+    <string name="host_settings_error">होस्ट ने अनुरोध अस्वीकार किया।</string>
+    <string name="host_settings_secret_set">सेट है</string>
+    <string name="host_settings_secret_unset">सेट नहीं है</string>
+    <string name="host_settings_secret_hint">संग्रहीत मान कभी इस ऐप को वापस नहीं भेजा जाता। नया लिखने पर वह बदल जाता है।</string>
+    <string name="host_settings_secret_clear">साफ़ करें</string>
+    <string name="host_settings_secret_label">नया मान</string>
+    <string name="host_settings_invalid_number">यह संख्या नहीं है।</string>
+    <string name="host_settings_read_only">केवल-पढ़ने योग्य</string>
+    <string name="host_settings_read_only_type">केवल-पढ़ने योग्य · %1$s</string>
+    <string name="host_settings_value_missing">खाली</string>
+</resources>

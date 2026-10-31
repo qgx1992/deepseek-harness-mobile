@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The only directory this app ever hands to another app: cached copies of workspace files, made on
+    demand for "share" and "open with" and never written anywhere else. Scoped to `share/` so a
+    grant cannot be used to read anything else this app has cached.
+-->
+<paths>
+    <cache-path
+        name="share"
+        path="share/" />
+</paths>

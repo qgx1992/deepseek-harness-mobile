@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, ru -->
+<resources>
+    <string name="host_settings_title">Настройки хоста</string>
+    <string name="host_settings_entry">Изменить настройки хоста</string>
+    <string name="host_settings_subtitle">Это рабочие настройки настольного harness, читаемые в реальном времени. Изменения применяются там, а не на телефоне.</string>
+    <string name="host_settings_revision">Ревизия %1$d</string>
+    <string name="host_settings_applies_live">Применяется сразу</string>
+    <string name="host_settings_applies_restart">Применяется после перезапуска</string>
+    <string name="host_settings_applies_other">Применяется: %1$s</string>
+    <string name="host_settings_writable_off">Эта установка держит настройки только для чтения, поэтому здесь ничего нельзя изменить. Файлы на компьютере по-прежнему редактируются там.</string>
+    <string name="host_settings_empty">Этот хост не публикует ни одного пространства настроек.</string>
+    <string name="host_settings_namespace_empty">В этом пространстве нет редактируемых полей.</string>
+    <string name="host_settings_conflict">Другой клиент только что изменил эти настройки. Страница перезагружена с его значениями.</string>
+    <string name="host_settings_saved">Сохранено.</string>
+    <string name="host_settings_error">Хост отклонил запрос.</string>
+    <string name="host_settings_secret_set">Задан</string>
+    <string name="host_settings_secret_unset">Не задан</string>
+    <string name="host_settings_secret_hint">Сохранённое значение никогда не возвращается в это приложение. Запись нового заменяет его.</string>
+    <string name="host_settings_secret_clear">Очистить</string>
+    <string name="host_settings_secret_label">Новое значение</string>
+    <string name="host_settings_invalid_number">Это не число.</string>
+    <string name="host_settings_read_only">Только чтение</string>
+    <string name="host_settings_read_only_type">Только чтение · %1$s</string>
+    <string name="host_settings_value_missing">Пусто</string>
+</resources>

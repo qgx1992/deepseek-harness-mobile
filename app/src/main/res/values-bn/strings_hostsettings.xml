@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, bn -->
+<resources>
+    <string name="host_settings_title">হোস্ট সেটিংস</string>
+    <string name="host_settings_entry">হোস্ট সেটিংস সম্পাদনা করুন</string>
+    <string name="host_settings_subtitle">এগুলো ডেস্কটপ হারনেসের রানটাইম সেটিংস, সরাসরি পড়া। পরিবর্তন সেখানেই লাগবে, ফোনে নয়।</string>
+    <string name="host_settings_revision">রিভিশন %1$d</string>
+    <string name="host_settings_applies_live">সঙ্গে সঙ্গে 적용</string>
+    <string name="host_settings_applies_restart">রিস্টার্টের পরে 적용</string>
+    <string name="host_settings_applies_other">প্রযোজ্য: %1$s</string>
+    <string name="host_settings_writable_off">এই ইনস্টলেশন এর সেটিংস কেবল-পাঠযোগ্য রাখে, তাই এখানে কিছু সম্পাদনা করা যায় না। ডেস্কটপের ফাইলগুলো সেখানে এখনও সম্পাদনাযোগ্য।</string>
+    <string name="host_settings_empty">এই হোস্ট কোনো সেটিংস নেমস্পেস প্রকাশ করে না।</string>
+    <string name="host_settings_namespace_empty">এই নেমস্পেসে সম্পাদনাযোগ্য কোনো ফিল্ড নেই।</string>
+    <string name="host_settings_conflict">আরেক ক্লায়েন্ট এইমাত্র এই সেটিংস বদলেছে। তাদের মান দিয়ে পেজটি আবার লোড করা হয়েছে।</string>
+    <string name="host_settings_saved">সংরক্ষিত।</string>
+    <string name="host_settings_error">হোস্ট অনুরোধটি প্রত্যাখ্যান করেছে।</string>
+    <string name="host_settings_secret_set">সেট করা</string>
+    <string name="host_settings_secret_unset">সেট করা নেই</string>
+    <string name="host_settings_secret_hint">সংরক্ষিত মান কখনও এই অ্যাপে ফেরত পাঠানো হয় না। নতুন একটি লিখলে সেটি প্রতিস্থাপিত হয়।</string>
+    <string name="host_settings_secret_clear">মুছুন</string>
+    <string name="host_settings_secret_label">নতুন মান</string>
+    <string name="host_settings_invalid_number">এটি কোনো সংখ্যা নয়।</string>
+    <string name="host_settings_read_only">কেবল-পাঠযোগ্য</string>
+    <string name="host_settings_read_only_type">কেবল-পাঠযোগ্য · %1$s</string>
+    <string name="host_settings_value_missing">খালি</string>
+</resources>

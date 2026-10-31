@@ -33,6 +33,9 @@ fun main(args: Array<String>) {
     }
     runBlocking {
         val harness = MockHarness(trustedHosts = trustedHosts, port = port)
+        // Serve the same settings contract the contract tests run against, so the CLI is useful
+        // for hand-driving the settings screen against a fake host.
+        SettingsScenario(harness)
         val boundPort = harness.start()
         println("mock harness listening on http://127.0.0.1:$boundPort")
         readlnOrNull()

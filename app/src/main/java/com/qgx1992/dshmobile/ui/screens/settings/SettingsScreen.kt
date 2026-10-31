@@ -115,6 +115,8 @@ fun SettingsScreen(onClose: () -> Unit, viewModel: SettingsViewModel = hiltViewM
     val toast = rememberDsToast()
     var showDisconnectDialog by remember { mutableStateOf(false) }
     var pluginsOpen by remember { mutableStateOf(false) }
+    val hostSettingsAvailable by store.hostSettingsAvailable.collectAsStateWithLifecycle()
+    var hostSettingsOpen by remember { mutableStateOf(false) }
     // Settings and the archive are two different jobs: one is configuration, the other is a list to
     // search and restore from. A tab each keeps the settings reachable without scrolling past a
     // list that can be long, and the archive gets the whole height to be scrolled in.
@@ -293,6 +295,19 @@ fun SettingsScreen(onClose: () -> Unit, viewModel: SettingsViewModel = hiltViewM
                     }
                 } else plugins?.let { PluginsCard(it) { pluginsOpen = true } }
 
+                // The desktop's own runtime settings, not this app's preferences. The row is driven
+                // by the same capability probe as the plugin row: a host that mounts no settings
+                // controller answers `capability-unavailable` and simply has no row here.
+                if (hostSettingsAvailable != false) {
+                    SettingsCard(stringResource(R.string.host_settings_title)) {
+                        Row(Modifier.fillMaxWidth().heightIn(min = DsSpacing.touchTarget)
+                            .clickable { hostSettingsOpen = true }, verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.host_settings_entry), Modifier.weight(1f), style = DsType.std14, color = colors.labelSecondary)
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.labelTertiary)
+                        }
+                    }
+                }
+
                 SettingsCard(stringResource(R.string.settings_data)) {
                     DsButton(
                         text = stringResource(R.string.settings_forget_hosts),
@@ -375,6 +390,8 @@ fun SettingsScreen(onClose: () -> Unit, viewModel: SettingsViewModel = hiltViewM
         if (pluginManagementAvailable == false) plugins?.let { PluginsSheet(it, onDismiss = { pluginsOpen = false }) }
         else com.qgx1992.dshmobile.ui.screens.main.PluginManagerScreen(onClose = { pluginsOpen = false }, onDraftOpened = { pluginsOpen = false; onClose() })
     }
+
+    if (hostSettingsOpen) HostSettingsScreen(onClose = { hostSettingsOpen = false })
 
     if (showDisconnectDialog) {
         DsDialog(

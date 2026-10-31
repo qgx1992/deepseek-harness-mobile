@@ -18,6 +18,7 @@ import com.qgx1992.dshmobile.core.session.QueueItem
 import com.qgx1992.dshmobile.core.session.SessionEventEnvelope
 import com.qgx1992.dshmobile.core.wire.DshApiClient
 import com.qgx1992.dshmobile.core.wire.RpcResult
+import com.qgx1992.dshmobile.core.wire.classifyCapability
 import com.qgx1992.dshmobile.core.wire.decodeFromJsonElement
 import com.qgx1992.dshmobile.core.wire.dto.APPROVAL_REQUEST_EVENT
 import com.qgx1992.dshmobile.core.wire.dto.AgentPresetListValue
@@ -364,6 +365,16 @@ class SessionStore @Inject constructor(
     /** Whether this host exposes a plugin market; null until a market call has answered. */
     val pluginMarketAvailable = featureAvailability.state(HarnessFeature.PLUGIN_MARKET)
 
+    /**
+     * Whether this host exposes the configuration plane at all; null until `settings/describe`
+     * has answered.
+     *
+     * The settings entry row reads this the way the plugin row reads its own flag, so a desktop
+     * that mounts no settings controller loses the row instead of offering a page that cannot
+     * load. Null stays "unknown" and keeps the row: only a positive capability answer hides it.
+     */
+    val hostSettingsAvailable = featureAvailability.state(HarnessFeature.HOST_SETTINGS)
+
     private val speechCatalogState = MutableStateFlow<SpeechCatalogView?>(null)
 
     /**
@@ -421,6 +432,18 @@ class SessionStore @Inject constructor(
         // with no `speech` namespace at all, which the observer records as capability-unavailable and
         // the composer then reads as "draw no microphone" rather than "something went wrong".
         scope.launch { featureCall(HarnessFeature.SPEECH, api) { api.speechCatalog() }.also { store(it) } }
+        // Settings answers two questions at once and only one of them may be said aloud. A host
+        // that mounts no settings controller refuses `settings/describe` as capability-unavailable,
+        // which hides the entry row; anything else — an older gateway answering gateway/internal, a
+        // policy refusal — is not evidence about the capability, so this probe stays silent rather
+        // than raising the connection banner at startup.
+        scope.launch {
+            val generation = featureAvailability.generation()
+            val result = runCatching { api.settingsDescribe() }.getOrNull() ?: return@launch
+            val knows = result is RpcResult.Ok ||
+                (result as? RpcResult.Err)?.error?.classifyCapability()?.code == "capability-unavailable"
+            if (knows) featureAvailability.observe(HarnessFeature.HOST_SETTINGS, generation, result)
+        }
     }
 
     /** Keeps the last good catalog: a failed re-probe must not take the microphone away. */

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, ar -->
+<resources>
+    <string name="panel_share">مشاركة</string>
+    <string name="panel_share_failed">لا يوجد تطبيق على هذا الهاتف يمكنه استلام هذا الملف</string>
+    <string name="panel_open_with">فتح بواسطة</string>
+    <string name="panel_open_with_failed">لا يوجد تطبيق على هذا الهاتف يمكنه فتح هذا الملف</string>
+</resources>

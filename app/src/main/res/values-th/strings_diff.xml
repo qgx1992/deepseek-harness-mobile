@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_diff.xml, th -->
+<resources>
+    <string name="diff_no_patch_text">ไม่มีข้อความแพตช์สำหรับไฟล์นี้</string>
+    <string name="diff_binary_file">ไฟล์ไบนารี ไม่มีบรรทัดให้แสดง</string>
+    <string name="diff_open_file">เปิดไฟล์</string>
+    <string name="diff_renamed_from">เปลี่ยนชื่อจาก %1$s</string>
+    <string name="diff_empty_file">ไม่มีบรรทัดที่เปลี่ยน</string>
+</resources>

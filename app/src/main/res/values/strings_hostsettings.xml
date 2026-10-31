@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Strings for the host settings editor (the configuration plane of the desktop harness).
+
+    Kept in its own file so the English copy for this screen stays in one place while the
+    translations are written; nothing here is referenced from outside
+    ui/screens/settings/HostSettingsScreen.kt and the entry row in SettingsScreen.kt.
+-->
+<resources>
+    <string name="host_settings_title">Host settings</string>
+    <string name="host_settings_entry">Edit host settings</string>
+    <string name="host_settings_subtitle">These are the runtime settings of the desktop harness, read live. Changes apply there, not on the phone.</string>
+    <string name="host_settings_revision">Revision %1$d</string>
+    <string name="host_settings_applies_live">Applies immediately</string>
+    <string name="host_settings_applies_restart">Applies after a restart</string>
+    <string name="host_settings_applies_other">Applies: %1$s</string>
+    <string name="host_settings_writable_off">This deployment keeps its settings read-only, so nothing here can be edited. The files on the desktop are still editable there.</string>
+    <string name="host_settings_empty">This host publishes no settings namespaces.</string>
+    <string name="host_settings_namespace_empty">No editable fields in this namespace.</string>
+    <string name="host_settings_conflict">Another client changed these settings just now. The page was reloaded with their values.</string>
+    <string name="host_settings_saved">Saved.</string>
+    <string name="host_settings_error">The host refused the request.</string>
+    <string name="host_settings_secret_set">Set</string>
+    <string name="host_settings_secret_unset">Not set</string>
+    <string name="host_settings_secret_hint">The stored value is never sent back to this app. Writing a new one replaces it.</string>
+    <string name="host_settings_secret_clear">Clear</string>
+    <string name="host_settings_secret_label">New value</string>
+    <string name="host_settings_invalid_number">That is not a number.</string>
+    <string name="host_settings_read_only">Read-only</string>
+    <string name="host_settings_read_only_type">Read-only · %1$s</string>
+    <string name="host_settings_value_missing">Empty</string>
+</resources>

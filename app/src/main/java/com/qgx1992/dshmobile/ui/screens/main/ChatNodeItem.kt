@@ -332,7 +332,9 @@ private fun UserMessageBubble(node: UserMessageNode, text: String, context: Chat
     var menuOpen by remember(node.seq) { mutableStateOf(false) }
     var selecting by remember(node.seq) { mutableStateOf(false) }
     val copy = com.qgx1992.dshmobile.ui.components.rememberCopier()
-    UserBubble(
+    // The bubble masks anything key-shaped (see [SecretMaskedUserBubble]). `text` itself is passed
+    // through untouched, so copy, edit-as-new and rewind all keep the message as it was sent.
+    SecretMaskedUserBubble(
         text = text,
         onHold = { menuOpen = true },
         holdLabel = stringResource(R.string.hold_message_actions),

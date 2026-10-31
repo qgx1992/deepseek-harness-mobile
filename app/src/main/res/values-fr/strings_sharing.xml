@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, fr -->
+<resources>
+    <string name="panel_share">Partager</string>
+    <string name="panel_share_failed">Aucune application de ce téléphone ne peut recevoir ce fichier</string>
+    <string name="panel_open_with">Ouvrir avec</string>
+    <string name="panel_open_with_failed">Aucune application de ce téléphone ne peut ouvrir ce fichier</string>
+</resources>

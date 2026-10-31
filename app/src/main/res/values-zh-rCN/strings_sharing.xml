@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, zh-rCN -->
+<resources>
+    <string name="panel_share">分享</string>
+    <string name="panel_share_failed">这台手机上没有能接收此文件的应用</string>
+    <string name="panel_open_with">打开方式</string>
+    <string name="panel_open_with_failed">这台手机上没有能打开此文件的应用</string>
+</resources>

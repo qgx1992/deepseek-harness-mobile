@@ -3,7 +3,9 @@ package com.qgx1992.dshmobile.ui.screens.main
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.pdf.PdfRenderer
+import android.content.Context
 import android.os.ParcelFileDescriptor
+import android.widget.Toast
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -31,6 +33,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
@@ -50,6 +54,7 @@ import com.qgx1992.dshmobile.ui.theme.DsSpacing
 import com.qgx1992.dshmobile.ui.theme.DsType
 import androidx.compose.ui.unit.sp
 import com.qgx1992.dshmobile.ui.components.DsCard
+import com.qgx1992.dshmobile.ui.media.ShareTarget
 import com.qgx1992.dshmobile.ui.components.MarkdownText
 import com.qgx1992.dshmobile.ui.theme.DsTheme
 import kotlinx.coroutines.*
@@ -343,8 +348,33 @@ private fun DocumentPreview(
         }.getOrDefault(false)
     }
     val openFailed = stringResource(R.string.panel_open_host_failed)
+    val shareFailed = stringResource(R.string.panel_share_failed)
+    val openWithFailed = stringResource(R.string.panel_open_with_failed)
     val extension = tab.path.substringAfterLast('.', "").lowercase()
     val binary = extension in setOf("png", "jpg", "jpeg", "webp", "gif", "pdf")
+    // Handing the file to another app: the bytes have to come off the harness first, so this is a
+    // round trip rather than a tap. One at a time, and never while the preview itself is loading.
+    var delivering by remember { mutableStateOf(false) }
+    fun deliver(failedText: String, action: (Context, String, ByteArray) -> Boolean) {
+        if (delivering) return
+        delivering = true; tab.error = null
+        scope.launch {
+            try {
+                val api = store.apiForHost(key.host) ?: error(context.getString(R.string.common_offline))
+                val stat = tab.stat ?: api.workspaceFileStat(key.sessionId, tab.path).requireValue()
+                // The same ceiling the preview uses: a file too big to preview is too big to copy
+                // into the cache, and failing here is better than a half-written uri.
+                if ((stat.bytes ?: 0) > 32L * 1024 * 1024) error(context.getString(R.string.panel_too_large))
+                val data = api.workspaceFileReadBytes(key.sessionId, tab.path).requireValue()
+                if (data.data.size > 32 * 1024 * 1024) error(context.getString(R.string.panel_too_large))
+                if (!action(context, tab.path, data.data)) {
+                    Toast.makeText(context, failedText, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) { tab.error = e.message ?: failedText }
+            finally { delivering = false }
+        }
+    }
     fun load(more: Boolean = false) {
         if (tab.busy) return
         tab.busy = true; tab.error = null
@@ -418,6 +448,22 @@ private fun DocumentPreview(
                         catch (e: Exception) { tab.error = openFailed }
                     } },
                 )
+                // Files only: a directory has no bytes to hand over, and `tab.stat` is set exactly
+                // when the preview resolved to a regular file (a folder routes to browsing above).
+                if (tab.stat != null) {
+                    DsIconButton(
+                        icon = Icons.Filled.Share,
+                        contentDescription = stringResource(R.string.panel_share),
+                        onClick = { deliver(shareFailed) { ctx, name, bytes -> ShareTarget.share(ctx, name, bytes) } },
+                        enabled = !delivering,
+                    )
+                    DsIconButton(
+                        icon = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = stringResource(R.string.panel_open_with),
+                        onClick = { deliver(openWithFailed) { ctx, name, bytes -> ShareTarget.openWith(ctx, name, bytes) } },
+                        enabled = !delivering,
+                    )
+                }
                 DsIconButton(
                     icon = FeatherIcons.RefreshCw,
                     contentDescription = stringResource(R.string.common_retry),

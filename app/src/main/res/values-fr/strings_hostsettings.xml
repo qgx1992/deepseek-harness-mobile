@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, fr -->
+<resources>
+    <string name="host_settings_title">Réglages de l\'hôte</string>
+    <string name="host_settings_entry">Modifier les réglages de l\'hôte</string>
+    <string name="host_settings_subtitle">Ce sont les réglages d\'exécution du harness de bureau, lus en direct. Les modifications s\'appliquent là-bas, pas sur le téléphone.</string>
+    <string name="host_settings_revision">Révision %1$d</string>
+    <string name="host_settings_applies_live">S\'applique immédiatement</string>
+    <string name="host_settings_applies_restart">S\'applique après redémarrage</string>
+    <string name="host_settings_applies_other">S\'applique : %1$s</string>
+    <string name="host_settings_writable_off">Cette installation garde ses réglages en lecture seule, donc rien ne peut être modifié ici. Les fichiers sur le bureau restent modifiables là-bas.</string>
+    <string name="host_settings_empty">Cet hôte ne publie aucun espace de réglages.</string>
+    <string name="host_settings_namespace_empty">Aucun champ modifiable dans cet espace.</string>
+    <string name="host_settings_conflict">Un autre client vient de modifier ces réglages. La page a été rechargée avec ses valeurs.</string>
+    <string name="host_settings_saved">Enregistré.</string>
+    <string name="host_settings_error">L\'hôte a refusé la demande.</string>
+    <string name="host_settings_secret_set">Défini</string>
+    <string name="host_settings_secret_unset">Non défini</string>
+    <string name="host_settings_secret_hint">La valeur stockée n\'est jamais renvoyée à cette app. En écrire une nouvelle la remplace.</string>
+    <string name="host_settings_secret_clear">Effacer</string>
+    <string name="host_settings_secret_label">Nouvelle valeur</string>
+    <string name="host_settings_invalid_number">Ce n\'est pas un nombre.</string>
+    <string name="host_settings_read_only">Lecture seule</string>
+    <string name="host_settings_read_only_type">Lecture seule · %1$s</string>
+    <string name="host_settings_value_missing">Vide</string>
+</resources>

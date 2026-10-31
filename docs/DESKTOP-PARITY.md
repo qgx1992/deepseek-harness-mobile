@@ -24,8 +24,8 @@
 | P0-3 | 插件市场 Discover | `dsh-client-ui-plugin-market`：Plugins 页第二个标签，索引源/搜索/过滤/排序/条目页/安装 | `pluginMarket/listIndexes`、`pluginMarket/search`、`pluginMarket/setIndexes`；安装复用 `pluginManager/installBundle` | `Harness021Api.kt` + `PluginManagerScreen.kt` 加 Tab | M |
 | P0-4 | 主机设置编辑器 | `settings-*` 一族：general / models / agent-loop / shell / subagent / web-search / session-log / plugin-inventory | `settings/describe`、`settings/mutate`、`settings/update`、`credentials/*`、`llm/*` —— **移动端 core 已写好，app 层零调用** | 新 `ui/screens/settings/HostSettingsScreen.kt` | L |
 | P1-5 | 密钥遮罩 | `dsh-client-ui-secret-mask`：发送文本里识别到的凭据保留前 8 字符，其余打码，可逐值揭示；只改绘制 | 无（纯客户端） | `ui/components/Markdown.kt` 旁路 + 气泡渲染 | S |
-| P1-6 | 工作流运行节点 | `dsh-client-ui-workflow-run`：durable workflow run 作独立节点，phases → members 两级展开 | `dsh-workflow` 的 `workflow/*` 事件 | `EventFold` 聚合 + 新 `WorkflowNode.kt`（现只有 `ChatLabels.workflowStatusLabel:55` 状态标签） | M |
-| P1-7 | 用量/成本 | `dsh-token-meter`、`dsh-session-stats`、`dsh-cost-meter` | 投影 `tokenUsage` / `contextPressure` / `contextBreakdown` / `sessionStats`（移动端**已有**） | 只补 UI：`DetailsPanel` 统计卡；金额需定价表，可选 | S |
+| P1-6 | 工作流运行节点 | `dsh-client-ui-workflow-run`：durable workflow run 作独立节点，phases → members 两级展开 | `dsh-workflow` 的 `workflow/*` 事件 | `EventFold` 聚合 + 新 `WorkflowNode.kt`。**复核后更正**：移动端已渲染成员圆点与状态（`ChatNodeItem.kt:668-700`）、已解析 `tool-workflow/*` 事件（`DetailsPanel.kt:942-944`）、已有状态文案（`ChatLabels.workflowStatusLabel:55`）；真正缺的是 phases → members 两级展开与结束态默认折叠 | M |
+| P1-7 | 用量/成本 | `dsh-token-meter`、`dsh-session-stats`、`dsh-cost-meter` | 投影 `tokenUsage` / `contextPressure` / `contextBreakdown` / `sessionStats`（移动端**已有**） | **复核后更正**：`Docks.kt:385 StatsFooter` 已在显示 `sessionStats`/`tokenUsage`，`ContextMeter` 显示上下文压力；缺的只是 per-turn 明细卡与金额（金额要靠计费历史回填，不建议默认做） | S |
 | P1-8 | 分享 / Open In | `dsh-client-ui-open-in-app`：会话头分体按钮用记忆应用打开工作区目录 | 移动端已有 `session/openWorkspacePath`（在桌面端打开） | 文件预览页加「分享 / 用其他应用打开」（FileProvider + ACTION_VIEW/SEND） | S–M |
 | P2-9 | 原始日志检查器 | `dsh-experimental-session-inspector`：原始 session 日志 + group/node 表 | 无（事件账本已有） | `TrajectoryTab` 加「原始 JSON」开关（`JsonDisclosure` 已存在） | S |
 | P2-10 | 逐文件 diff 审查 | `dsh-client-ui-deliverables`：改动文件卡 → 逐文件 unified/split hunk 视图，hunk 从工具调用 patch 文本解析 | 无 diff API（`workspace/changes` 只给 `{turn}` 文件名） | 从 tool-call 参数解析 `apply_patch`/unified 两种格式，渲染 unified | M |
@@ -126,7 +126,11 @@ agentTeam = {
 
 **坑**：条目上的"已安装/兼容性/安装参数"是主机 annotator 算好带下来的，直接展示，别在客户端重算。索引源为空时不要空白页——给一句"到桌面端 Plugins → Discover 添加索引源"，并允许本页 `setIndexes`。
 
-### P0-4 主机设置编辑器
+### P0-4 主机设置编辑器 —— 已落地（0.21.0）
+
+> 落地形态：`app/.../ui/screens/settings/HostSettingsScreen.kt`（页面）+ `HostSettingsPresentation.kt`（schema → 控件映射，无 Compose 依赖、可单测）、`SessionStore` 的 `hostSettingsAvailable` 与静默探测、`SettingsScreen` 的入口行。表单真的按 schema 渲染（`Toggle/Text/Number/Choice/Secret/ReadOnly` 六种），未知节点降级成一行只读；秘密只经 `credentials/set` 写入、只回 `set` 标志；写用 `settings/mutate` + CAS revision。**刻意没做**：`llm/*` 模型发现页、独立凭据列表页（代码里留 `TODO(settings)`）、`settings/replace` 与 `openSettingsDocument`。
+>
+> 与原计划的偏差：`llm/*` 与凭据列表从这一版砍掉，因为它们各自是一个页面；设置 namespace 的表单才是"改不了主机设置"这个洞的本体。另一个偏差是能力探测不能走 `featureCall`——老主机没挂 settings 控制器时那会 `report()` 成连接错误横幅，所以 `probeFeatures()` 里只认 `Ok` 与 `capability-unavailable`，其余保持"未知"、入口照常显示。
 
 **现状**：`core` 里 `settings/describe|update|replace|mutate`、`credentials/describe|set|unset`、`llm/listProviders|listConfigurableProviders|discoverModels` 全都写好了，**app 层零调用点**——也就是说手机上能看会话、能装插件，却改不了主机设置。这是移动端"Harness 管理"承诺里最大的洞。
 
@@ -136,11 +140,17 @@ agentTeam = {
 
 **坑**：`describe` 的字段类型/枚举/秘密标记形态需要实测确认（拿到真机 describe 结果再定 DTO）；`settings/openSettingsDocument` 的语义是"打开编辑器文档"而非"运行时设置"，别混用。
 
-### P1-5 密钥遮罩
+### P1-5 密钥遮罩 —— 已落地（0.21.0）
+
+> 落地形态：`core/.../core/text/SecretMask.kt`（`findSecrets` / `mask` / `containsSecret`，`SecretSpan(start, end, prefixLength = 8)`，等长替换成 `•` 所以遮罩前后字符位置不变）+ 11 个单测、`ChatTranscript.kt` 的 `SecretMaskedUserBubble`（点按揭示、长按仍是复制菜单，两者合在一个 `pointerInput` 里）。只遮用户自己发的文本气泡——模型回复里的 key 是模型写的，不是你的秘密。
+>
+> 与原计划的偏差：遮罩不加在 Composer 预览里。Composer 是你正在打字的输入框，把自己刚敲的东西变成圆点会妨碍编辑；气泡是"发出去之后"的视图，那才是会被人瞄屏的位置。规则也刻意收窄：UUID 整串排除、URL/slug/短 sha/数字/中文都不碰，宁可漏一个也不吃掉普通文字。
 
 纯客户端、无主机依赖。在 Composer 预览和已发消息气泡的文本渲染处加一层 mask：识别 key/token 形态（`sk-...`、`ghp_...`、长 hex/base64），保留前 8 字符其余画 `*`，点一下可临时揭示该值。只改绘制——原文、复制内容、送给模型的文本都不变。桌面实现在 `dsh-client-ui-secret-mask`，规则可直接对照移植。
 
 ### P1-6 工作流运行节点
+
+> **修正（0.21.0 复核）**：这一项当初记成"只有状态标签"是低估了。`ChatNodeItem.kt:668-700` 已经把 workflow run 的成员画成圆点+状态，`DetailsPanel.kt:942-944` 解析 `tool-workflow/*` 的调用，`ChatLabels.kt:55` 提供状态文案——也就是说 run 的身份与成员状态**已经在屏幕上**。真正缺的只有桌面那套"run 作为独立顶层节点 + 阶段（phase）这一层展开"。剩余工作量因此从 M 降到 S，且不值得单开一版：等第二批的设置页能开 workflow bundle 时一起做更划算。
 
 桌面把 durable workflow run 渲染成独立会话节点：展开看阶段，再展开看成员；running/failed/cancelled/interrupted 默认展开，completed 默认折叠；只显示身份与状态（脚本/输出/错误/用量/拓扑不在这个面）。移动端目前只有 `ChatLabels.kt:55` 的 `workflowStatusLabel` 状态标签。
 
@@ -148,11 +158,17 @@ agentTeam = {
 
 ### P1-7 用量/成本
 
+> **修正（0.21.0 复核）**：这一项当初记成"缺一张统计卡"也是低估了——`Docks.kt:385` 的 `StatsFooter` 已经常驻在 Composer 下方，显示 `sessionStats` 与 `tokenUsage`。所以"把统计摆出来"这件事其实**已经做了**，剩下的只有桌面那种更细的分解视图和金额。金额继续不做：桌面 `dsh-cost-meter` 的数是靠计费历史/provider API 回填的，移动端没有等价数据源，硬凑一个"猜的价格"比不显示更糟。
+
 投影层已经齐了：`tokenUsage`（`SessionStore.kt:533`）、`contextPressure`/`contextBreakdown`（`ContextMeter.kt`）、`sessionStats`（`DetailsPanel.kt` 在用，字段 `turns/steps/llmMs/toolMs/ttftMs/ttftSteps/decodeMs/decodeTokens`）。缺的只是"把这些摆好看"和"金额"。
 
 建议：DetailsPanel 里加一张会话统计卡（回合数、步数、模型时间、工具时间、TTFT、解码速度）。金额不做默认展示——桌面 `dsh-cost-meter` 的数是靠计费历史/provider API 回填的，移动端没有等价数据源；要做就做成用户可填单价的估算值，并明确标"估算"。
 
-### P1-8 分享 / Open In
+### P1-8 分享 / Open In —— 已落地（安卓侧出口）
+
+> 落地形态：`app/.../ui/media/ShareTarget.kt`（取字节 → 落 `cacheDir/share/` → `FileProvider` 逐次授权 → `ACTION_SEND` 选择器 / `ACTION_VIEW`）+ `res/xml/file_paths_share.xml`（只放 `cache-path: share/`）+ `WorkspacePanels.kt` 的两个按钮。
+>
+> 与原计划的偏差：仓库原本**一个 `<provider>` 都没有**，所以这次新增了第一个 FileProvider（authority `${applicationId}.files`，`exported=false`，`grantUriPermissions=true`）。原计划说"并进现有 provider"，事实是没有现有的。预览目录型 tab（目录、图片网格之外的聚合视图）不显示这两个按钮——没有单个文件可交出去。
 
 桌面是"用记住的应用打开工作区目录 / 在默认应用里打开文件"。移动端已有反方向能力：`session/openWorkspacePath`（让**桌面端**打开）。要补的是 Android 侧出口：
 
@@ -165,7 +181,13 @@ agentTeam = {
 
 `TrajectoryTab` 已经是事件账本，加一个「原始 JSON」开关，把每条事件的 `data` 用 `JsonDisclosure` 摊开即可。桌面的 session-inspector 还有 group/node 表和 delta 行高亮，移动端屏幕小，先不做。
 
-### P2-10 逐文件 diff 审查
+### P2-10 逐文件 diff 审查 —— 已落地（0.21.0）
+
+> 落地形态：`core/.../core/text/DiffParser.kt`（`parse(text): List<DiffFile>`，同时吃 `*** Begin Patch`/`*** Update File:`/`*** Add File:`/`*** Delete File:`/`*** Move to:` 与 `--- a/x`+`+++ b/x`+`@@ -a,b +c,d @@`，容忍 CRLF、`\ No newline at end of file`、`Binary files … differ`；解析失败返回空表不抛）+ 17 个单测、`app/.../ui/components/DiffView.kt`、`ChangedFiles.kt` 的 `fileDiff(nodes, turn, path)` 与药丸点击。
+>
+> 数字来源与桌面一致：`workspaceFiles` 没有 diff 方法，patch 文本来自工具调用参数（`patch`/`input`/`diff`，带真实行号）或 `write`/`edit` 结果的 `{path, oldText, newText}`（本地算 diff）。路径按后缀匹配，因为 patch 里写相对路径、工作区路径是绝对的。
+>
+> 一行号语义：patch 没声明位置时行号是 0（`*** Add File:` 从 1 起），显示成空 gutter 而不是伪造行号。
 
 桌面 deliverables 的逐文件对比页，hunk 是从工具调用携带的 patch 文本解析出来的（`workspace-files` 服务**没有** diff 方法，`workspace/changes` 事件只带 `{turn}` 文件名——`ChangedFiles.kt:57` 已经写明了这点）。所以移动端也能做：在 `ToolCards` 里对 `apply_patch` / 统一 diff 两种参数格式做解析，渲染 unified 视图（窄屏不做 split）。注意兼容 `*** Begin Patch` 与标准 `---/+++` 两种头。
 
@@ -216,9 +238,9 @@ agentTeam = {
 
 理由：语音是手机最自然的输入；市场 Discover 让"装插件"不再需要回到桌面；Teams 面板补上"我在手机上却看不见队友在干什么"的断层。
 
-**第二批（补齐管理面）**：P0-4 主机设置编辑器（先做 describe 驱动的通用表单，再补 models/credentials 两个专页）→ P1-5 密钥遮罩 → P1-8 分享/Open In。
+**第二批（补齐管理面）**：P0-4 主机设置编辑器 → P1-5 密钥遮罩 → P1-8 分享/Open In → P2-10 diff 审查（原排第三批，因为和改动文件卡同源，一起做省一次返工）。**已完成，见 [第二批落地记录](#八第二批落地记录)。**
 
-**第三批（锦上添花）**：P1-6 工作流节点（先补 fixture）→ P2-10 diff 审查 → P1-7 统计卡 → P2-9 原始日志 → P2-11 分组排序。
+**第三批（锦上添花）**：P1-6 工作流节点（先补 fixture，剩余量已按复核降到 S）→ P1-7 统计卡的分解视图 → P2-9 原始日志 → P2-11 分组排序 → P2-12 MCP 只读。
 
 **每批的验收口径**（沿用项目现有测试习惯）：
 
@@ -251,3 +273,41 @@ agentTeam = {
 - `speech/follow`（provider 就绪的流式快照）没有接。当前实现是「连上时取一次 catalog」，主机后面装了识别器要重连才看得见。真要接，`RemoteStreamMux` 已经支持 stream RPC。
 - `speech/prepare` / `cancelPreparation` 只在 API 层存在，UI 没暴露——本地 Whisper 首次要下载几百 MB，手机上给个「预热」按钮是合理的，但那属于设置页（P0-4）。
 - `agentTeam` 的 `failure` 字段画了但没法重试：重试用的是 Lead 自己的工具，不在本客户端。
+
+---
+
+## 八、第二批落地记录
+
+2026-11-01 落地。四项都按上面的验收口径交付：契约测试在
+`app/src/test/java/com/qgx1992/dshmobile/connection/SettingsContractsEndToEndTest.kt`（13 条）与
+`core/src/test/kotlin/com/qgx1992/dshmobile/core/text/{SecretMaskTest,DiffParserTest}.kt`（11 + 17 条），
+假主机在 `mock-harness/.../SettingsScenario.kt`。
+
+| 项 | 新增文件 | 改动文件 |
+| --- | --- | --- |
+| P0-4 设置编辑器 | `app/.../ui/screens/settings/HostSettingsScreen.kt`、`HostSettingsPresentation.kt`、`res/values/strings_hostsettings.xml` | `SessionStore.kt`（`hostSettingsAvailable` + 静默探测）、`SettingsScreen.kt`（入口行）、`FeatureAvailability.kt`（`HOST_SETTINGS`）、`mock-harness/{MockHarness,Main}.kt` |
+| P1-5 密钥遮罩 | `core/.../core/text/SecretMask.kt`（+ 单测）、`res/values/strings_secretmask.xml` | `ChatTranscript.kt`（`SecretMaskedUserBubble`）、`ChatNodeItem.kt`（用户气泡换成它） |
+| P1-8 分享 / Open In | `app/.../ui/media/ShareTarget.kt`、`res/xml/file_paths_share.xml`、`res/values/strings_sharing.xml` | `WorkspacePanels.kt`（两个按钮）、`AndroidManifest.xml`（第一个 `FileProvider`） |
+| P2-10 diff 审查 | `core/.../core/text/DiffParser.kt`（+ 单测）、`app/.../ui/components/DiffView.kt`、`res/values/strings_diff.xml` | `ChangedFiles.kt`（`fileDiff` + 点开式 sheet） |
+
+四个没预料到的坑：
+
+1. **能力探测不能走 `featureCall`。** 老主机没挂 settings 控制器时它会把 `capability-unavailable`
+   之外的一切都 `report()` 成连接错误——启动就弹一条"连接有问题"的横幅，而用户什么都没做错。
+   所以设置探测自己判：`Ok` 和 `capability-unavailable` 才算答案，其余保持"未知"、入口照常显示。
+2. **凭据引用名会撞车。** 从路径末段派生（`webSearch.apiKey`、`llm.apiKey`）都得到 `APIKEY`。
+   改为带上命名空间（`WEBSEARCH_APIKEY`），并且 schema 里显式写了 `meta.credentialsRef` /
+   `credentialRef` / `ref` / `env` 时以它为准。
+3. **并发 gradle 会删测试结果。** 三个人同时跑 `testDebugUnitTest` 会互相清
+   `app/build/test-results/`，而且照样打印 BUILD SUCCESSFUL——数字对不上就是这么来的。跑之前
+   `gradle --status` 看 BUSY，跑完数 `TEST-*.xml` 的条数（app 应为 61）。
+4. **仓库原本一个 `FileProvider` 都没有。** 原计划写"并进现有 provider"，事实是不存在，所以
+   `AndroidManifest.xml` 里这次新增的是第一个（authority `${applicationId}.files`）。
+
+留给第三批：
+
+- 设置页只做了 namespace 表单。`llm/*` 的模型发现页和独立凭据列表页仍是 `TODO(settings)`；
+  `settings/replace`（整表替换）与 `openSettingsDocument`（打开编辑器文档，不是运行时设置）没接。
+- 密钥遮罩只覆盖用户自己发的文本气泡。工具输出的 JSON 里也可能有 key，但那属于"主机回传的
+  日志"，桌面也没遮。
+- `DiffView` 不做 split 视图（窄屏），也不做 hunk 级折叠；一次改动几千行的 patch 会很长。

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_diff.xml, zh-rCN -->
+<resources>
+    <string name="diff_no_patch_text">这个文件没有 patch 文本</string>
+    <string name="diff_binary_file">二进制文件，没有可显示的行</string>
+    <string name="diff_open_file">打开文件</string>
+    <string name="diff_renamed_from">由 %1$s 重命名</string>
+    <string name="diff_empty_file">没有行被改动</string>
+</resources>

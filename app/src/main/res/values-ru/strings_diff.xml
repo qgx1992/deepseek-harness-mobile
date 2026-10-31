@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_diff.xml, ru -->
+<resources>
+    <string name="diff_no_patch_text">Для этого файла нет текста патча</string>
+    <string name="diff_binary_file">Двоичный файл, строк для показа нет</string>
+    <string name="diff_open_file">Открыть файл</string>
+    <string name="diff_renamed_from">Переименован из %1$s</string>
+    <string name="diff_empty_file">Ни одна строка не изменена</string>
+</resources>

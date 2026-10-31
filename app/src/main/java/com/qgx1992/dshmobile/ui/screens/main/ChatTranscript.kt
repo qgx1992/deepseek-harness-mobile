@@ -3,16 +3,34 @@ package com.qgx1992.dshmobile.ui.screens.main
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.withStyle
+import com.qgx1992.dshmobile.core.text.SECRET_MASK_CHAR
+import com.qgx1992.dshmobile.core.text.SecretSpan
+import com.qgx1992.dshmobile.core.text.findSecrets
+import com.qgx1992.dshmobile.ui.components.holdable
 import com.qgx1992.dshmobile.ui.components.StateDot
 import com.qgx1992.dshmobile.ui.components.StateDotState
 import com.qgx1992.dshmobile.ui.theme.DsAnimations
@@ -440,6 +458,104 @@ internal fun ChatTranscript(
 
 /** How far from the tail a jump snaps before animating the rest of the way. */
 private const val JUMP_SNAP_ROWS = 6
+
+/**
+ * The reader's own message bubble, with anything key-shaped masked out of it.
+ *
+ * A prompt is the one place a credential arrives in a transcript by accident: pasted to ask "why
+ * does this fail", it would otherwise sit on screen — and in every screenshot of it — in the clear.
+ * Only the *drawing* is masked. The stored message, what "copy" puts on the clipboard and what the
+ * model was sent all keep the original text, which is exactly what the desktop client's
+ * secret-mask does; anything else would mean the app quietly edited the user's own words.
+ *
+ * Tapping the bubble reveals it, tapping again hides it. The state is per-bubble and deliberately
+ * not persisted: a revealed secret should not survive the screen that showed it.
+ *
+ * A bubble with nothing to mask keeps the ordinary hold-only behaviour — including the press-scale
+ * feedback — rather than gaining a tap gesture that would do nothing.
+ */
+@Composable
+internal fun SecretMaskedUserBubble(
+    text: String,
+    modifier: Modifier = Modifier,
+    /** Opens the message's hold menu; null leaves the bubble inert, as it always was. */
+    onHold: (() -> Unit)? = null,
+    holdLabel: String = "",
+) {
+    val colors = DsTheme.colors
+    val haptics = LocalHapticFeedback.current
+    val spans = remember(text) { findSecrets(text) }
+    var revealed by remember(text) { mutableStateOf(false) }
+    val maskStyle = SpanStyle(
+        color = colors.labelTertiary,
+        fontFamily = FontFamily.Monospace,
+    )
+    val shown = remember(text, revealed, maskStyle) {
+        if (revealed || spans.isEmpty()) AnnotatedString(text) else maskedAnnotated(text, spans, maskStyle)
+    }
+    // TalkBack cannot see a mask; it would read the hidden characters as ordinary text. Saying
+    // whether the bubble is currently masked is what makes the tap affordance discoverable.
+    val maskState = stringResource(
+        if (revealed) R.string.secret_mask_revealed_hint else R.string.secret_mask_hidden_hint,
+    )
+    BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+        Text(
+            shown,
+            style = DsType.bubbleText,
+            color = colors.labelPrimary,
+            modifier = Modifier
+                .widthIn(max = minOf(525.dp, maxWidth * 0.82f))
+                .then(
+                    when {
+                        spans.isEmpty() ->
+                            if (onHold != null) Modifier.holdable(holdLabel, onHold = onHold) else Modifier
+
+                        // One gesture handler for both, so a tap reveals and a hold still opens the
+                        // message actions. Two `pointerInput` modifiers on one node fight over the
+                        // down event, which is why this does not simply stack `.clickable`.
+                        else -> Modifier.pointerInput(spans) {
+                            detectTapGestures(
+                                onTap = { revealed = !revealed },
+                                onLongPress = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onHold?.invoke()
+                                },
+                            )
+                        }
+                    },
+                )
+                .then(
+                    if (spans.isEmpty()) Modifier else Modifier.semantics { stateDescription = maskState },
+                )
+                .background(colors.userBubble, DsShapes.bubble)
+                .border(1.dp, colors.borderL3, DsShapes.bubble)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        )
+    }
+}
+
+/**
+ * [text] as an [AnnotatedString] with every secret's readable prefix kept and the rest drawn as
+ * mask characters, one per hidden character so nothing reflows when the bubble is revealed.
+ */
+private fun maskedAnnotated(
+    text: String,
+    spans: List<SecretSpan>,
+    maskStyle: SpanStyle,
+): AnnotatedString = buildAnnotatedString {
+    var cursor = 0
+    for (span in spans) {
+        append(text.substring(cursor, span.start))
+        val visibleEnd = minOf(span.start + span.prefixLength, span.end)
+        append(text.substring(span.start, visibleEnd))
+        withStyle(maskStyle) {
+            append(String(CharArray(span.end - visibleEnd) { SECRET_MASK_CHAR }))
+        }
+        cursor = span.end
+    }
+    append(text.substring(cursor))
+}
+
 
 /** The lazy key of a transcript row; see the keying note in [ChatTranscript]. */
 private fun transcriptRowKey(row: TranscriptRow): Any {

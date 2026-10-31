@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, es -->
+<resources>
+    <string name="host_settings_title">Ajustes del host</string>
+    <string name="host_settings_entry">Editar ajustes del host</string>
+    <string name="host_settings_subtitle">Son los ajustes en ejecución del harness de escritorio, leídos en vivo. Los cambios se aplican allí, no en el teléfono.</string>
+    <string name="host_settings_revision">Revisión %1$d</string>
+    <string name="host_settings_applies_live">Se aplica de inmediato</string>
+    <string name="host_settings_applies_restart">Se aplica tras reiniciar</string>
+    <string name="host_settings_applies_other">Se aplica: %1$s</string>
+    <string name="host_settings_writable_off">Esta instalación mantiene sus ajustes en solo lectura, así que aquí no se puede editar nada. Los archivos del escritorio siguen editándose allí.</string>
+    <string name="host_settings_empty">Este host no publica ningún espacio de ajustes.</string>
+    <string name="host_settings_namespace_empty">No hay campos editables en este espacio.</string>
+    <string name="host_settings_conflict">Otro cliente acaba de cambiar estos ajustes. La página se recargó con sus valores.</string>
+    <string name="host_settings_saved">Guardado.</string>
+    <string name="host_settings_error">El host rechazó la solicitud.</string>
+    <string name="host_settings_secret_set">Definido</string>
+    <string name="host_settings_secret_unset">Sin definir</string>
+    <string name="host_settings_secret_hint">El valor guardado nunca se devuelve a esta app. Escribir uno nuevo lo reemplaza.</string>
+    <string name="host_settings_secret_clear">Borrar</string>
+    <string name="host_settings_secret_label">Valor nuevo</string>
+    <string name="host_settings_invalid_number">Eso no es un número.</string>
+    <string name="host_settings_read_only">Solo lectura</string>
+    <string name="host_settings_read_only_type">Solo lectura · %1$s</string>
+    <string name="host_settings_value_missing">Vacío</string>
+</resources>

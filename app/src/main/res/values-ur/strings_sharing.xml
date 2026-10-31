@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, ur -->
+<resources>
+    <string name="panel_share">شیئر کریں</string>
+    <string name="panel_share_failed">اس فون پر کوئی ایپ نہیں جو یہ فائل لے سکے</string>
+    <string name="panel_open_with">اس کے ساتھ کھولیں</string>
+    <string name="panel_open_with_failed">اس فون پر کوئی ایپ نہیں جو یہ فائل کھول سکے</string>
+</resources>

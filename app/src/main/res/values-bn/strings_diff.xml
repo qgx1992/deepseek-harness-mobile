@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_diff.xml, bn -->
+<resources>
+    <string name="diff_no_patch_text">এই ফাইলের জন্য কোনো প্যাচ টেক্সট নেই</string>
+    <string name="diff_binary_file">বাইনারি ফাইল, দেখানোর মতো লাইন নেই</string>
+    <string name="diff_open_file">ফাইল খুলুন</string>
+    <string name="diff_renamed_from">%1$s থেকে নাম বদলানো</string>
+    <string name="diff_empty_file">কোনো লাইন বদলায়নি</string>
+</resources>

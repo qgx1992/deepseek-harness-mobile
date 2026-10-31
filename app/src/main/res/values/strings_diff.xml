@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English source strings for the per-file diff review sheet. -->
+<resources>
+    <string name="diff_no_patch_text">No patch text for this file</string>
+    <string name="diff_binary_file">Binary file, no lines to show</string>
+    <string name="diff_open_file">Open file</string>
+    <string name="diff_renamed_from">Renamed from %1$s</string>
+    <string name="diff_empty_file">No lines changed</string>
+</resources>

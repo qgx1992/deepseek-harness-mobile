@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, ru -->
+<resources>
+    <string name="panel_share">Поделиться</string>
+    <string name="panel_share_failed">Ни одно приложение на телефоне не может принять этот файл</string>
+    <string name="panel_open_with">Открыть с помощью</string>
+    <string name="panel_open_with_failed">Ни одно приложение на телефоне не может открыть этот файл</string>
+</resources>

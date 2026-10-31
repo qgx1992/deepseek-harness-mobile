@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, ar -->
+<resources>
+    <string name="host_settings_title">إعدادات المضيف</string>
+    <string name="host_settings_entry">تحرير إعدادات المضيف</string>
+    <string name="host_settings_subtitle">هذه إعدادات التشغيل الخاصة بـ Harness على الحاسوب، تُقرأ مباشرة. التغييرات تُطبّق هناك، لا على الهاتف.</string>
+    <string name="host_settings_revision">المراجعة %1$d</string>
+    <string name="host_settings_applies_live">يُطبّق فورًا</string>
+    <string name="host_settings_applies_restart">يُطبّق بعد إعادة التشغيل</string>
+    <string name="host_settings_applies_other">يُطبّق: %1$s</string>
+    <string name="host_settings_writable_off">هذا التنصيب يبقي إعداداته للقراءة فقط، فلا يمكن تعديل شيء هنا. الملفات على الحاسوب ما زالت قابلة للتحرير هناك.</string>
+    <string name="host_settings_empty">هذا المضيف لا ينشر أي مساحات إعدادات.</string>
+    <string name="host_settings_namespace_empty">لا حقول قابلة للتحرير في هذه المساحة.</string>
+    <string name="host_settings_conflict">غيّر عميل آخر هذه الإعدادات للتو. أُعيد تحميل الصفحة بقيمهم.</string>
+    <string name="host_settings_saved">تم الحفظ.</string>
+    <string name="host_settings_error">رفض المضيف الطلب.</string>
+    <string name="host_settings_secret_set">مضبوط</string>
+    <string name="host_settings_secret_unset">غير مضبوط</string>
+    <string name="host_settings_secret_hint">القيمة المخزّنة لا تُرسَل أبدًا إلى هذا التطبيق. كتابة قيمة جديدة تستبدلها.</string>
+    <string name="host_settings_secret_clear">مسح</string>
+    <string name="host_settings_secret_label">قيمة جديدة</string>
+    <string name="host_settings_invalid_number">هذا ليس رقمًا.</string>
+    <string name="host_settings_read_only">للقراءة فقط</string>
+    <string name="host_settings_read_only_type">للقراءة فقط · %1$s</string>
+    <string name="host_settings_value_missing">فارغ</string>
+</resources>

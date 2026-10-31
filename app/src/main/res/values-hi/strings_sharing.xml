@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, hi -->
+<resources>
+    <string name="panel_share">साझा करें</string>
+    <string name="panel_share_failed">इस फ़ोन पर कोई ऐप यह फ़ाइल नहीं ले सकता</string>
+    <string name="panel_open_with">इसके साथ खोलें</string>
+    <string name="panel_open_with_failed">इस फ़ोन पर कोई ऐप यह फ़ाइल नहीं खोल सकता</string>
+</resources>

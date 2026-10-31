@@ -23,6 +23,20 @@ All notable changes to DSH Mobile are documented here. Format based on
   environment variables are absent, so CI keeps taking the key from repository secrets and a
   workstation takes it from that file — either way one certificate signs every build, and an APK
   built here installs over a downloaded release instead of colliding with it.
+- The parity document's second batch — host settings, secret masking, sharing and per-file diffs —
+  is recorded there with the contract each item needed; the two items that seemed missing on a
+  second reading (workflow-run nodes and cost) are corrected in that table: the client already folds
+  `tool-workflow/*` into a row and already shows `sessionStats`/`tokenUsage`, so what remains there
+  is presentation, not plumbing.
+- `docs/PROTOCOL.md` gained [The settings plane](docs/PROTOCOL.md#the-settings-plane): the
+  `describe` projection, why a secret never travels back, the compare-and-set on `revision` and what
+  `settings/conflict` and `settings/rejected` mean. `SettingsScenario` in `mock-harness` answers
+  `settings/*` and `credentials/*` so `SettingsContractsEndToEndTest` holds the client to those
+  shapes, including a host that mounts no settings controller at all.
+- The four batches of new strings ship as their own resource files
+  (`strings_hostsettings`, `strings_secretmask`, `strings_sharing`, `strings_diff`), each translated
+  into all ten locales, so `MissingTranslation` stays an error rather than a warning that gets
+  ignored.
 
 ### Changed
 
@@ -34,6 +48,39 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Added
 
+- **The host's own runtime settings, edited from the phone.** Settings gained a Host settings row
+  that opens the desktop harness's configuration plane: every namespace the host publishes, with the
+  fields its schema describes — switches, text, numbers, enumerations, and credential slots that
+  report only whether they are set. The form renders the schema rather than a hand-written list, so
+  a namespace this build has never seen still appears, and a node kind it cannot draw degrades to a
+  read-only row instead of an empty panel. Writes are compare-and-set on the namespace's `revision`:
+  a conflict reloads the page with the other client's values and says so, a rejected value shows the
+  host's own message, and a deployment that keeps settings read-only shows them without offering to
+  change them. A secret is written through `credentials/set` and never comes back — the value stays
+  in the dialog's draft and is gone once it is accepted, so nothing secret reaches a log, a
+  preference file or this app's state. Hosts that mount no settings controller answer
+  `capability-unavailable`, and the row is simply not there.
+- **Keys in your own messages are masked.** A message you send that carries something key-shaped —
+  `sk-`, `ghp_`, `github_pat_`, `AKIA`, `xox[baprs]-`, a bearer token, a long hex or base64url run —
+  is drawn with its first eight characters and one bullet per remaining character, and a tap reveals
+  it. Only the drawing changes: the text is still the text you sent, so copy, edit-as-new, rewind and
+  the model all see it untouched. The matcher is deliberately conservative — URLs, UUIDs, slugs,
+  short commit hashes, bare numbers and CJK text are left alone — because a mask that eats ordinary
+  prose is worse than no mask at all.
+- **Share a workspace file, or open it in another app.** A file previewed from the workspace can now
+  leave the app: the bytes are fetched once, written under `cacheDir/share/`, and handed out through
+  a `FileProvider` scoped to that one directory with a per-intent grant. Both actions report a
+  refusal (no app on the phone takes that type) as a toast rather than a crash. Directories offer
+  neither, since there is nothing to hand over.
+- **Per-file diffs in the changed-files list.** Each file in a turn's changed-files card opens a
+  sheet with its hunks: monospace, dual line numbers, additions and deletions tinted from the theme.
+  The patch text is on no endpoint — `workspaceFiles` exposes no diff — so it is read from where it
+  actually exists: the `patch`/`input`/`diff` arguments of a tool call (apply_patch or a unified
+  diff, which carry real line numbers), and the `{path, oldText, newText}` metadata a `write` or
+  `edit` result carries, diffed locally. Paths match by suffix, so a patch naming `core/src/x.kt`
+  and a workspace path naming `/d/project/core/src/x.kt` are the same file. A file with no patch
+  text says so instead of showing an empty sheet, and the parser runs under a guard: garbage in, no
+  rows out, never an exception.
 - **Dictation in the composer.** A microphone sits beside the send button wherever the host composes
   a recognizer; talk, and the transcript is appended to whatever is already in the box. The host
   does the work — this client records 16 kHz mono PCM, wraps it in a RIFF header (`WavWriter`) and

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_diff.xml, fr -->
+<resources>
+    <string name="diff_no_patch_text">Aucun texte de correctif pour ce fichier</string>
+    <string name="diff_binary_file">Fichier binaire, aucune ligne à afficher</string>
+    <string name="diff_open_file">Ouvrir le fichier</string>
+    <string name="diff_renamed_from">Renommé depuis %1$s</string>
+    <string name="diff_empty_file">Aucune ligne modifiée</string>
+</resources>

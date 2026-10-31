@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_hostsettings.xml, zh-rCN -->
+<resources>
+    <string name="host_settings_title">主机设置</string>
+    <string name="host_settings_entry">编辑主机设置</string>
+    <string name="host_settings_subtitle">这些是桌面端 Harness 的运行时设置，实时读取。改动生效在桌面端，不在手机上。</string>
+    <string name="host_settings_revision">修订 %1$d</string>
+    <string name="host_settings_applies_live">立即生效</string>
+    <string name="host_settings_applies_restart">重启后生效</string>
+    <string name="host_settings_applies_other">生效方式：%1$s</string>
+    <string name="host_settings_writable_off">这套部署把设置保持为只读，因此这里什么都改不了。桌面端的文件仍可在那边编辑。</string>
+    <string name="host_settings_empty">这台主机没有发布任何设置命名空间。</string>
+    <string name="host_settings_namespace_empty">这个命名空间里没有可编辑字段。</string>
+    <string name="host_settings_conflict">另一个客户端刚改过这些设置。页面已按它的值重新加载。</string>
+    <string name="host_settings_saved">已保存。</string>
+    <string name="host_settings_error">主机拒绝了这个请求。</string>
+    <string name="host_settings_secret_set">已设置</string>
+    <string name="host_settings_secret_unset">未设置</string>
+    <string name="host_settings_secret_hint">存下的值永远不会回传到这个应用。写入新值会替换它。</string>
+    <string name="host_settings_secret_clear">清除</string>
+    <string name="host_settings_secret_label">新值</string>
+    <string name="host_settings_invalid_number">这不是数字。</string>
+    <string name="host_settings_read_only">只读</string>
+    <string name="host_settings_read_only_type">只读 · %1$s</string>
+    <string name="host_settings_value_missing">空</string>
+</resources>

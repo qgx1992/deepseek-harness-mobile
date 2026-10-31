@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_sharing.xml, th -->
+<resources>
+    <string name="panel_share">แชร์</string>
+    <string name="panel_share_failed">ไม่มีแอปบนโทรศัพท์นี้ที่รับไฟล์นี้ได้</string>
+    <string name="panel_open_with">เปิดด้วย</string>
+    <string name="panel_open_with_failed">ไม่มีแอปบนโทรศัพท์นี้ที่เปิดไฟล์นี้ได้</string>
+</resources>

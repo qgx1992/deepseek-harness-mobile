@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class HarnessFeature { AUTOMATION, PLUGIN_MANAGEMENT, TIMED_QUESTIONS, SESSION_REFERENCES, SPEECH, PLUGIN_MARKET }
+enum class HarnessFeature { AUTOMATION, PLUGIN_MANAGEMENT, TIMED_QUESTIONS, SESSION_REFERENCES, SPEECH, PLUGIN_MARKET, HOST_SETTINGS }
 
 /** Connection-scoped evidence: authorization failures do not imply a missing capability. */
 internal class FeatureAvailability(private val report: (RpcError) -> Unit) {

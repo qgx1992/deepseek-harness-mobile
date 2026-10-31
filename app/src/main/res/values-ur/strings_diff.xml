@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_diff.xml, ur -->
+<resources>
+    <string name="diff_no_patch_text">اس فائل کے لیے کوئی پیچ متن نہیں</string>
+    <string name="diff_binary_file">بائنری فائل، دکھانے کے لیے کوئی سطر نہیں</string>
+    <string name="diff_open_file">فائل کھولیں</string>
+    <string name="diff_renamed_from">%1$s سے نام بدلا</string>
+    <string name="diff_empty_file">کوئی سطر تبدیل نہیں ہوئی</string>
+</resources>

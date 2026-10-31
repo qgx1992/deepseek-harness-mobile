@@ -643,6 +643,40 @@ crosses the wire.
 An absent key means the harness composes no such service; clients hide the
 control rather than showing a dead one.
 
+## The settings plane
+
+`settings/describe` answers what the configuration plane holds without answering
+what the secrets are:
+
+```
+{writable: bool, document?: string,
+ namespaces: [{ns, autoGenerate, schema, value, base?, user?, applies,
+               secrets: [{path: [string], set: bool}], revision}]}
+```
+
+Every read is redacted host-side: a schema node whose `meta` carries
+`role: "secret"` arrives with no value at all, so a namespace reports only the
+paths of its secrets and whether each is set. Values are written two ways and
+never both at once — `settings/update` `{ns, patch, expectedRevision}`,
+`settings/replace` `{ns, section, expectedRevision}` and `settings/mutate`
+`{ns, ops, expectedRevision}` change ordinary values, while `credentials/set`
+`{ref, value}` is the **only** call that carries a secret value across this
+wire, and `credentials/unset` `{ref}` clears one. A `ref` must match
+`^[A-Za-z_][A-Za-z0-9_]*$`.
+
+Writes are compare-and-set on the `revision` the caller last read: a stale
+revision is refused as `settings/conflict` rather than merged, so a client that
+takes a conflict re-reads `describe` before offering the form again. A provider
+that rejects a value answers `settings/rejected`, and its message is the host's
+own wording, shown as-is. `writable: false` means the plane is a document
+edited on the host desktop — `settings/openSettingsDocument` opens it there —
+so the client renders the values read-only instead of a form.
+
+The form is schema-driven, which puts one obligation on the client: a node kind
+it does not recognise must degrade to a read-only row, never to an exception or
+a blank panel. `llm/listProviders` and `llm/listConfigurableProviders` are two
+calls because one answers live routes and the other the configurable rows.
+
 ## Image attachments are normalized on ingest
 
 Since harness 0.1.1-rc.2 the host re-encodes stored images down to its own

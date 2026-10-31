@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Sharing a workspace file with another app on the phone. The workspace is on the harness
+        computer, so both actions copy the bytes into the app's cache first and hand over a
+        `content://` uri — see `ui/media/ShareTarget`.
+    -->
+    <string name="panel_share">Share</string>
+    <string name="panel_share_failed">No app on this phone can take this file</string>
+    <string name="panel_open_with">Open with</string>
+    <string name="panel_open_with_failed">No app on this phone can open this file</string>
+</resources>

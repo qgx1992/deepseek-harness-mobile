@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- strings_diff.xml, ar -->
+<resources>
+    <string name="diff_no_patch_text">لا يوجد نص تعديل لهذا الملف</string>
+    <string name="diff_binary_file">ملف ثنائي، لا أسطر لعرضها</string>
+    <string name="diff_open_file">فتح الملف</string>
+    <string name="diff_renamed_from">أُعيدت تسميته من %1$s</string>
+    <string name="diff_empty_file">لا أسطر متغيرة</string>
+</resources>
