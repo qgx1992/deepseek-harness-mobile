@@ -49,15 +49,49 @@ sealed interface HostProbe {
     /** The probe is in flight. */
     data object Probing : HostProbe
 
-    /** It answered `host.describe`; [description] is what it said. */
-    data class Reachable(val description: HostDescription) : HostProbe
+    /**
+     * It answered; [description] is what it said, when it said anything.
+     *
+     * Nullable because reachability and description are two calls from 0.1.2 on: a host that
+     * proves itself at `session/canOpenWorkspacePath` has still told us nothing about itself.
+     */
+    data class Reachable(val description: HostDescription?) : HostProbe
 
-    /** No answer — switched off, asleep, or on another network. */
+    /**
+     * Something answered, and refused us — with the reason kept.
+     *
+     * The row used to collapse every failed probe into [Unreachable], so a relay that was up and
+     * answering 403 for a stale token read exactly like a laptop that was switched off. Those two
+     * need opposite instructions ("pair again" against "check the network"), so the probe's own
+     * verdict travels with the row.
+     */
+    data class Denied(val outcome: ProbeOutcome) : HostProbe
+
+    /** Nothing answered at all, or the attempt ended in failure: switched off, asleep, elsewhere. */
     data object Unreachable : HostProbe
 }
 
 /** How far the subnet sweep has got, so the UI can show more than a spinner. */
 data class ScanProgress(val probed: Int, val total: Int)
+
+/**
+ * Whether waiting and asking again could plausibly read differently.
+ *
+ * The cold-start retry exists for a radio that is still attaching, so it belongs to the outcomes a
+ * network can produce and not to the ones a server decides. Retrying a 403 from a relay or a wrong
+ * certificate pin only delays the sentence the card has to say — and saying it late is how a
+ * credential problem gets misread as a dead laptop.
+ */
+internal fun ProbeOutcome.retryable(): Boolean = when (this) {
+    is ProbeOutcome.Reachable -> false
+    ProbeOutcome.PairingRequired, ProbeOutcome.CertificateChanged, ProbeOutcome.TrustFence,
+    ProbeOutcome.Unauthenticated, ProbeOutcome.RelayUnauthenticated, ProbeOutcome.NotAHarness,
+    ProbeOutcome.DnsFailure,
+    -> false
+    ProbeOutcome.Refused, ProbeOutcome.Timeout, ProbeOutcome.Unreachable,
+    ProbeOutcome.TlsFailure, is ProbeOutcome.Other,
+    -> true
+}
 
 /**
  * What the Recent rows should say after one manager emission.
@@ -81,8 +115,7 @@ internal fun recentStatusAfter(
     owned: Boolean,
     hasFailure: Boolean,
 ): Map<String, HostProbe> = when {
-    connected && reached != null && description != null ->
-        current + (reached to HostProbe.Reachable(description))
+    connected && reached != null -> current + (reached to HostProbe.Reachable(description))
     !owned && hasFailure && phase == ConnectionPhase.DISCONNECTED ->
         attempted?.let { current + (it to HostProbe.Unreachable) } ?: current
     else -> current
@@ -398,22 +431,21 @@ class ConnectViewModel @Inject constructor(
 
     /** Probe one row, publish what it found, and report whether it answered. */
     private suspend fun probeOne(host: HostConfig): Boolean {
-        val description = probePatiently(host)
-        _state.update { current ->
-            current.copy(
-                recentStatus = current.recentStatus + (
-                    host.authority to (
-                        description?.let { HostProbe.Reachable(it) } ?: HostProbe.Unreachable
-                        )
-                    ),
-            )
+        val outcome = probePatiently(host)
+        val probe = when (outcome) {
+            is ProbeOutcome.Reachable -> HostProbe.Reachable(outcome.description)
+            else -> HostProbe.Denied(outcome)
         }
+        _state.update { current ->
+            current.copy(recentStatus = current.recentStatus + (host.authority to probe))
+        }
+        val description = (outcome as? ProbeOutcome.Reachable)?.description
         if (description != null) hostsStore.cacheDescription(host.id, description)
-        return description != null
+        return outcome is ProbeOutcome.Reachable
     }
 
     /**
-     * Probe a named host, forgiving the first misses of a cold start.
+     * Probe a named host, forgiving the first misses of a cold start, and keep the verdict.
      *
      * The probe is one request, and on a phone the first request after the process starts
      * regularly fails for reasons that have nothing to do with the harness: the radio is still
@@ -422,15 +454,19 @@ class ConnectViewModel @Inject constructor(
      * all" during launch, so a perfectly healthy host was reported dead every time the app was
      * opened from cold. Three attempts with a little backoff cost nothing when the host is up
      * (the first attempt answers in milliseconds) and roughly a second when it is not.
+     *
+     * Only answers that a second attempt could change are retried. A 403 from a relay, a wrong
+     * certificate pin or a host that is not a harness are decisions, not misses, and retrying them
+     * only delays the sentence the card has to say.
      */
-    private suspend fun probePatiently(host: HostConfig): HostDescription? {
+    private suspend fun probePatiently(host: HostConfig): ProbeOutcome {
         var attempt = 0
         while (true) {
-            val description = runCatching {
+            val outcome = runCatching {
                 // A remembered host is named, not swept — worth waiting for.
-                discoveryEngine.probe(host.host, host.port, ProbeTimeouts.Manual, config = host)
-            }.getOrNull()
-            if (description != null || attempt >= PROBE_ATTEMPTS - 1) return description
+                discoveryEngine.probeOutcome(host.host, host.port, ProbeTimeouts.Manual, config = host)
+            }.getOrNull() ?: ProbeOutcome.Other("")
+            if (!outcome.retryable() || attempt >= PROBE_ATTEMPTS - 1) return outcome
             attempt++
             delay(PROBE_BACKOFF_MS * attempt)
         }
@@ -471,8 +507,7 @@ class ConnectViewModel @Inject constructor(
         if (settings.autoConnectLast) {
             val last = hostsStore.hosts.first().firstOrNull { it.belongsTo(mode) }
             if (last != null) {
-                val desc = probePatiently(last)
-                if (desc != null) {
+                if (probePatiently(last) is ProbeOutcome.Reachable) {
                     connectTo(last)
                     return
                 }

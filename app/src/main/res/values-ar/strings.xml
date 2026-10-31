@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">أساس البروتوكول %1$s</string>
     <string name="connect_disconnect">قطع الاتصال</string>
     <string name="connect_unreachable">غير قابل للوصول</string>
+    <string name="connect_probe_pairing">هذا المرحّل لم يعد يقبل هذا الهاتف — أعد الاقتران</string>
+    <string name="connect_probe_certificate">تغيّرت شهادة المرحّل — أعد الاقتران</string>
+    <string name="connect_probe_relay_session">المرحّل لا يستطيع تسجيل الدخول إلى Harness — أصلحه على الكمبيوتر</string>
+    <string name="connect_probe_unauthenticated">لم يسجّل Harness هذا الهاتف</string>
+    <string name="connect_probe_fence">رفض Harness هذا العنوان</string>
+    <string name="connect_probe_not_harness">هناك خدمة تردّ هنا، لكنها ليست Harness</string>
+    <string name="connect_probe_tls">فشل الاتصال الآمن</string>
+    <string name="connect_probe_dns">لا يمكن تحليل هذا الاسم</string>
     <string name="connect_reachable">يمكن الوصول إليه</string>
     <string name="connect_sign_in">تسجيل الدخول</string>
     <string name="connect_sign_in_title">تسجيل الدخول إلى هذا الخادم</string>

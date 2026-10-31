@@ -137,6 +137,22 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Fixed
 
+- **A Recent row says why the host refused, instead of "unreachable" for everything.** The probe's
+  verdict was thrown away and every failed probe became the same grey line, so a relay that was up
+  and answering `403` for a device whose pairing had expired read exactly like a laptop that was
+  switched off — and the two need opposite fixes. The card now keeps the outcome: "this relay no
+  longer accepts this phone — pair again", "the relay's certificate changed — pair again", "the
+  relay cannot sign in to the harness", "the harness refused this address", "something answers here,
+  but it is not a harness", TLS and DNS get their own sentences, and only a genuine non-answer still
+  says unreachable. A row whose refusal is a stale credential carries a **Pair again** button, since
+  re-pairing is the only thing that fixes it and the pairing screen is otherwise two taps away.
+- **The cold-start retry retries the network, not a decision.** The three attempts and the delayed
+  re-check exist for a radio that is still attaching; a `403` from a relay, a wrong certificate pin
+  or a host that is not a harness cannot read differently on a second try, and waiting out the
+  backoff before saying so only delays the sentence that tells the user what to do.
+- A connection that reports no description still repaints its row. `Reachable` now carries a
+  nullable description — reachability and description have been separate calls since 0.1.2 — so a
+  successful connect clears a stale "unreachable" verdict even when the home directory was not read.
 - **Check for updates asks this fork now.** The GitHub lookup pointed at the upstream repository,
   whose releases carry the same tag and asset names but a different signing certificate. Every
   phone on this build was therefore offered an "update" as soon as upstream published a version the

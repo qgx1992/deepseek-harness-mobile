@@ -83,9 +83,15 @@ class RecentStatusTest {
         assertEquals(mapOf(authority to HostProbe.Reachable(description)), after)
     }
 
-    /** Reached but not yet described — no home directory read, so nothing to say beyond "alive". */
+    /**
+     * Reached but not yet described — no home directory read, so nothing to say beyond "alive".
+     *
+     * The row is still repainted. A connection is proof; leaving a stale "unreachable" verdict on
+     * screen because the description happened to be missing is the exact confusion this pass was
+     * added to end, and `Reachable` now carries a null description for that case.
+     */
     @Test
-    fun `a connection without a description leaves the row alone`() {
+    fun `a connection without a description still repaints the row`() {
         val after = recentStatusAfter(
             current = probing,
             attempted = authority,
@@ -96,6 +102,6 @@ class RecentStatusTest {
             owned = false,
             hasFailure = false,
         )
-        assertEquals(probing, after)
+        assertEquals(mapOf(authority to HostProbe.Reachable(null)), after)
     }
 }

@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">Base do protocolo %1$s</string>
     <string name="connect_disconnect">Desconectar</string>
     <string name="connect_unreachable">Inacessível</string>
+    <string name="connect_probe_pairing">Este relay não aceita mais este telefone — pareie de novo</string>
+    <string name="connect_probe_certificate">O certificado do relay mudou — pareie de novo</string>
+    <string name="connect_probe_relay_session">O relay não consegue entrar no harness — corrija no computador</string>
+    <string name="connect_probe_unauthenticated">O harness não autorizou este telefone</string>
+    <string name="connect_probe_fence">O harness recusou este endereço</string>
+    <string name="connect_probe_not_harness">Algo responde aqui, mas não é um harness</string>
+    <string name="connect_probe_tls">A conexão segura falhou</string>
+    <string name="connect_probe_dns">Esse nome não resolve</string>
     <string name="connect_reachable">Acessível</string>
     <string name="connect_sign_in">Entrar</string>
     <string name="connect_sign_in_title">Entrar neste harness</string>

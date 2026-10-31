@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">Base du protocole %1$s</string>
     <string name="connect_disconnect">Se déconnecter</string>
     <string name="connect_unreachable">Injoignable</string>
+    <string name="connect_probe_pairing">Ce relais n\'accepte plus ce téléphone — réappairez</string>
+    <string name="connect_probe_certificate">Le certificat du relais a changé — réappairez</string>
+    <string name="connect_probe_relay_session">Le relais ne peut pas se connecter au harness — corrigez-le sur l\'ordinateur</string>
+    <string name="connect_probe_unauthenticated">Le harness n\'a pas autorisé ce téléphone</string>
+    <string name="connect_probe_fence">Le harness a refusé cette adresse</string>
+    <string name="connect_probe_not_harness">Quelque chose répond ici, mais ce n\'est pas un harness</string>
+    <string name="connect_probe_tls">La connexion sécurisée a échoué</string>
+    <string name="connect_probe_dns">Ce nom ne se résout pas</string>
     <string name="connect_reachable">Joignable</string>
     <string name="connect_sign_in">Se connecter</string>
     <string name="connect_sign_in_title">Se connecter à ce harness</string>

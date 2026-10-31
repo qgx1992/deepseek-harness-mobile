@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">پروٹوکول بیس لائن %1$s</string>
     <string name="connect_disconnect">کنکشن ختم کریں</string>
     <string name="connect_unreachable">ناقابل رسائی</string>
+    <string name="connect_probe_pairing">یہ ریلے اب اس فون کو قبول نہیں کرتا — دوبارہ جوڑا بنائیں</string>
+    <string name="connect_probe_certificate">ریلے کا سرٹیفکیٹ بدل گیا — دوبارہ جوڑا بنائیں</string>
+    <string name="connect_probe_relay_session">ریلے Harness میں سائن اِن نہیں کر سکتا — کمپیوٹر پر ٹھیک کریں</string>
+    <string name="connect_probe_unauthenticated">Harness نے اس فون کو سائن اِن نہیں کیا</string>
+    <string name="connect_probe_fence">Harness نے یہ پتہ مسترد کیا</string>
+    <string name="connect_probe_not_harness">یہاں کچھ جواب دے رہا ہے، مگر وہ Harness نہیں</string>
+    <string name="connect_probe_tls">محفوظ کنکشن ناکام ہو گیا</string>
+    <string name="connect_probe_dns">یہ نام حل نہیں ہو رہا</string>
     <string name="connect_reachable">قابل رسائی</string>
     <string name="connect_sign_in">سائن ان</string>
     <string name="connect_sign_in_title">اس ہارنیس میں سائن ان کریں</string>

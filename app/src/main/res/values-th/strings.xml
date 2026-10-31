@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">พื้นฐานโปรโตคอล %1$s</string>
     <string name="connect_disconnect">ตัดการเชื่อมต่อ</string>
     <string name="connect_unreachable">เข้าถึงไม่ได้</string>
+    <string name="connect_probe_pairing">รีเลย์นี้ไม่รับโทรศัพท์เครื่องนี้แล้ว — จับคู่อีกครั้ง</string>
+    <string name="connect_probe_certificate">ใบรับรองของรีเลย์เปลี่ยนแล้ว — จับคู่อีกครั้ง</string>
+    <string name="connect_probe_relay_session">รีเลย์ลงชื่อเข้าใช้ Harness ไม่ได้ — แก้ไขบนคอมพิวเตอร์</string>
+    <string name="connect_probe_unauthenticated">Harness ยังไม่ได้ลงชื่อเข้าใช้โทรศัพท์เครื่องนี้</string>
+    <string name="connect_probe_fence">Harness ปฏิเสธที่อยู่นี้</string>
+    <string name="connect_probe_not_harness">มีบางอย่างตอบที่นี่ แต่ไม่ใช่ Harness</string>
+    <string name="connect_probe_tls">การเชื่อมต่อที่ปลอดภัยล้มเหลว</string>
+    <string name="connect_probe_dns">ชื่อนี้แปลงไม่ได้</string>
     <string name="connect_reachable">เข้าถึงได้</string>
     <string name="connect_sign_in">ลงชื่อเข้าใช้</string>
     <string name="connect_sign_in_title">ลงชื่อเข้าใช้ฮาร์เนสนี้</string>

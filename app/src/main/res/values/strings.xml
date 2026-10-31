@@ -74,6 +74,14 @@
     <string name="connect_protocol_baseline">Protocol baseline %1$s</string>
     <string name="connect_disconnect">Disconnect</string>
     <string name="connect_unreachable">Unreachable</string>
+    <string name="connect_probe_pairing">This relay no longer accepts this phone — pair again</string>
+    <string name="connect_probe_certificate">The relay\'s certificate changed — pair again</string>
+    <string name="connect_probe_relay_session">The relay cannot sign in to the harness — fix it on the computer</string>
+    <string name="connect_probe_unauthenticated">The harness has not signed this phone in</string>
+    <string name="connect_probe_fence">The harness refused this address</string>
+    <string name="connect_probe_not_harness">Something answers here, but it is not a harness</string>
+    <string name="connect_probe_tls">The secure connection failed</string>
+    <string name="connect_probe_dns">That name does not resolve</string>
     <string name="connect_reachable">Reachable</string>
     <string name="connect_sign_in">Sign in</string>
     <string name="connect_sign_in_title">Sign in to this harness</string>

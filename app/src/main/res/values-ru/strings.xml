@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">Базовая версия протокола %1$s</string>
     <string name="connect_disconnect">Отключиться</string>
     <string name="connect_unreachable">Недоступен</string>
+    <string name="connect_probe_pairing">Этот ретранслятор больше не принимает этот телефон — сопрягите заново</string>
+    <string name="connect_probe_certificate">Сертификат ретранслятора изменился — сопрягите заново</string>
+    <string name="connect_probe_relay_session">Ретранслятор не может войти в harness — исправьте на компьютере</string>
+    <string name="connect_probe_unauthenticated">Harness не авторизовал этот телефон</string>
+    <string name="connect_probe_fence">Harness отклонил этот адрес</string>
+    <string name="connect_probe_not_harness">Здесь что-то отвечает, но это не harness</string>
+    <string name="connect_probe_tls">Защищённое соединение не удалось</string>
+    <string name="connect_probe_dns">Это имя не разрешается</string>
     <string name="connect_reachable">Доступен</string>
     <string name="connect_sign_in">Войти</string>
     <string name="connect_sign_in_title">Войти в этот harness</string>

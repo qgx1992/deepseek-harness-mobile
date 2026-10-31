@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">প্রোটোকল বেসলাইন %1$s</string>
     <string name="connect_disconnect">সংযোগ বিচ্ছিন্ন করুন</string>
     <string name="connect_unreachable">পৌঁছানো যাচ্ছে না</string>
+    <string name="connect_probe_pairing">এই রিলে আর এই ফোন গ্রহণ করছে না — আবার জোড়া লাগান</string>
+    <string name="connect_probe_certificate">রিলের সার্টিফিকেট বদলে গেছে — আবার জোড়া লাগান</string>
+    <string name="connect_probe_relay_session">রিলে Harness-এ সাইন ইন করতে পারছে না — কম্পিউটারে ঠিক করুন</string>
+    <string name="connect_probe_unauthenticated">Harness এই ফোনে সাইন ইন করেনি</string>
+    <string name="connect_probe_fence">Harness এই ঠিকানাটি প্রত্যাখ্যান করেছে</string>
+    <string name="connect_probe_not_harness">এখানে কিছু সাড়া দিচ্ছে, কিন্তু সেটি Harness নয়</string>
+    <string name="connect_probe_tls">নিরাপদ সংযোগ ব্যর্থ হয়েছে</string>
+    <string name="connect_probe_dns">ওই নামটি রিজলভ হচ্ছে না</string>
     <string name="connect_reachable">পৌঁছানো যাচ্ছে</string>
     <string name="connect_sign_in">সাইন ইন</string>
     <string name="connect_sign_in_title">এই হারনেসে সাইন ইন করুন</string>

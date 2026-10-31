@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">协议基线 %1$s</string>
     <string name="connect_disconnect">断开连接</string>
     <string name="connect_unreachable">无法连接</string>
+    <string name="connect_probe_pairing">这个中继不再接受此手机 · 请重新配对</string>
+    <string name="connect_probe_certificate">中继证书已变更 · 请重新配对</string>
+    <string name="connect_probe_relay_session">中继无法登录 Harness · 请在电脑上处理</string>
+    <string name="connect_probe_unauthenticated">Harness 尚未登录此手机</string>
+    <string name="connect_probe_fence">Harness 拒绝了此地址</string>
+    <string name="connect_probe_not_harness">这里有服务响应，但不是 Harness</string>
+    <string name="connect_probe_tls">安全连接失败</string>
+    <string name="connect_probe_dns">该域名无法解析</string>
     <string name="connect_reachable">可连接</string>
     <string name="connect_sign_in">登录</string>
     <string name="connect_sign_in_title">登录到此 harness</string>

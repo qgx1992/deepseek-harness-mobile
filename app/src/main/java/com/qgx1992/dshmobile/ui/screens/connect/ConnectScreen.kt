@@ -68,6 +68,7 @@ import com.qgx1992.dshmobile.connection.ConnectStage
 import com.qgx1992.dshmobile.connection.DiscoveredHost
 import com.qgx1992.dshmobile.connection.HostConfig
 import com.qgx1992.dshmobile.connection.parseHostInput
+import com.qgx1992.dshmobile.connection.ProbeOutcome
 import com.qgx1992.dshmobile.termux.HarnessControl
 import com.qgx1992.dshmobile.termux.HarnessControlFailure
 import com.qgx1992.dshmobile.termux.StartSignIn
@@ -280,6 +281,11 @@ fun ConnectScreen(
                                         probe = state.recentStatus[saved.authority],
                                         onConnect = { attempt { viewModel.connectTo(saved) } },
                                         onForget = { viewModel.forget(saved) },
+                                        onPair = if (saved.isRelay) {
+                                            { onPair(saved.baseUrl) }
+                                        } else {
+                                            null
+                                        },
                                     )
                                 }
                             }
@@ -839,6 +845,7 @@ private fun RecentHarnessCard(
     probe: HostProbe?,
     onConnect: () -> Unit,
     onForget: () -> Unit,
+    onPair: (() -> Unit)? = null,
 ) {
     val colors = DsTheme.colors
     val reachable = probe as? HostProbe.Reachable
@@ -846,6 +853,13 @@ private fun RecentHarnessCard(
     // 0.1.2 publishes only the host home. The harness version, its working directory and its
     // attached-session count all came from `host.describe`, which no longer exists.
     val home = reachable?.description?.home ?: host.lastHome
+    // A denied row says which denial, and the two that a person can act on get the action: pairing
+    // is how a stale device credential is replaced, and it is the only thing that fixes it.
+    val denied = (probe as? HostProbe.Denied)?.outcome
+    val pairable = onPair != null && denied != null &&
+        ConnectFailure.from(denied, relay = host.isRelay).let {
+            it is ConnectFailure.PairingRequired || it is ConnectFailure.CertificateChanged
+        }
 
     DsCard(onClick = onConnect) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -853,6 +867,7 @@ private fun RecentHarnessCard(
                 when (probe) {
                     is HostProbe.Reachable -> StateDotState.Done
                     HostProbe.Probing -> StateDotState.Running
+                    is HostProbe.Denied -> StateDotState.Warning
                     HostProbe.Unreachable -> StateDotState.Idle
                     null -> StateDotState.Idle
                 },
@@ -899,13 +914,25 @@ private fun RecentHarnessCard(
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                statusLine(probe, home),
+                statusLine(probe, home, relay = host.isRelay),
                 style = DsType.caption11,
-                color = if (probe is HostProbe.Unreachable) colors.labelCaption else colors.labelTertiary,
+                color = when (probe) {
+                    is HostProbe.Denied -> colors.warnLabel
+                    HostProbe.Unreachable -> colors.labelCaption
+                    else -> colors.labelTertiary
+                },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
+            if (pairable) {
+                DsButton(
+                    text = stringResource(R.string.connect_pair_again),
+                    onClick = { onPair?.invoke() },
+                    variant = DsButtonVariant.Ghost,
+                    size = DsButtonSize.Small,
+                )
+            }
             DsButton(
                 text = stringResource(R.string.common_delete),
                 onClick = onForget,
@@ -924,12 +951,34 @@ private fun RecentHarnessCard(
  * reported — the only host fact 0.1.2 carries — and says so plainly when even that is unknown.
  */
 @Composable
-private fun statusLine(probe: HostProbe?, home: String?): String = when {
+private fun statusLine(probe: HostProbe?, home: String?, relay: Boolean = false): String = when {
     probe is HostProbe.Probing -> stringResource(R.string.connect_checking)
+    probe is HostProbe.Denied -> deniedLine(probe.outcome, relay)
     probe is HostProbe.Unreachable -> stringResource(R.string.connect_unreachable)
     home != null -> stringResource(R.string.connect_harness_home, home)
     probe is HostProbe.Reachable -> stringResource(R.string.connect_reachable)
     else -> stringResource(R.string.common_loading)
+}
+
+/**
+ * Why an endpoint that answered refused, in the card's own one line.
+ *
+ * The card used to print "unreachable" for every non-answer, which is a lie about a relay that is
+ * up and answering 403: it sends people to check Wi-Fi for a problem that is a credential. Each
+ * verdict gets the sentence that points at its own fix.
+ */
+@Composable
+private fun deniedLine(outcome: ProbeOutcome, relay: Boolean): String = when {
+    outcome is ProbeOutcome.PairingRequired ||
+        (outcome is ProbeOutcome.TrustFence && relay) -> stringResource(R.string.connect_probe_pairing)
+    outcome is ProbeOutcome.CertificateChanged -> stringResource(R.string.connect_probe_certificate)
+    outcome is ProbeOutcome.RelayUnauthenticated -> stringResource(R.string.connect_probe_relay_session)
+    outcome is ProbeOutcome.Unauthenticated -> stringResource(R.string.connect_probe_unauthenticated)
+    outcome is ProbeOutcome.TrustFence -> stringResource(R.string.connect_probe_fence)
+    outcome is ProbeOutcome.NotAHarness -> stringResource(R.string.connect_probe_not_harness)
+    outcome is ProbeOutcome.TlsFailure -> stringResource(R.string.connect_probe_tls)
+    outcome is ProbeOutcome.DnsFailure -> stringResource(R.string.connect_probe_dns)
+    else -> stringResource(R.string.connect_unreachable)
 }
 
 /**

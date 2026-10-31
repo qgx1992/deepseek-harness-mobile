@@ -65,6 +65,14 @@
     <string name="connect_protocol_baseline">Base del protocolo %1$s</string>
     <string name="connect_disconnect">Desconectar</string>
     <string name="connect_unreachable">No disponible</string>
+    <string name="connect_probe_pairing">Este relé ya no acepta este teléfono: vuelve a emparejar</string>
+    <string name="connect_probe_certificate">El certificado del relé cambió: vuelve a emparejar</string>
+    <string name="connect_probe_relay_session">El relé no puede iniciar sesión en el harness: arréglalo en el ordenador</string>
+    <string name="connect_probe_unauthenticated">El harness no ha autorizado este teléfono</string>
+    <string name="connect_probe_fence">El harness rechazó esta dirección</string>
+    <string name="connect_probe_not_harness">Algo responde aquí, pero no es un harness</string>
+    <string name="connect_probe_tls">Falló la conexión segura</string>
+    <string name="connect_probe_dns">Ese nombre no se resuelve</string>
     <string name="connect_reachable">Disponible</string>
     <string name="connect_sign_in">Iniciar sesión</string>
     <string name="connect_sign_in_title">Iniciar sesión en este harness</string>
