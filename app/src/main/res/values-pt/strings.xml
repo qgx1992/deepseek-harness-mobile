@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">Padrão</string>
     <string name="settings_transcript_detailed">Detalhado</string>
     <string name="settings_transcript_verbose">Tudo</string>
+    <string name="settings_collapse_timing">Quando os passos se recolhem</string>
+    <string name="settings_collapse_timing_hint">Só vale para os níveis que recolhem o trabalho de um turno: recolher assim que a resposta chega ou manter o turno aberto até a próxima mensagem.</string>
+    <string name="settings_collapse_completion">Ao chegar a resposta</string>
+    <string name="settings_collapse_next_input">Na próxima mensagem</string>
     <string name="settings_readonly_banner">As configurações são somente leitura pela rede. Abra o Harness no próprio computador para alterá-las.</string>
     <string name="settings_notifications">Notificações</string>
     <string name="settings_notifications_turn">Notificar quando um turno for concluído</string>

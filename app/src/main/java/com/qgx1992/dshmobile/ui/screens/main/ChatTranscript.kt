@@ -159,13 +159,20 @@ internal fun ChatTranscript(
      * of that screen's rules in one readable enum ([TranscriptDetail]).
      */
     detail: TranscriptDetail = TranscriptDetail.DEFAULT,
+    /**
+     * When a settled turn folds away — as its answer lands, or only once a newer prompt exists.
+     *
+     * The other half of the desktop's "work details": [detail] says how much folds, this says when.
+     * Both are resolved by the caller from the stored preference.
+     */
+    timing: CollapseTiming = CollapseTiming.DEFAULT,
 ) {
     // Only the nodes that draw something: a zero-height item still costs its gap, and a turn's
     // worth of structural events stacks those gaps into a blank band under the chrome.
     //
     // Reversed here rather than at the call site: the fold's natural order is oldest-first, and
     // that is the order every other reader of `nodes` wants.
-    val rows = remember(conversation?.nodes, context.running, detail) {
+    val rows = remember(conversation?.nodes, context.running, detail, timing) {
         val nodes = conversation?.nodes.orEmpty()
         val visible = renderableChatNodes(nodes, context.running)
         // Verbose asks for the work row by row: no group headers either, so adjacent tool calls
@@ -178,6 +185,7 @@ internal fun ChatTranscript(
             turnStarts = nodes.filterIsInstance<TurnStartNode>().map { it.seq }.sorted(),
             running = context.running,
             detail = detail,
+            timing = timing,
         ).asReversed()
     }
     val hasMore = conversation?.hasMore == true

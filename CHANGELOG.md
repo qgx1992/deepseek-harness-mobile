@@ -140,6 +140,13 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Changed
 
+- **Work details gained its second axis: when the steps fold.** The desktop keeps two settings
+  side by side under `ui-chat` — how much a turn shows (`transcriptView`) and when a finished turn
+  folds away (`collapseTiming`) — and only the first was ported. Settings → General now asks the
+  second as well: *Answer lands* folds a turn the moment it settles, *Next message* keeps the turn
+  you just read open until you send a follow-up, so a long answer does not lose the steps you were
+  still comparing it against. Only the levels that fold at all are affected, and only the newest
+  turn — the one whose next prompt has not been written — is the one held open.
 - **The transcript no longer folds a turn's work by default.** Work details now default to
   *Verbose*: every thought panel, tool card and context block sits in the order it happened, with no
   "Process · N steps" row standing in for the turn — the list reads the way a desktop transcript

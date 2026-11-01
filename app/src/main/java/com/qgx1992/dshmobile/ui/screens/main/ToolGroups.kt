@@ -113,12 +113,17 @@ internal fun groupToolRows(nodes: List<ChatNode>): List<TranscriptRow> {
  *
  * A turn with no prompt (only harness-injected context before the first question) is left alone —
  * there is nothing for the row to sit under.
+ *
+ * [timing] decides *when* a settled turn folds; see [CollapseTiming]. It never affects a running
+ * turn — that one is [TranscriptDetail.foldsLiveTurn]'s business — and it only ever holds the newest
+ * turn open, because that is the one whose next prompt has not been written yet.
  */
 internal fun foldProcessRows(
     rows: List<TranscriptRow>,
     turnStarts: List<Long>,
     running: Boolean = false,
     detail: TranscriptDetail = TranscriptDetail.DEFAULT,
+    timing: CollapseTiming = CollapseTiming.DEFAULT,
 ): List<TranscriptRow> {
     if (rows.isEmpty() || turnStarts.isEmpty()) return rows
     // Verbose asks for the work row by row; nothing is folded, and grouping is skipped by the
@@ -132,10 +137,14 @@ internal fun foldProcessRows(
         while (end < rows.size && turnIndexOf(rows[end].seq, turnStarts) == turn) end++
         val slice = rows.subList(index, end)
         val isLast = end >= rows.size
+        val live = running && isLast && detail.foldsLiveTurn
         folded += if (turn < 0) slice else foldTurnProcess(
             slice,
-            live = running && isLast && detail.foldsLiveTurn,
+            live = live,
             detail = detail,
+            // A settled turn folds now unless the reader asked for the fold to wait for the next
+            // prompt — and only the newest turn is still waiting for one.
+            holdOpen = !live && !timing.foldsSettledTurn(hasNewerTurn = !isLast),
         )
         index = end
     }
@@ -159,12 +168,18 @@ private fun turnIndexOf(seq: Long, turnStarts: List<Long>): Int {
  *
  * [live] is the turn currently running: it has no settled answer yet, so the fold stops at the
  * reply being written (or at the end, while the model is still thinking) instead of requiring one.
+ *
+ * [holdOpen] keeps a settled turn exactly as it was built — steps and all — because the reader's
+ * collapse timing says the fold waits for the next prompt. The rows are already grouped by the
+ * caller, so returning them untouched is the whole behaviour; nothing here has to know why.
  */
 private fun foldTurnProcess(
     rows: List<TranscriptRow>,
     live: Boolean = false,
     detail: TranscriptDetail = TranscriptDetail.DEFAULT,
+    holdOpen: Boolean = false,
 ): List<TranscriptRow> {
+    if (holdOpen) return rows
     val promptIndex = rows.indexOfFirst { row ->
         val node = (row as? TranscriptRow.Message)?.node
         node is UserMessageNode && !node.isInjectedContext && !node.isRewindMarker

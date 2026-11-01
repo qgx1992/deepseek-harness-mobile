@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">قياسي</string>
     <string name="settings_transcript_detailed">تفصيلي</string>
     <string name="settings_transcript_verbose">كل شيء</string>
+    <string name="settings_collapse_timing">متى تُطوى الخطوات</string>
+    <string name="settings_collapse_timing_hint">لا ينطبق إلا على المستويات التي تطوي خطوات دور: أطوِها بمجرد وصول الإجابة، أو أبقِ الدور مفتوحًا حتى تُرسل الرسالة التالية.</string>
+    <string name="settings_collapse_completion">بعد وصول الإجابة</string>
+    <string name="settings_collapse_next_input">عند الرسالة التالية</string>
     <string name="settings_readonly_banner">الإعدادات للقراءة فقط عبر الشبكة. افتح Harness على جهاز الكمبيوتر الخاص به لتغييرها.</string>
     <string name="settings_notifications">الإشعارات</string>
     <string name="settings_notifications_turn">الإشعار عند اكتمال جولة</string>

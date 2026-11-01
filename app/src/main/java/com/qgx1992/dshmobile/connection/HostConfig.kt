@@ -166,6 +166,15 @@ data class AppSettings(
      * [com.qgx1992.dshmobile.ui.screens.main.TranscriptDetail.of], which owns the fallbacks.
      */
     val transcriptDetail: String = "verbose",
+    /**
+     * When a settled turn's steps fold away: `completion` (as the answer lands) or `next-input`
+     * (only once a newer prompt exists).
+     *
+     * The desktop's second work-details axis, `ui-chat.collapseTiming`, and its default. Only the
+     * levels that fold a finished turn at all ([transcriptDetail] above `verbose`) are affected; read
+     * through [com.qgx1992.dshmobile.ui.screens.main.CollapseTiming.of], which owns the fallbacks.
+     */
+    val collapseTiming: String = "completion",
 )
 
 /** The three ways the app can reach a harness. Persisted as [AppSettings.connectMode]. */

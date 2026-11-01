@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">มาตรฐาน</string>
     <string name="settings_transcript_detailed">ละเอียด</string>
     <string name="settings_transcript_verbose">ทั้งหมด</string>
+    <string name="settings_collapse_timing">ยุบขั้นตอนเมื่อไดร</string>
+    <string name="settings_collapse_timing_hint">ใช้เฉพาะระดับที่ยุบขั้นตอนของเทิร์น: ยุบทันทีที่คำตอบมาถึง หรือคงเทิร์นไว้จนกว่าคุณจะส่งข้อความถัดไป</string>
+    <string name="settings_collapse_completion">เมื่อคำตอบมาถึง</string>
+    <string name="settings_collapse_next_input">เมื่อมีข้อความถัดไป</string>
     <string name="settings_readonly_banner">การตั้งค่าเป็นแบบอ่านอย่างเดียวผ่านเครือข่าย เปิด Harness บนคอมพิวเตอร์ของมันเองเพื่อเปลี่ยนแปลง</string>
     <string name="settings_notifications">การแจ้งเตือน</string>
     <string name="settings_notifications_turn">แจ้งเตือนเมื่อเทิร์นเสร็จสมบูรณ์</string>

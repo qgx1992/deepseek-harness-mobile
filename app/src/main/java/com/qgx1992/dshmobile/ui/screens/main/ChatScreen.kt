@@ -192,6 +192,11 @@ fun ChatScreen(
     val transcriptDetail = remember(appSettings.transcriptDetail) {
         TranscriptDetail.of(appSettings.transcriptDetail)
     }
+    // The second axis: how much folds is `transcriptDetail`, when it folds is this. Read the same
+    // way, and a change re-folds what is already on screen.
+    val collapseTiming = remember(appSettings.collapseTiming) {
+        CollapseTiming.of(appSettings.collapseTiming)
+    }
 
     val commandFailed = stringResource(R.string.err_command_failed)
     val unknownCommand = stringResource(R.string.err_command_unknown)
@@ -606,6 +611,7 @@ fun ChatScreen(
                             onJumpConsumed = { pendingJumpSeq = null },
                             sentTick = sentTick,
                             detail = transcriptDetail,
+                            timing = collapseTiming,
                             onSuggestion = if (currentSessionId != null) {
                                 { text -> draft = text; composer.selection = text.length }
                             } else {

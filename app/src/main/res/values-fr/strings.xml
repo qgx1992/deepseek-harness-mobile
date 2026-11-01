@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">Standard</string>
     <string name="settings_transcript_detailed">Détaillé</string>
     <string name="settings_transcript_verbose">Tout</string>
+    <string name="settings_collapse_timing">Quand les étapes se replient</string>
+    <string name="settings_collapse_timing_hint">Ne concerne que les niveaux qui replient le travail d\'un tour : replier dès l\'arrivée de la réponse, ou garder le tour ouvert jusqu\'à votre prochain message.</string>
+    <string name="settings_collapse_completion">À l\'arrivée de la réponse</string>
+    <string name="settings_collapse_next_input">Au prochain message</string>
     <string name="settings_readonly_banner">Les paramètres sont en lecture seule via le réseau. Ouvrez le Harness sur son propre ordinateur pour les modifier.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_turn">Notifier à la fin d’un tour</string>

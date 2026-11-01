@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">मानक</string>
     <string name="settings_transcript_detailed">विस्तृत</string>
     <string name="settings_transcript_verbose">सब कुछ</string>
+    <string name="settings_collapse_timing">चरण कब सिमटें</string>
+    <string name="settings_collapse_timing_hint">यह केवल उन स्तरों पर लागू होता है जो किसी टर्न के चरण सिमेटते हैं: उत्तर आते ही सिमेट दें, या अगला संदेश भेजने तक टर्न खुला रखें।</string>
+    <string name="settings_collapse_completion">उत्तर आने पर</string>
+    <string name="settings_collapse_next_input">अगले संदेश पर</string>
     <string name="settings_readonly_banner">सेटिंग्स नेटवर्क पर केवल-पढ़ने के लिए हैं। उन्हें बदलने के लिए Harness को उसके अपने कंप्यूटर पर खोलें।</string>
     <string name="settings_notifications">सूचनाएं</string>
     <string name="settings_notifications_turn">टर्न पूरा होने पर सूचित करें</string>

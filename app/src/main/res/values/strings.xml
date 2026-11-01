@@ -292,6 +292,10 @@
     <string name="settings_transcript_standard">Standard</string>
     <string name="settings_transcript_detailed">Detailed</string>
     <string name="settings_transcript_verbose">Everything</string>
+    <string name="settings_collapse_timing">Steps fold when</string>
+    <string name="settings_collapse_timing_hint">Only the levels that fold a turn\'s work use this: drop the steps as the answer lands, or keep the turn open until you send the next message.</string>
+    <string name="settings_collapse_completion">Answer lands</string>
+    <string name="settings_collapse_next_input">Next message</string>
     <string name="settings_readonly_banner">Settings are read-only over the network. Open the harness on its own computer to change them.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_turn">Notify when a turn completes</string>

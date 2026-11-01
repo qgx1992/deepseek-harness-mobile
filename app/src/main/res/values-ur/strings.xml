@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">معیاری</string>
     <string name="settings_transcript_detailed">تفصیلی</string>
     <string name="settings_transcript_verbose">سب کچھ</string>
+    <string name="settings_collapse_timing">مراحل کب سمٹیں</string>
+    <string name="settings_collapse_timing_hint">صرف وہی درجے متاثر ہوتے ہیں جو کسی ٹرن کے مراحل سمیٹتے ہیں: جواب آتے ہی سمیٹ دیں، یا اگلا پیغام بھیجنے تک ٹرن کھلا رکھیں۔</string>
+    <string name="settings_collapse_completion">جواب آنے پر</string>
+    <string name="settings_collapse_next_input">اگلے پیغام پر</string>
     <string name="settings_readonly_banner">سیٹنگز نیٹ ورک پر صرف پڑھنے کے لیے ہیں۔ انہیں تبدیل کرنے کے لیے Harness کو اس کے اپنے کمپیوٹر پر کھولیں۔</string>
     <string name="settings_notifications">اطلاعات</string>
     <string name="settings_notifications_turn">ٹرن مکمل ہونے پر اطلاع دیں</string>

@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">Стандартно</string>
     <string name="settings_transcript_detailed">Подробно</string>
     <string name="settings_transcript_verbose">Всё</string>
+    <string name="settings_collapse_timing">Когда шаги сворачиваются</string>
+    <string name="settings_collapse_timing_hint">Действует только для уровней, которые сворачивают работу хода: свернуть сразу по приходу ответа или оставить ход раскрытым до следующего сообщения.</string>
+    <string name="settings_collapse_completion">По приходу ответа</string>
+    <string name="settings_collapse_next_input">При следующем сообщении</string>
     <string name="settings_readonly_banner">Настройки доступны только для чтения через сеть. Откройте Harness на его собственном компьютере, чтобы изменить их.</string>
     <string name="settings_notifications">Уведомления</string>
     <string name="settings_notifications_turn">Уведомлять о завершении хода</string>

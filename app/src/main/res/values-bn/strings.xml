@@ -240,6 +240,10 @@
     <string name="settings_transcript_standard">মানক</string>
     <string name="settings_transcript_detailed">বিস্তারিত</string>
     <string name="settings_transcript_verbose">সবকিছু</string>
+    <string name="settings_collapse_timing">ধাপগুলো কখন গুটাবে</string>
+    <string name="settings_collapse_timing_hint">শুধু যে স্তরগুলো একটি টার্নের ধাপ গুটায় সেগুলোতেই কাজ করে: উত্তর আসামাত্র গুটিয়ে নিন, অথবা পরের বার্তা পাঠানোর আগে টার্নটি খোলা রাখুন।</string>
+    <string name="settings_collapse_completion">উত্তর আসলে</string>
+    <string name="settings_collapse_next_input">পরের বার্তায়</string>
     <string name="settings_readonly_banner">সেটিংস নেটওয়ার্কে শুধুমাত্র পাঠযোগ্য। সেগুলো পরিবর্তন করতে নিজের কম্পিউটারে Harness খুলুন।</string>
     <string name="settings_notifications">বিজ্ঞপ্তি</string>
     <string name="settings_notifications_turn">টার্ন সম্পন্ন হলে জানান</string>
