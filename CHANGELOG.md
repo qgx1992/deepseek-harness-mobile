@@ -169,6 +169,16 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Fixed
 
+- **The drawer remembers which workspace groups you opened.** Its content leaves the composition
+  every time it closes, so anything remembered inside it left with it: you opened the group you were
+  about to work in, picked a session, and the next time you looked every group was folded again
+  except the one holding that session. Whether a group is open, and whether its preview is widened,
+  are stored preferences now, per workspace id — leaving the app no longer costs the arrangement
+  either. A group you have never touched still opens only when it holds the session on screen, so a
+  fresh install and a newly created workspace behave as before. Session subtrees stay in memory,
+  where the default is the path to the session you are reading and a remembered answer would
+  outlive the sessions it described.
+
 - **A Recent row says why the host refused, instead of "unreachable" for everything.** The probe's
   verdict was thrown away and every failed probe became the same grey line, so a relay that was up
   and answering `403` for a device whose pairing had expired read exactly like a laptop that was

@@ -45,6 +45,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -140,9 +141,11 @@ fun ChatListDrawer(
     var newWorkspaceOpen by remember { mutableStateOf(false) }
     var newSessionOpen by remember { mutableStateOf(false) }
     val collapsed = remember { mutableStateMapOf<String, Boolean>() }
-    // Which workspaces you asked to see in full. Separate from `collapsed`: one says whether the
-    // group is open at all, the other whether the preview inside it has been widened.
-    val showAllWorkspaces = remember { mutableStateMapOf<String, Boolean>() }
+    // Which workspace groups are open, and which previews are widened, are stored preferences:
+    // remembered inside the drawer they did not survive it closing, so every reopen showed the
+    // groups folded again except the one holding the current session.
+    val workspaceCollapsed by hostsStore.workspaceCollapsed.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val workspaceWidened by hostsStore.workspaceWidened.collectAsStateWithLifecycle(initialValue = emptySet())
 
     LaunchedEffect(query) {
         delay(250)
@@ -345,9 +348,10 @@ fun ChatListDrawer(
                 anyShown = true
                 // Only the workspace you are working in is open by default. With twenty sessions
                 // and their subagents in one group, expanding everything buries the list you came
-                // for; the explicit map entry then remembers whatever you choose.
+                // for; once you open or fold a group yourself that answer is stored, so the
+                // arrangement you left is the one you come back to.
                 val holdsCurrent = roots.any { it.sessionId in openPath }
-                val isCollapsed = collapsed[workspace.workspaceId] ?: !holdsCurrent
+                val isCollapsed = DrawerTreeState.isCollapsed(workspaceCollapsed, workspace.workspaceId, holdsCurrent)
                 item(key = "ws-${workspace.workspaceId}") {
                     WorkspaceHeader(
                         workspace = workspace,
@@ -355,7 +359,11 @@ fun ChatListDrawer(
                         // Sessions, not sessions-plus-their-subagents: a subagent count belongs on
                         // the row that spawned them, where it says something.
                         sessionCount = roots.size,
-                        onToggle = { collapsed[workspace.workspaceId] = !isCollapsed },
+                        onToggle = {
+                            scope.launch {
+                                hostsStore.setWorkspaceCollapsed(workspace.workspaceId, !isCollapsed)
+                            }
+                        },
                         store = store,
                         scope = scope,
                         onNewSession = {
@@ -376,7 +384,7 @@ fun ChatListDrawer(
                     // with the open one sixth preview as all six, and a "Show less" there would
                     // fold nothing.
                     val foldable = preview.size < roots.size
-                    val showAll = foldable && showAllWorkspaces[workspace.workspaceId] == true
+                    val showAll = foldable && DrawerTreeState.isWidened(workspaceWidened, workspace.workspaceId)
                     val shownRoots = if (showAll) roots else preview
                     val flat = shownRoots.flatMap { subtree(it) }
                     items(flat, key = { it.first.sessionId }) { (session, depth) ->
@@ -406,7 +414,11 @@ fun ChatListDrawer(
                                 } else {
                                     stringResource(R.string.chatlist_show_all, roots.size)
                                 },
-                                onClick = { showAllWorkspaces[workspace.workspaceId] = !showAll },
+                                onClick = {
+                                    scope.launch {
+                                        hostsStore.setWorkspaceWidened(workspace.workspaceId, !showAll)
+                                    }
+                                },
                             )
                         }
                     }
@@ -445,7 +457,9 @@ fun ChatListDrawer(
             if (archivedSessions.isNotEmpty()) {
                 anyShown = true
                 item(key = "archived") {
-                    var archivedExpanded by remember { mutableStateOf(false) }
+                    // Saveable, so scrolling this row out of the list and back does not fold it
+                    // again — the archive is usually opened several times in a row.
+                    var archivedExpanded by rememberSaveable { mutableStateOf(false) }
                     DisclosureRow(
                         title = stringResource(R.string.chatlist_archived),
                         summary = archivedSessions.size.toString(),

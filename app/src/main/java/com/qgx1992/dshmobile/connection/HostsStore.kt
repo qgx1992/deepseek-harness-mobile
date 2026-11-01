@@ -65,10 +65,18 @@ class HostsStore @Inject constructor(
         val TRANSCRIPT_DETAIL_MIGRATED = booleanPreferencesKey("transcript_detail_migrated")
         /** When a settled turn's steps fold: the desktop's `ui-chat.collapseTiming`. */
         val COLLAPSE_TIMING = stringPreferencesKey("collapse_timing")
+
+        /** Drawer workspace groups you folded or opened yourself, by workspace id. */
+        val WORKSPACE_COLLAPSED = stringPreferencesKey("workspace_collapsed_json")
+
+        /** Drawer workspace groups whose preview you widened past the newest few rows. */
+        val WORKSPACE_WIDENED = stringPreferencesKey("workspace_widened_json")
     }
 
     private val hostsSerializer = ListSerializer(HostConfig.serializer())
     private val lastSessionsSerializer = MapSerializer(String.serializer(), String.serializer())
+    private val workspaceCollapsedSerializer = MapSerializer(String.serializer(), Boolean.serializer())
+    private val workspaceWidenedSerializer = ListSerializer(String.serializer())
 
     val hosts: Flow<List<HostConfig>> = dataStore.data.map { prefs ->
         val raw = prefs[Keys.HOSTS] ?: return@map emptyList()
@@ -239,6 +247,52 @@ class HostsStore @Inject constructor(
 
     suspend fun setSessionSort(value: String) {
         dataStore.edit { it[Keys.SESSION_SORT] = value }
+    }
+
+    /**
+     * Which workspace groups the drawer shows folded, for the groups you answered for.
+     *
+     * A group with no entry here has not been answered yet: it opens when it holds the session on
+     * screen and folds otherwise. Persisted rather than remembered for the same reason as the sort
+     * order above — the drawer's content leaves the composition every time it closes, so a choice
+     * kept inside it was forgotten the moment you picked a session.
+     */
+    val workspaceCollapsed: Flow<Map<String, Boolean>> = dataStore.data.map { prefs ->
+        prefs[Keys.WORKSPACE_COLLAPSED].decodeWorkspaceCollapsed()
+    }
+
+    suspend fun setWorkspaceCollapsed(workspaceId: String, collapsed: Boolean) {
+        dataStore.edit { prefs ->
+            val next = prefs[Keys.WORKSPACE_COLLAPSED].decodeWorkspaceCollapsed() + (workspaceId to collapsed)
+            prefs[Keys.WORKSPACE_COLLAPSED] = WireJson.encodeToString(workspaceCollapsedSerializer, next)
+        }
+    }
+
+    /** Workspace groups whose preview lists were widened to the whole group. */
+    val workspaceWidened: Flow<Set<String>> = dataStore.data.map { prefs ->
+        prefs[Keys.WORKSPACE_WIDENED].decodeWorkspaceWidened()
+    }
+
+    suspend fun setWorkspaceWidened(workspaceId: String, widened: Boolean) {
+        dataStore.edit { prefs ->
+            val current = prefs[Keys.WORKSPACE_WIDENED].decodeWorkspaceWidened()
+            val next = if (widened) current + workspaceId else current - workspaceId
+            prefs[Keys.WORKSPACE_WIDENED] = WireJson.encodeToString(workspaceWidenedSerializer, next.toList())
+        }
+    }
+
+    private fun String?.decodeWorkspaceCollapsed(): Map<String, Boolean> = when {
+        this == null -> emptyMap()
+        else -> runCatching {
+            WireJson.decodeFromString(workspaceCollapsedSerializer, this)
+        }.getOrDefault(emptyMap())
+    }
+
+    private fun String?.decodeWorkspaceWidened(): Set<String> = when {
+        this == null -> emptySet()
+        else -> runCatching {
+            WireJson.decodeFromString(workspaceWidenedSerializer, this).toSet()
+        }.getOrDefault(emptySet())
     }
 
     /** Remember that this release was declined, so it is not offered again. */
