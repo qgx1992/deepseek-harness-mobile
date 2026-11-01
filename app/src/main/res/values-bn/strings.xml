@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">লাইট</string>
     <string name="settings_appearance_dark">ডার্ক</string>
     <string name="settings_appearance_system">সিস্টেম</string>
+    <string name="settings_transcript_detail">কাজের বিবরণ</string>
+    <string name="settings_transcript_detail_hint">ট্রান্সক্রিপ্টে একটি টার্নের কতটা কাজ দেখানো হবে। উত্তর ও আপনার নিজের বার্তা সবসময় দেখা যাবে।</string>
+    <string name="settings_transcript_compact">সংক্ষিপ্ত</string>
+    <string name="settings_transcript_standard">মানক</string>
+    <string name="settings_transcript_detailed">বিস্তারিত</string>
+    <string name="settings_transcript_verbose">সবকিছু</string>
     <string name="settings_readonly_banner">সেটিংস নেটওয়ার্কে শুধুমাত্র পাঠযোগ্য। সেগুলো পরিবর্তন করতে নিজের কম্পিউটারে Harness খুলুন।</string>
     <string name="settings_notifications">বিজ্ঞপ্তি</string>
     <string name="settings_notifications_turn">টার্ন সম্পন্ন হলে জানান</string>

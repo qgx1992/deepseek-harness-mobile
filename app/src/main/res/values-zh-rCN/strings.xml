@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">浅色</string>
     <string name="settings_appearance_dark">深色</string>
     <string name="settings_appearance_system">跟随系统</string>
+    <string name="settings_transcript_detail">工作细节</string>
+    <string name="settings_transcript_detail_hint">会话里显示一个回合的多少过程内容。回复和你自己的消息始终可见。</string>
+    <string name="settings_transcript_compact">简洁</string>
+    <string name="settings_transcript_standard">标准</string>
+    <string name="settings_transcript_detailed">详细</string>
+    <string name="settings_transcript_verbose">完全展开</string>
     <string name="settings_readonly_banner">设置通过网络为只读。请在 Harness 所在的电脑上打开它以更改设置。</string>
     <string name="settings_notifications">通知</string>
     <string name="settings_notifications_turn">回合完成时通知</string>

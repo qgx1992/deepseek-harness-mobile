@@ -286,6 +286,12 @@
     <string name="settings_appearance_light">Light</string>
     <string name="settings_appearance_dark">Dark</string>
     <string name="settings_appearance_system">System</string>
+    <string name="settings_transcript_detail">Work details</string>
+    <string name="settings_transcript_detail_hint">How much of a turn\'s work the transcript shows. Answers and your own messages always stay visible.</string>
+    <string name="settings_transcript_compact">Compact</string>
+    <string name="settings_transcript_standard">Standard</string>
+    <string name="settings_transcript_detailed">Detailed</string>
+    <string name="settings_transcript_verbose">Everything</string>
     <string name="settings_readonly_banner">Settings are read-only over the network. Open the harness on its own computer to change them.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_turn">Notify when a turn completes</string>

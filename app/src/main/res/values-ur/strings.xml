@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">روشن</string>
     <string name="settings_appearance_dark">تاریک</string>
     <string name="settings_appearance_system">سسٹم</string>
+    <string name="settings_transcript_detail">کام کی تفصیل</string>
+    <string name="settings_transcript_detail_hint">ٹرانسکرپٹ ایک ٹرن کا کتنا کام دکھاتا ہے۔ جوابات اور آپ کے اپنے پیغامات ہمیشہ نظر آتے رہتے ہیں۔</string>
+    <string name="settings_transcript_compact">مختصر</string>
+    <string name="settings_transcript_standard">معیاری</string>
+    <string name="settings_transcript_detailed">تفصیلی</string>
+    <string name="settings_transcript_verbose">سب کچھ</string>
     <string name="settings_readonly_banner">سیٹنگز نیٹ ورک پر صرف پڑھنے کے لیے ہیں۔ انہیں تبدیل کرنے کے لیے Harness کو اس کے اپنے کمپیوٹر پر کھولیں۔</string>
     <string name="settings_notifications">اطلاعات</string>
     <string name="settings_notifications_turn">ٹرن مکمل ہونے پر اطلاع دیں</string>

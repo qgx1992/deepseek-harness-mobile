@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">Clair</string>
     <string name="settings_appearance_dark">Sombre</string>
     <string name="settings_appearance_system">Système</string>
+    <string name="settings_transcript_detail">Détail du travail</string>
+    <string name="settings_transcript_detail_hint">Quelle part du travail d\'un tour la transcription affiche. Les réponses et vos propres messages restent toujours visibles.</string>
+    <string name="settings_transcript_compact">Compact</string>
+    <string name="settings_transcript_standard">Standard</string>
+    <string name="settings_transcript_detailed">Détaillé</string>
+    <string name="settings_transcript_verbose">Tout</string>
     <string name="settings_readonly_banner">Les paramètres sont en lecture seule via le réseau. Ouvrez le Harness sur son propre ordinateur pour les modifier.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_turn">Notifier à la fin d’un tour</string>

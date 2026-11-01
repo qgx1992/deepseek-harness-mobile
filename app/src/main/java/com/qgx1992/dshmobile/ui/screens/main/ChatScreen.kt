@@ -57,6 +57,8 @@ import com.qgx1992.dshmobile.ui.components.planReviewOf
 import com.qgx1992.dshmobile.ui.components.QuestionsPanel
 import com.qgx1992.dshmobile.ui.components.rememberDsToast
 import com.qgx1992.dshmobile.ui.components.rememberVoiceInput
+import com.qgx1992.dshmobile.connection.AppSettings
+import com.qgx1992.dshmobile.ui.rememberHostsStore
 import com.qgx1992.dshmobile.ui.rememberSessionStore
 import com.qgx1992.dshmobile.ui.screens.main.commands.CommandContext
 import com.qgx1992.dshmobile.ui.screens.main.commands.CommandDecorations
@@ -181,6 +183,15 @@ fun ChatScreen(
     // Hoisted above the tab swap so each view keeps its own scroll position across switches.
     val chatListState = rememberLazyListState()
     val trajectoryListState = rememberLazyListState()
+
+    // Work details. Read here rather than inside the transcript because the setting belongs to the
+    // app, not to one conversation, and switching it has to re-fold what is already on screen: the
+    // preference emits, this recomposes, and the fold takes the new policy as one of its keys.
+    val hostsStore = rememberHostsStore()
+    val appSettings by hostsStore.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
+    val transcriptDetail = remember(appSettings.transcriptDetail) {
+        TranscriptDetail.of(appSettings.transcriptDetail)
+    }
 
     val commandFailed = stringResource(R.string.err_command_failed)
     val unknownCommand = stringResource(R.string.err_command_unknown)
@@ -594,6 +605,7 @@ fun ChatScreen(
                             jumpToSeq = pendingJumpSeq,
                             onJumpConsumed = { pendingJumpSeq = null },
                             sentTick = sentTick,
+                            detail = transcriptDetail,
                             onSuggestion = if (currentSessionId != null) {
                                 { text -> draft = text; composer.selection = text.length }
                             } else {

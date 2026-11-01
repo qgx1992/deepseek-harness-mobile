@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">فاتح</string>
     <string name="settings_appearance_dark">داكن</string>
     <string name="settings_appearance_system">النظام</string>
+    <string name="settings_transcript_detail">تفاصيل العمل</string>
+    <string name="settings_transcript_detail_hint">كم من عمل الجولة يعرضه السجل. تبقى الإجابات ورسائلك مرئية دائمًا.</string>
+    <string name="settings_transcript_compact">موجز</string>
+    <string name="settings_transcript_standard">قياسي</string>
+    <string name="settings_transcript_detailed">تفصيلي</string>
+    <string name="settings_transcript_verbose">كل شيء</string>
     <string name="settings_readonly_banner">الإعدادات للقراءة فقط عبر الشبكة. افتح Harness على جهاز الكمبيوتر الخاص به لتغييرها.</string>
     <string name="settings_notifications">الإشعارات</string>
     <string name="settings_notifications_turn">الإشعار عند اكتمال جولة</string>

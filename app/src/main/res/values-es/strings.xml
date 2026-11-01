@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">Claro</string>
     <string name="settings_appearance_dark">Oscuro</string>
     <string name="settings_appearance_system">Sistema</string>
+    <string name="settings_transcript_detail">Detalle del trabajo</string>
+    <string name="settings_transcript_detail_hint">Cuánto del trabajo de un turno muestra la transcripción. Las respuestas y tus propios mensajes siempre quedan visibles.</string>
+    <string name="settings_transcript_compact">Compacto</string>
+    <string name="settings_transcript_standard">Estándar</string>
+    <string name="settings_transcript_detailed">Detallado</string>
+    <string name="settings_transcript_verbose">Todo</string>
     <string name="settings_readonly_banner">Los ajustes son de solo lectura a través de la red. Abre el Harness en su propio ordenador para cambiarlos.</string>
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notifications_turn">Notificar cuando un turno se complete</string>

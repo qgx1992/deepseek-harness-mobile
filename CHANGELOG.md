@@ -48,6 +48,19 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Added
 
+- **Work details: the transcript's detail level, four steps, as the desktop Web client defines
+  them.** Settings → General gained a Work details row with Compact, Standard, Detailed and
+  Everything. The levels are not taste — each one is a row of the desktop's own table: whether a
+  finished turn's steps fold away, whether the running turn folds while it runs, whether a settled
+  turn keeps one line of its last thought under the closed row, and whether a folded group opens
+  before it is tapped. Detail is the default, so a running turn now shows its steps as they happen
+  and folds them when it answers; Compact and Standard fold the live turn too, Everything groups
+  nothing at all — adjacent tool calls stay separate cards, in order, which is what a turn that went
+  wrong needs. The stored values are the desktop's ids (`compact`, `standard`, `detailed`,
+  `verbose`), and the desktop's older names (`normal`, `expanded`) still read as Detailed, so a
+  preference keeps its meaning across clients. Row rhythm moved with it, to the desktop's numbers:
+  rows sit 6dp apart, an answer gets 12dp from the work above it, and a finished turn's controls get
+  16dp either side.
 - **The host's own runtime settings, edited from the phone.** Settings gained a Host settings row
   that opens the desktop harness's configuration plane: every namespace the host publishes, with the
   fields its schema describes — switches, text, numbers, enumerations, and credential slots that

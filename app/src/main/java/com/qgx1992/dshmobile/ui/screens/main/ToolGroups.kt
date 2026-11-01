@@ -45,6 +45,11 @@ internal sealed interface TranscriptRow {
      * [live] marks the turn that is still running: its row is the only thing standing for the work
      * in progress, so it carries a moving dot and counts what it is holding. [tools], [thinking]
      * and [contexts] are those counts — numbers only, so the row needs no new translations.
+     *
+     * [preview] is the last thought of a finished turn, one line, shown under the header while the
+     * row is closed — the desktop's reasoning preview. Null in modes that do not keep one.
+     * [groupsExpanded] is where the steps behind the fold start: open in the modes that treat
+     * history as already-written, closed in the ones that only want the shape of the work.
      */
     data class Process(
         val rows: List<TranscriptRow>,
@@ -53,10 +58,21 @@ internal sealed interface TranscriptRow {
         val tools: Int = 0,
         val thinking: Int = 0,
         val contexts: Int = 0,
+        val preview: String? = null,
+        val groupsExpanded: Boolean = false,
     ) : TranscriptRow {
         override val seq get() = rows.first().seq
     }
 }
+
+/**
+ * One row per node, in order, with nothing grouped — what the verbose work-details level asks for.
+ *
+ * Grouping is a courtesy for reading a long transcript quickly; verbose is the level chosen when a
+ * turn went wrong and the order of the evidence is the point, so even adjacent tool calls stay
+ * separate cards here.
+ */
+internal fun directRows(nodes: List<ChatNode>): List<TranscriptRow> = nodes.map { TranscriptRow.Message(it) }
 
 /** Group only adjacent renderable calls; a visible message/disclosure is a boundary. */
 internal fun groupToolRows(nodes: List<ChatNode>): List<TranscriptRow> {
@@ -91,11 +107,10 @@ internal fun groupToolRows(nodes: List<ChatNode>): List<TranscriptRow> {
  * nodes because a turn start draws no row of its own, so the rows alone cannot say where a turn
  * begins.
  *
- * Local mod: the turn that is still [running] folds too. It used to be left expanded ("its steps are
- * happening in front of the reader"), which is exactly the wall this row exists to remove: on a
- * long run the transcript was nothing but the prompt followed by a screen of live cards. The reply
- * being written still stays outside the fold, so the reader watches the answer arrive rather than
- * the machinery around it; the process row carries a moving dot instead of the steps it holds.
+ * [detail] is the reader's work-details level. Only [TranscriptDetail.DETAILED] and above let a
+ * running turn show its steps; [TranscriptDetail.VERBOSE] folds nothing at all. The default keeps
+ * the historical behaviour — a finished turn folds, one row for the work — because that is also the
+ * desktop's default.
  *
  * A turn with no prompt (only harness-injected context before the first question) is left alone —
  * there is nothing for the row to sit under.
@@ -104,8 +119,12 @@ internal fun foldProcessRows(
     rows: List<TranscriptRow>,
     turnStarts: List<Long>,
     running: Boolean = false,
+    detail: TranscriptDetail = TranscriptDetail.DEFAULT,
 ): List<TranscriptRow> {
     if (rows.isEmpty() || turnStarts.isEmpty()) return rows
+    // Verbose asks for the work row by row; nothing is folded, and grouping is skipped by the
+    // caller (see `ChatTranscript`), so there is not even a group header to fold into.
+    if (!detail.foldsCompletedTurns) return rows
     val folded = mutableListOf<TranscriptRow>()
     var index = 0
     while (index < rows.size) {
@@ -114,7 +133,11 @@ internal fun foldProcessRows(
         while (end < rows.size && turnIndexOf(rows[end].seq, turnStarts) == turn) end++
         val slice = rows.subList(index, end)
         val isLast = end >= rows.size
-        folded += if (turn < 0) slice else foldTurnProcess(slice, live = running && isLast)
+        folded += if (turn < 0) slice else foldTurnProcess(
+            slice,
+            live = running && isLast && detail.foldsLiveTurn,
+            detail = detail,
+        )
         index = end
     }
     return folded
@@ -138,7 +161,11 @@ private fun turnIndexOf(seq: Long, turnStarts: List<Long>): Int {
  * [live] is the turn currently running: it has no settled answer yet, so the fold stops at the
  * reply being written (or at the end, while the model is still thinking) instead of requiring one.
  */
-private fun foldTurnProcess(rows: List<TranscriptRow>, live: Boolean = false): List<TranscriptRow> {
+private fun foldTurnProcess(
+    rows: List<TranscriptRow>,
+    live: Boolean = false,
+    detail: TranscriptDetail = TranscriptDetail.DEFAULT,
+): List<TranscriptRow> {
     val promptIndex = rows.indexOfFirst { row ->
         val node = (row as? TranscriptRow.Message)?.node
         node is UserMessageNode && !node.isInjectedContext && !node.isRewindMarker
@@ -175,6 +202,10 @@ private fun foldTurnProcess(rows: List<TranscriptRow>, live: Boolean = false): L
                 tools = tools,
                 thinking = thinking,
                 contexts = contexts,
+                // A settled turn may keep one line of what it was thinking. Not while it runs: the
+                // live row's job is to show that something is happening, not to quote it back.
+                preview = if (!live && detail.previewsReasoning) reasoningPreview(run) else null,
+                groupsExpanded = detail.expandsHistoryGroups && !live,
             )
         } else {
             // A single step is its own row already; the counts ride along with it only when the
@@ -217,9 +248,37 @@ private fun foldTurnProcess(rows: List<TranscriptRow>, live: Boolean = false): L
     return folded
 }
 
+/**
+ * The first line of the last reasoning block the folded run holds, or null when it holds none.
+ *
+ * Only ever the first line and only ever one: a closed process row is a summary, and two lines of
+ * thought under a one-line header stopped being a summary. Whitespace is collapsed first, because
+ * markdown-shaped reasoning arrives with newlines and indentation that say nothing once it is a
+ * single caption.
+ */
+private fun reasoningPreview(rows: List<TranscriptRow>): String? {
+    for (row in rows.asReversed()) {
+        val node = (row as? TranscriptRow.Message)?.node as? AssistantMessageNode ?: continue
+        val text = node.blocks
+            .filter { it.kind == "reasoning" }
+            .mapNotNull { it.text }
+            .lastOrNull { it.isNotBlank() }
+            ?: continue
+        val line = text.lineSequence()
+            .map { it.replace(Regex("\\s+"), " ").trim() }
+            .firstOrNull { it.isNotEmpty() }
+            ?: continue
+        return if (line.length > PREVIEW_LIMIT) line.take(PREVIEW_LIMIT).trimEnd() + "…" else line
+    }
+    return null
+}
+
+/** Long enough for a sentence of reasoning, short enough to stay a caption on a phone. */
+private const val PREVIEW_LIMIT = 140
+
 @Composable
-internal fun ToolGroupRow(calls: List<ToolCallNode>, context: ChatNodeContext) {
-    var expanded by remember(calls.first().callId) { mutableStateOf(false) }
+internal fun ToolGroupRow(calls: List<ToolCallNode>, context: ChatNodeContext, initiallyExpanded: Boolean = false) {
+    var expanded by remember(calls.first().callId) { mutableStateOf(initiallyExpanded) }
     val colors = DsTheme.colors
     val results = context.nodes.filterIsInstance<ToolResultNode>().associateBy { it.callId }
     val failed = calls.count { results[it.callId]?.isError == true }
@@ -247,8 +306,8 @@ internal fun ToolGroupRow(calls: List<ToolCallNode>, context: ChatNodeContext) {
 }
 
 @Composable
-internal fun ContextGroupRow(nodes: List<ChatNode>, context: ChatNodeContext) {
-    var expanded by remember(nodes.first().seq) { mutableStateOf(false) }
+internal fun ContextGroupRow(nodes: List<ChatNode>, context: ChatNodeContext, initiallyExpanded: Boolean = false) {
+    var expanded by remember(nodes.first().seq) { mutableStateOf(initiallyExpanded) }
     val colors = DsTheme.colors
     Column(Modifier.fillMaxWidth().clip(DsShapes.block).background(colors.bgLayer1)
         .border(1.dp, colors.borderL2, DsShapes.block)) {
@@ -305,13 +364,39 @@ internal fun ProcessRow(row: TranscriptRow.Process, context: ChatNodeContext) {
             Spacer(Modifier.weight(1f))
             Icon(FeatherIcons.ChevronRight, null, Modifier.size(14.dp).graphicsLayer { rotationZ = if (expanded) 90f else 0f }, tint = colors.labelTertiary)
         }
-        if (expanded) Column(Modifier.padding(horizontal = 8.dp, vertical = 3.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // The closed row can carry one line of what the turn was thinking — the desktop's
+        // reasoning preview. It sits under the header, so opening the row is still what shows the
+        // work; the preview only says what the work was for.
+        if (!expanded) row.preview?.let { preview ->
+            Text(
+                preview,
+                style = DsType.caption11,
+                color = colors.labelTertiary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 6.dp),
+            )
+        }
+        if (expanded) Column(
+            // 8dp above the first step, per the desktop's expanded-group spacing: the header and its
+            // contents read as one block rather than as two stacked ones.
+            Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 3.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
             row.rows.forEach { step ->
                 key(step.seq) {
                     when (step) {
                         is TranscriptRow.Message -> ChatNodeItem(node = step.node, context = context)
-                        is TranscriptRow.Tools -> ToolGroupRow(calls = step.calls, context = context)
-                        is TranscriptRow.Context -> ContextGroupRow(nodes = step.nodes, context = context)
+                        is TranscriptRow.Tools -> ToolGroupRow(
+                            calls = step.calls,
+                            context = context,
+                            initiallyExpanded = row.groupsExpanded,
+                        )
+                        is TranscriptRow.Context -> ContextGroupRow(
+                            nodes = step.nodes,
+                            context = context,
+                            initiallyExpanded = row.groupsExpanded,
+                        )
                         is TranscriptRow.Process -> Unit
                     }
                 }

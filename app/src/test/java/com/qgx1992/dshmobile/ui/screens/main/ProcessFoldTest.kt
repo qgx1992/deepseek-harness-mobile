@@ -14,8 +14,12 @@ class ProcessFoldTest {
         AssistantMessageNode(seq, "a$seq", 1, 1, listOf(ChatBlock("reasoning", text)))
 
     /** Matches the transcript: turn starts never reach the row list, only the fold's boundary list. */
-    private fun fold(nodes: List<ChatNode>, turnStarts: List<Long>, running: Boolean = false) =
-        foldProcessRows(groupToolRows(nodes), turnStarts, running)
+    private fun fold(
+        nodes: List<ChatNode>,
+        turnStarts: List<Long>,
+        running: Boolean = false,
+        detail: TranscriptDetail = TranscriptDetail.DEFAULT,
+    ) = foldProcessRows(groupToolRows(nodes), turnStarts, running, detail)
 
     @Test fun `the work between a prompt and its answer folds into one row`() {
         val rows = fold(
@@ -47,12 +51,14 @@ class ProcessFoldTest {
     }
 
     @Test fun `a running turn folds its steps but keeps the reply being written`() {
-        // Local mod: the live turn folds too; what it must not swallow is the streaming answer.
+        // Compact and standard fold the live turn too; what the fold must not swallow is the answer
+        // still being streamed.
         val streaming = AssistantMessageNode(5, "a5", 1, 1, listOf(ChatBlock("text", "writing"))).copy(streaming = true)
         val rows = fold(
             listOf(user(2), reasoning(3), call(4), streaming),
             turnStarts = listOf(1),
             running = true,
+            detail = TranscriptDetail.COMPACT,
         )
         assertEquals(3, rows.size)
         val process = rows[1] as TranscriptRow.Process
@@ -66,11 +72,25 @@ class ProcessFoldTest {
             listOf(user(2), reasoning(3), call(4)),
             turnStarts = listOf(1),
             running = true,
+            detail = TranscriptDetail.COMPACT,
         )
         assertEquals(2, rows.size)
         val process = rows[1] as TranscriptRow.Process
         assertTrue(process.live)
         assertEquals(listOf(3L, 4L), process.rows.map { it.seq })
+    }
+
+    @Test fun `detailed leaves the live turn open`() {
+        // Detailed is the default: while a turn runs, its steps stay on screen as they happen, and
+        // only once it settles does the fold take them.
+        val rows = fold(
+            listOf(user(2), reasoning(3), call(4)),
+            turnStarts = listOf(1),
+            running = true,
+            detail = TranscriptDetail.DETAILED,
+        )
+        assertEquals(3, rows.size)
+        assertTrue(rows.none { it is TranscriptRow.Process })
     }
 
     @Test fun `a settled turn is not marked live`() {

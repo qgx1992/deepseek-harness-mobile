@@ -156,6 +156,15 @@ data class AppSettings(
     val updateCheckEnabled: Boolean = true,
     /** A release the user has already declined, so it is offered once rather than every launch. */
     val dismissedUpdate: String? = null,
+    /**
+     * How much of a turn's work the transcript shows: `compact`, `standard`, `detailed`, `verbose`.
+     *
+     * The desktop Web client keeps the same four choices, and the same default — `detailed` — under
+     * `ui-chat.transcriptView`. Stored as the wire id rather than an ordinal so a preference
+     * survives the enum growing, and read through
+     * [com.qgx1992.dshmobile.ui.screens.main.TranscriptDetail.of], which owns the fallbacks.
+     */
+    val transcriptDetail: String = "detailed",
 )
 
 /** The three ways the app can reach a harness. Persisted as [AppSettings.connectMode]. */

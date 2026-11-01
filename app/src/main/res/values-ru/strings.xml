@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">Светлая</string>
     <string name="settings_appearance_dark">Тёмная</string>
     <string name="settings_appearance_system">Системная</string>
+    <string name="settings_transcript_detail">Детализация работы</string>
+    <string name="settings_transcript_detail_hint">Сколько работы хода показывает транскрипт. Ответы и ваши сообщения остаются видимыми всегда.</string>
+    <string name="settings_transcript_compact">Компактно</string>
+    <string name="settings_transcript_standard">Стандартно</string>
+    <string name="settings_transcript_detailed">Подробно</string>
+    <string name="settings_transcript_verbose">Всё</string>
     <string name="settings_readonly_banner">Настройки доступны только для чтения через сеть. Откройте Harness на его собственном компьютере, чтобы изменить их.</string>
     <string name="settings_notifications">Уведомления</string>
     <string name="settings_notifications_turn">Уведомлять о завершении хода</string>

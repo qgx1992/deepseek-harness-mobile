@@ -234,6 +234,12 @@
     <string name="settings_appearance_light">लाइट</string>
     <string name="settings_appearance_dark">डार्क</string>
     <string name="settings_appearance_system">सिस्टम</string>
+    <string name="settings_transcript_detail">कार्य विवरण</string>
+    <string name="settings_transcript_detail_hint">ट्रांसक्रिप्ट एक टर्न का कितना काम दिखाता है। उत्तर और आपके अपने संदेश हमेशा दिखते रहते हैं।</string>
+    <string name="settings_transcript_compact">संक्षिप्त</string>
+    <string name="settings_transcript_standard">मानक</string>
+    <string name="settings_transcript_detailed">विस्तृत</string>
+    <string name="settings_transcript_verbose">सब कुछ</string>
     <string name="settings_readonly_banner">सेटिंग्स नेटवर्क पर केवल-पढ़ने के लिए हैं। उन्हें बदलने के लिए Harness को उसके अपने कंप्यूटर पर खोलें।</string>
     <string name="settings_notifications">सूचनाएं</string>
     <string name="settings_notifications_turn">टर्न पूरा होने पर सूचित करें</string>

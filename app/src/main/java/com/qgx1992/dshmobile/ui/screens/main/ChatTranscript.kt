@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import com.qgx1992.dshmobile.R
 import com.qgx1992.dshmobile.core.session.AssistantMessageNode
 import com.qgx1992.dshmobile.core.session.ConversationSnapshot
+import com.qgx1992.dshmobile.core.session.TurnEndNode
 import com.qgx1992.dshmobile.core.session.TurnStartNode
 import com.qgx1992.dshmobile.core.session.UserMessageNode
 import com.qgx1992.dshmobile.ui.components.DsButton
@@ -150,20 +151,33 @@ internal fun ChatTranscript(
     onSuggestion: ((String) -> Unit)? = null,
     /** Bumped each time the reader sends: their own message is always worth landing on. */
     sentTick: Int = 0,
+    /**
+     * How much of a turn's work the transcript shows.
+     *
+     * The desktop Web client's "work details" setting, resolved by the caller from the stored
+     * preference: this composable applies the policy but never decides it, which keeps the mirror
+     * of that screen's rules in one readable enum ([TranscriptDetail]).
+     */
+    detail: TranscriptDetail = TranscriptDetail.DEFAULT,
 ) {
-    // Only the nodes that draw something: a zero-height item still costs its 4dp gap, and a turn's
+    // Only the nodes that draw something: a zero-height item still costs its gap, and a turn's
     // worth of structural events stacks those gaps into a blank band under the chrome.
     //
     // Reversed here rather than at the call site: the fold's natural order is oldest-first, and
     // that is the order every other reader of `nodes` wants.
-    val rows = remember(conversation?.nodes, context.running) {
+    val rows = remember(conversation?.nodes, context.running, detail) {
         val nodes = conversation?.nodes.orEmpty()
+        val visible = renderableChatNodes(nodes, context.running)
+        // Verbose asks for the work row by row: no group headers either, so adjacent tool calls
+        // render as their own cards in the order they ran.
+        val grouped = if (detail.groupsSteps) groupToolRows(visible) else directRows(visible)
         foldProcessRows(
-            rows = groupToolRows(renderableChatNodes(nodes, context.running)),
+            rows = grouped,
             // Read from the unfiltered nodes: a turn start draws no row, so the row list alone
             // cannot say where one turn ends and the next begins.
             turnStarts = nodes.filterIsInstance<TurnStartNode>().map { it.seq }.sorted(),
             running = context.running,
+            detail = detail,
         ).asReversed()
     }
     val hasMore = conversation?.hasMore == true
@@ -363,7 +377,7 @@ internal fun ChatTranscript(
         // space, not the reversed one, so this reads the same as it always did — and it only has
         // any effect while the content is shorter than the viewport, which is exactly when no row
         // is growing under anyone's eyes.
-        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Bottom),
+        verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
     ) {
         if (rows.isEmpty()) {
             item(key = "empty") {
@@ -407,11 +421,21 @@ internal fun ChatTranscript(
                     streaming || node is AssistantMessageNode -> Modifier
                     else -> Modifier.animateItem(placementSpec = null)
                 }
-                Column(arrival) {
+                // The desktop's row rhythm, in the same order it states it: rows sit 6dp apart
+                // (the list's own spacing), an answer gets 12dp between itself and the work above
+                // it, and the completed-turn controls get 16dp either side. The extra is spread as
+                // padding here because LazyColumn has one gap for all of them; 6 + 6 = 12 and
+                // 6 + 10 = 16.
+                val breathing = when {
+                    node is AssistantMessageNode -> Modifier.padding(top = 6.dp)
+                    node is TurnEndNode -> Modifier.padding(vertical = 10.dp)
+                    else -> Modifier
+                }
+                Column(arrival.then(breathing)) {
                     when (row) {
                         is TranscriptRow.Message -> ChatNodeItem(node = row.node, context = context)
-                        is TranscriptRow.Tools -> ToolGroupRow(row.calls, context)
-                        is TranscriptRow.Context -> ContextGroupRow(row.nodes, context)
+                        is TranscriptRow.Tools -> ToolGroupRow(row.calls, context, initiallyExpanded = detail.expandsHistoryGroups)
+                        is TranscriptRow.Context -> ContextGroupRow(row.nodes, context, initiallyExpanded = detail.expandsHistoryGroups)
                         is TranscriptRow.Process -> ProcessRow(row, context)
                     }
                 }
