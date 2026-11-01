@@ -67,10 +67,10 @@ class TranscriptDetailTest {
         }
     }
 
-    @Test fun `an unknown or absent preference falls back to detailed`() {
-        assertSame(TranscriptDetail.DETAILED, TranscriptDetail.of(null))
-        assertSame(TranscriptDetail.DETAILED, TranscriptDetail.of(""))
-        assertSame(TranscriptDetail.DETAILED, TranscriptDetail.of("nonsense"))
+    @Test fun `an unknown or absent preference falls back to the default`() {
+        assertSame(TranscriptDetail.VERBOSE, TranscriptDetail.of(null))
+        assertSame(TranscriptDetail.VERBOSE, TranscriptDetail.of(""))
+        assertSame(TranscriptDetail.VERBOSE, TranscriptDetail.of("nonsense"))
     }
 
     @Test fun `the desktop's older names still read as detailed`() {
@@ -83,8 +83,11 @@ class TranscriptDetailTest {
         assertSame(TranscriptDetail.VERBOSE, TranscriptDetail.of("VERBOSE"))
     }
 
-    @Test fun `detailed is the default`() {
-        assertSame(TranscriptDetail.DETAILED, TranscriptDetail.DEFAULT)
+    @Test fun `verbose is the default, so nothing is folded until asked for`() {
+        assertSame(TranscriptDetail.VERBOSE, TranscriptDetail.DEFAULT)
+        assertFalse(TranscriptDetail.DEFAULT.foldsCompletedTurns)
+        assertFalse(TranscriptDetail.DEFAULT.foldsLiveTurn)
+        assertFalse(TranscriptDetail.DEFAULT.groupsSteps)
     }
 
     // ---- behaviour --------------------------------------------------------------------------

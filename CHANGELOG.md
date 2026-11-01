@@ -140,6 +140,13 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Changed
 
+- **The transcript no longer folds a turn's work by default.** Work details now default to
+  *Verbose*: every thought panel, tool card and context block sits in the order it happened, with no
+  "Process · N steps" row standing in for the turn — the list reads the way a desktop transcript
+  does. The other three levels and what each folds are unchanged and one tap away in Settings →
+  General → Work details. A device that never picked a level is moved to the new default once on
+  update (the old default, `detailed`, is read as `verbose` behind a marker), and a level chosen
+  after that is kept.
 - **The changed-files card starts folded.** A turn that touched a dozen files ended with a dozen
   pills stacked over the reply, which is the part you were still reading. The card now shows only
   the count, and a tap opens the list; the files are one tap away and holding one still offers

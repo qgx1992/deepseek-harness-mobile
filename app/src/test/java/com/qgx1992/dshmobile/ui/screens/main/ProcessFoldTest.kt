@@ -18,7 +18,9 @@ class ProcessFoldTest {
         nodes: List<ChatNode>,
         turnStarts: List<Long>,
         running: Boolean = false,
-        detail: TranscriptDetail = TranscriptDetail.DEFAULT,
+        // The default is verbose, which folds nothing; these tests pin the fold itself, so they ask
+        // for the level that performs it rather than inheriting whatever the app defaults to.
+        detail: TranscriptDetail = TranscriptDetail.DETAILED,
     ) = foldProcessRows(groupToolRows(nodes), turnStarts, running, detail)
 
     @Test fun `the work between a prompt and its answer folds into one row`() {

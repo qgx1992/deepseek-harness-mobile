@@ -58,9 +58,9 @@ internal enum class TranscriptDetail(
     ),
 
     /**
-     * The default, and the desktop's default too: finished turns fold, the running turn shows its
-     * steps as they happen, and an opened process row is already open all the way down. Matches the
-     * desktop's "detailed".
+     * Finished turns fold, the running turn shows its steps as they happen, and an opened process
+     * row is already open all the way down. Matches the desktop's "detailed", which is what the
+     * desktop Web client defaults to.
      */
     DETAILED(
         id = "detailed",
@@ -71,9 +71,9 @@ internal enum class TranscriptDetail(
     ),
 
     /**
-     * Nothing folds: every step is its own row in the order it happened. Matches the desktop's
-     * "verbose", which is the mode to reach for when a turn went wrong and the shape of the work is
-     * the evidence.
+     * The default. Nothing folds: every step is its own row in the order it happened, so the
+     * transcript reads the way a desktop transcript does and no turn hides its work behind a
+     * process header. Matches the desktop's "verbose".
      */
     VERBOSE(
         id = "verbose",
@@ -88,8 +88,12 @@ internal enum class TranscriptDetail(
     val groupsSteps: Boolean get() = this != VERBOSE
 
     companion object {
-        /** Web clients default to `detailed`; so does this one, so both sides look the same. */
-        val DEFAULT: TranscriptDetail = DETAILED
+        /**
+         * No fold by default: the transcript lists the work step by step, the way the desktop
+         * client does at its own default, instead of collapsing each finished turn into a single
+         * process row. Every other level is one tap away in Settings.
+         */
+        val DEFAULT: TranscriptDetail = VERBOSE
 
         /** Reads a stored value; anything unrecognised (or absent) falls back to [DEFAULT]. */
         fun of(value: String?): TranscriptDetail {

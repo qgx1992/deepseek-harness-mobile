@@ -108,9 +108,8 @@ internal fun groupToolRows(nodes: List<ChatNode>): List<TranscriptRow> {
  * begins.
  *
  * [detail] is the reader's work-details level. Only [TranscriptDetail.DETAILED] and above let a
- * running turn show its steps; [TranscriptDetail.VERBOSE] folds nothing at all. The default keeps
- * the historical behaviour — a finished turn folds, one row for the work — because that is also the
- * desktop's default.
+ * running turn show its steps; [TranscriptDetail.VERBOSE] — the default — folds nothing at all, so
+ * a turn's work is listed the way the desktop lists it and this fold never runs.
  *
  * A turn with no prompt (only harness-injected context before the first question) is left alone —
  * there is nothing for the row to sit under.

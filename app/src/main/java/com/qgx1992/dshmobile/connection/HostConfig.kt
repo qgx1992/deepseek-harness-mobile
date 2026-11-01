@@ -159,12 +159,13 @@ data class AppSettings(
     /**
      * How much of a turn's work the transcript shows: `compact`, `standard`, `detailed`, `verbose`.
      *
-     * The desktop Web client keeps the same four choices, and the same default — `detailed` — under
-     * `ui-chat.transcriptView`. Stored as the wire id rather than an ordinal so a preference
-     * survives the enum growing, and read through
+     * The desktop Web client keeps the same four choices under `ui-chat.transcriptView`; this app
+     * defaults to `verbose` so a turn's work is listed step by step instead of being folded into one
+     * process row. Stored as the wire id rather than an ordinal so a preference survives the enum
+     * growing, and read through
      * [com.qgx1992.dshmobile.ui.screens.main.TranscriptDetail.of], which owns the fallbacks.
      */
-    val transcriptDetail: String = "detailed",
+    val transcriptDetail: String = "verbose",
 )
 
 /** The three ways the app can reach a harness. Persisted as [AppSettings.connectMode]. */
