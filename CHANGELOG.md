@@ -40,6 +40,11 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Changed
 
+- **The translate control of a thought lives in its header.** It used to sit under the reasoning
+  text, inside the panel's scroll area, so a long thought pushed it out of reach. It now rides in
+  the panel's title row, next to "Thought process", where it stays put however far the text scrolls;
+  the row still toggles the panel when tapped anywhere else. A host without a translator draws no
+  control at all, as before.
 - **The application id is `com.qgx1992.dshmobile`.** This fork renames the id and the Kotlin
   namespace away from upstream's `com.labteto.dshmobile`, so the two builds install side by side
   and neither replaces the other. Package declarations, imports, manifest attributes, backup rules

@@ -24,6 +24,7 @@ import com.qgx1992.dshmobile.ui.theme.DsType
 /** Reasoning stays quiet and compact, independently of how many lines it contains. */
 @Composable
 fun ThinkingPanel(text: String, streaming: Boolean, expanded: Boolean, onToggle: () -> Unit,
+                  action: (@Composable () -> Unit)? = null,
                   content: (@Composable () -> Unit)? = null) {
     if (text.isBlank() && !streaming) return
     val colors = DsTheme.colors
@@ -35,6 +36,9 @@ fun ThinkingPanel(text: String, streaming: Boolean, expanded: Boolean, onToggle:
             Icon(FeatherIcons.Layers, null, Modifier.size(14.dp), tint = colors.labelCaption)
             Text(stringResource(if (streaming) R.string.chat_thinking else R.string.chat_thought_process),
                 style = DsType.small13, color = colors.labelTertiary, modifier = Modifier.weight(1f))
+            // The translate control rides in the header: a long thought scrolls under it instead of
+            // hiding it at the end of the content.
+            if (action != null && expanded) action()
             if (streaming) StateDot(StateDotState.Running, size = 6.dp)
             Icon(FeatherIcons.ChevronRight, null,
                 Modifier.size(14.dp).graphicsLayer { rotationZ = if (expanded) 90f else 0f }, tint = colors.labelCaption)

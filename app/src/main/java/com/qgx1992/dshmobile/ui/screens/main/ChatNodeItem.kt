@@ -396,12 +396,14 @@ private fun AssistantMessage(node: AssistantMessageNode, context: ChatNodeContex
                 "text" -> if (!block.text.isNullOrBlank()) MarkdownText(block.text.orEmpty())
                 "reasoning" -> if (!block.text.isNullOrBlank() || streaming) {
                     val expanded = reasoningExpanded[index] ?: false
+                    val translation = rememberReasoningTranslation(block.text.orEmpty(), streaming)
                     ThinkingPanel(
                         text = block.text.orEmpty(),
                         expanded = expanded,
                         onToggle = { reasoningExpanded[index] = !expanded },
                         streaming = streaming,
-                        content = { ReasoningContent(block.text.orEmpty(), streaming) },
+                        action = { ReasoningTranslationAction(translation) },
+                        content = { ReasoningContent(translation, block.text.orEmpty()) },
                     )
                 }
                 // Show partial arguments until the durable tool card takes over. The list filter
