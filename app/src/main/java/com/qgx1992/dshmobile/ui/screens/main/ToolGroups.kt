@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.clip
@@ -20,6 +21,7 @@ import com.qgx1992.dshmobile.core.session.*
 import com.qgx1992.dshmobile.ui.components.FeatherIcons
 import com.qgx1992.dshmobile.ui.components.StateDot
 import com.qgx1992.dshmobile.ui.components.StateDotState
+import com.qgx1992.dshmobile.ui.components.TimelineNode
 import com.qgx1992.dshmobile.ui.components.formatDurationMs
 import com.qgx1992.dshmobile.ui.theme.DsColors
 import com.qgx1992.dshmobile.ui.theme.DsShapes
@@ -338,45 +340,73 @@ internal fun ContextGroupRow(nodes: List<ChatNode>, context: ChatNodeContext, in
 }
 
 /**
- * The folded steps of one turn.
+ * The work a turn did, drawn as a timeline.
  *
- * Deliberately the same shape as the two disclosures above — a 36dp header on `bgLayer1` with a
- * chevron — because it is the same gesture at a larger granularity: expand to see what happened.
+ * It used to be a card per step behind one "process" header: a bordered box per tool call, a second
+ * box around each run of them, a third around the whole turn. On a phone that is a screen of nested
+ * frames around what is really one sequence — and the sequence itself, what came first and what
+ * followed it, is exactly what the frames hid. The fold stays, but it now paints a rail: one
+ * hairline down the left edge, a dot per step, and the turn's own header as the first dot. Reading
+ * it says the order, which is the one thing a stack of cards could not.
  *
- * Local mod: the row now stands in for the running turn as well, so it says which it is. A live row
- * leads with the same moving dot the top bar uses and counts what it is holding (tools, thinking
- * steps, context blocks) as bare numbers beside small icons — no words, so no new translations.
- * The expansion state survives the turn settling: `seq` is the first step's, and that does not
- * change when the answer lands, so a reader who opened the process mid-run is not thrown out of it.
+ * It opens by default. A fold is for work the reader does not need; the reason to unfold this one is
+ * that they do, and a tap per turn was the friction the timeline exists to remove. Tapping the header
+ * folds it back to a single line carrying the turn's last thought as a preview. The state is keyed on
+ * the first step's `seq`, which does not change when the turn settles, so opening a turn mid-run
+ * keeps it open when the answer lands.
+ *
+ * A turn with more steps than [TIMELINE_OPEN_LIMIT] starts folded: its body is hundreds of rows
+ * inside a single lazy item, and opening one of those on a phone is a stutter rather than a read. Its
+ * header still counts what it holds, so nothing is hidden from the summary — just not pre-expanded.
  */
 @Composable
 internal fun ProcessRow(row: TranscriptRow.Process, context: ChatNodeContext) {
-    var expanded by rememberSaveable(row.seq) { mutableStateOf(false) }
+    var expanded by rememberSaveable(row.seq) { mutableStateOf(row.steps <= TIMELINE_OPEN_LIMIT) }
     val colors = DsTheme.colors
-    Column(Modifier.fillMaxWidth().clip(DsShapes.block).background(colors.bgLayer1)
-        .border(1.dp, colors.borderL2, DsShapes.block)) {
-        Row(Modifier.fillMaxWidth().heightIn(min = 36.dp).clickable(role = Role.Button) { expanded = !expanded }
-            .padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (row.live) {
-                StateDot(StateDotState.Running, size = 6.dp)
-            } else {
-                Icon(FeatherIcons.Activity, null, Modifier.size(14.dp), tint = colors.labelTertiary)
+    val steps = remember(row.rows) { timelineSteps(row.rows) }
+    val results = remember(context.nodes) {
+        context.nodes.filterIsInstance<ToolResultNode>().associateBy { it.callId }
+    }
+    Column(Modifier.fillMaxWidth()) {
+        TimelineNode(
+            first = true,
+            last = !expanded,
+            dotColor = if (row.live) colors.accent else colors.labelTertiary,
+            // The header is a 34dp row, so its one line sits 17dp down, not the 13dp a tool row uses.
+            dotCenter = 17.dp,
+        ) {
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 34.dp)
+                    .clickable(role = Role.Button) { expanded = !expanded }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (row.live) {
+                    StateDot(StateDotState.Running, size = 6.dp)
+                } else {
+                    Icon(FeatherIcons.Activity, null, Modifier.size(14.dp), tint = colors.labelTertiary)
+                }
+                Text(
+                    stringResource(R.string.chat_process_title) + " · " +
+                        pluralStringResource(R.plurals.trajectory_step_count, row.steps, row.steps),
+                    style = DsType.small13,
+                    color = colors.labelSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                HistogramCount(FeatherIcons.Tool, row.tools, colors)
+                HistogramCount(FeatherIcons.Activity, row.thinking, colors)
+                HistogramCount(FeatherIcons.Layers, row.contexts, colors)
+                Spacer(Modifier.weight(1f))
+                Icon(
+                    FeatherIcons.ChevronRight,
+                    null,
+                    Modifier.size(14.dp).graphicsLayer { rotationZ = if (expanded) 90f else 0f },
+                    tint = colors.labelTertiary,
+                )
             }
-            Text(
-                stringResource(R.string.chat_process_title) + " · " +
-                    pluralStringResource(R.plurals.trajectory_step_count, row.steps, row.steps),
-                style = DsType.small13,
-                color = colors.labelSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            HistogramCount(FeatherIcons.Tool, row.tools, colors)
-            HistogramCount(FeatherIcons.Activity, row.thinking, colors)
-            HistogramCount(FeatherIcons.Layers, row.contexts, colors)
-            Spacer(Modifier.weight(1f))
-            Icon(FeatherIcons.ChevronRight, null, Modifier.size(14.dp).graphicsLayer { rotationZ = if (expanded) 90f else 0f }, tint = colors.labelTertiary)
         }
         // The closed row can carry one line of what the turn was thinking — the desktop's
         // reasoning preview. It sits under the header, so opening the row is still what shows the
@@ -388,36 +418,81 @@ internal fun ProcessRow(row: TranscriptRow.Process, context: ChatNodeContext) {
                 color = colors.labelTertiary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 6.dp),
+                modifier = Modifier.padding(start = 20.dp, end = 4.dp, bottom = 8.dp),
             )
         }
-        if (expanded) Column(
-            // 8dp above the first step, per the desktop's expanded-group spacing: the header and its
-            // contents read as one block rather than as two stacked ones.
-            Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 3.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            row.rows.forEach { step ->
-                key(step.seq) {
-                    when (step) {
-                        is TranscriptRow.Message -> ChatNodeItem(node = step.node, context = context)
-                        is TranscriptRow.Tools -> ToolGroupRow(
-                            calls = step.calls,
-                            context = context,
-                            initiallyExpanded = row.groupsExpanded,
-                        )
-                        is TranscriptRow.Context -> ContextGroupRow(
-                            nodes = step.nodes,
-                            context = context,
-                            initiallyExpanded = row.groupsExpanded,
-                        )
-                        is TranscriptRow.Process -> Unit
-                    }
+        if (expanded) steps.forEachIndexed { index, step ->
+            key(step.seq) {
+                TimelineNode(
+                    last = index == steps.lastIndex,
+                    dotColor = stepDot(step, results, context.running, colors),
+                ) {
+                    TimelineStepBody(step, context, row.groupsExpanded)
                 }
             }
         }
     }
 }
+
+/**
+ * One dot per call: a run of adjacent tool calls is several steps on the rail, not one card with a
+ * count in its header. Splitting them here rather than inside the row keeps the layout dumb — every
+ * node is a node, and the flattening happens once per row instead of once per recomposition.
+ */
+private fun timelineSteps(rows: List<TranscriptRow>): List<TranscriptRow> = rows.flatMap { step ->
+    when (step) {
+        is TranscriptRow.Tools -> step.calls.map { TranscriptRow.Message(it) }
+        is TranscriptRow.Process -> emptyList()
+        else -> listOf(step)
+    }
+}
+
+/** Red for a call that failed, accent while one is still running, dim for everything settled. */
+private fun stepDot(
+    step: TranscriptRow,
+    results: Map<String, ToolResultNode>,
+    running: Boolean,
+    colors: DsColors,
+): Color {
+    val call = (step as? TranscriptRow.Message)?.node as? ToolCallNode ?: return colors.labelCaption
+    val result = results[call.callId]
+    return when {
+        result?.isError == true -> colors.error
+        result == null && running -> colors.accent
+        else -> colors.labelCaption
+    }
+}
+
+/**
+ * What sits beside one dot. The spacing lives inside the node so the rail spans it.
+ *
+ * A tool call is the one node whose body is a bare disclosure row, so it is drawn here rather than
+ * through [ChatNodeItem]: that entry point also prints the call's duration as a caption above the
+ * row, which inside a timeline is a second line where the dot expects a first one.
+ */
+@Composable
+private fun TimelineStepBody(step: TranscriptRow, context: ChatNodeContext, groupsExpanded: Boolean) {
+    Column(Modifier.fillMaxWidth().padding(top = 1.dp, bottom = 8.dp)) {
+        when (step) {
+            // A call is one line in the timeline: its own duration is already in the card's summary,
+            // and the extra caption above it would push the dot off the row it marks.
+            is TranscriptRow.Message -> {
+                val node = step.node
+                if (node is ToolCallNode) {
+                    ToolCallRow(node = node, context = context, compact = true)
+                } else {
+                    ChatNodeItem(node = node, context = context)
+                }
+            }
+            is TranscriptRow.Context -> ContextGroupRow(step.nodes, context, initiallyExpanded = groupsExpanded)
+            is TranscriptRow.Tools -> ToolGroupRow(step.calls, context, initiallyExpanded = groupsExpanded)
+            is TranscriptRow.Process -> Unit
+        }
+    }
+}
+
+/** Turns longer than this start folded; see [ProcessRow]. */
+private const val TIMELINE_OPEN_LIMIT = 32
 
 /** A small `icon N` count; hidden at zero so the header stays a single quiet line. */
 @Composable

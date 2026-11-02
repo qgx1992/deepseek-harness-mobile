@@ -40,6 +40,17 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Changed
 
+- **A turn's work reads as a timeline, not as a stack of cards.** The folded group used to be a
+  titled card, each step inside it another bordered card, and both around what is really one
+  sequence — three nested frames for one turn. The frames are gone. The group is a rail down the
+  left edge now, with a dot per step: a thought, a tool call, one context group each. A failed call's
+  dot is red, a call still running is accent, settled work is dim, so the rail says at a glance where
+  a turn went wrong or is still going. It opens by default — reading the work is the reason it is on
+  screen, and a tap per turn was the friction the timeline exists to remove — while the header
+  still folds it back to one line carrying the turn's last thought. A turn with more than 32 steps
+  starts folded anyway: that many rows inside one list item is a stutter on a phone, not a read.
+  The rail lives in `TimelineNode`, which paints in a draw pass because a node's height comes from
+  a text block of unknown length and the line cannot be reserved before measurement.
 - **Short pickers open next to the control that asked for them.** The permission-preset chip in the
   composer and the hold menu on the send button used to arrive as bottom sheets: a scrim over the
   transcript and a trip to the far edge of the screen for three rows. They are anchored menus now —
