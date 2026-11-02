@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -166,6 +167,10 @@ fun Modifier.clickableWithHold(
  * is about the message they meant and not the one beside it. Picking a row closes the sheet first
  * and then runs the action, so an action that opens a dialog of its own opens it over the screen
  * rather than over a sheet on its way out.
+ *
+ * [anchored] attaches the menu to the layout node holding it instead of sliding it up from the
+ * bottom — for a short menu over a control that already sits on the bottom edge, such as the hold
+ * on the send button. Call it from inside that control's own layout so the popup has an anchor.
  */
 @Composable
 fun HoldMenu(
@@ -173,9 +178,10 @@ fun HoldMenu(
     actions: List<HoldAction>,
     preview: String? = null,
     monospacePreview: Boolean = false,
+    anchored: Boolean = false,
 ) {
     val colors = DsTheme.colors
-    DsBottomSheet(title = null, onDismiss = onDismiss, modifier = Modifier.testTag(HOLD_MENU_TAG)) {
+    val body: @Composable ColumnScope.() -> Unit = {
         if (!preview.isNullOrBlank()) {
             Text(
                 preview,
@@ -198,6 +204,21 @@ fun HoldMenu(
                 }
             }
         }
+    }
+    if (anchored) {
+        DsAnchoredMenu(
+            title = null,
+            onDismiss = onDismiss,
+            modifier = Modifier.testTag(HOLD_MENU_TAG),
+            content = body,
+        )
+    } else {
+        DsBottomSheet(
+            title = null,
+            onDismiss = onDismiss,
+            modifier = Modifier.testTag(HOLD_MENU_TAG),
+            content = body,
+        )
     }
 }
 

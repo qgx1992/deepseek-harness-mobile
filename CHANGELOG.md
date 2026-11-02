@@ -40,6 +40,14 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Changed
 
+- **Short pickers open next to the control that asked for them.** The permission-preset chip in the
+  composer and the hold menu on the send button used to arrive as bottom sheets: a scrim over the
+  transcript and a trip to the far edge of the screen for three rows. They are anchored menus now —
+  a card directly above the control, flipped below when the control sits high on the screen,
+  clamped inside the window, and scrolling its own overflow. Both come from one new component,
+  `DsAnchoredMenu`, whose position provider keeps the popup on screen whatever the anchor's place
+  in the layout. Long, searchable pickers (models, presets, history, commands, references) keep the
+  sheet, which is what a sheet is for.
 - **The translate control of a thought lives in its header.** It used to sit under the reasoning
   text, inside the panel's scroll area, so a long thought pushed it out of reach. It now rides in
   the panel's title row, next to "Thought process", where it stays put however far the text scrolls;

@@ -492,37 +492,43 @@ internal fun Composer(
                     // sticky choice lives two taps away in the + sheet. Holding send makes the choice
                     // for this message alone, the way a hold anywhere else opens what a thing can do.
                     val sendWith = onSendWith?.takeIf { running && canSend }
-                    CircleAction(
-                        icon = Icons.Filled.ArrowUpward,
-                        description = stringResource(R.string.chat_composer_send),
-                        size = 40,
-                        background = sendFill,
-                        tint = sendTint,
-                        enabled = canSend,
-                        modifier = Modifier.graphicsLayer { scaleX = sendScale; scaleY = sendScale },
-                        onClick = { submit { currentOnSend(it) } },
-                        onLongClick = sendWith?.let { { sendMenuOpen = true } },
-                        longClickLabel = stringResource(R.string.hold_send_label),
-                    )
-                    // A turn that ends under the open menu takes it away: steering an idle session
-                    // is refused, and queueing is then just a send.
-                    androidx.compose.runtime.LaunchedEffect(sendWith == null) { if (sendWith == null) sendMenuOpen = false }
-                    if (sendMenuOpen && sendWith != null) {
-                        HoldMenu(
-                            onDismiss = { sendMenuOpen = false },
-                            actions = listOf(
-                                HoldAction(
-                                    stringResource(R.string.hold_send_steer),
-                                    Icons.Outlined.Bolt,
-                                    detail = stringResource(R.string.chat_composer_mode_steer_hint),
-                                ) { submit { text -> sendWith(text, "steer") } },
-                                HoldAction(
-                                    stringResource(R.string.hold_send_queue),
-                                    Icons.Outlined.Schedule,
-                                    detail = stringResource(R.string.chat_composer_mode_queue_hint),
-                                ) { submit { text -> sendWith(text, "queue") } },
-                            ),
+                    // The menu is anchored to the send button, so the button and its hold menu
+                    // share a layout node: the popup then opens over the button instead of
+                    // sliding a sheet up from the bottom for two rows.
+                    Box {
+                        CircleAction(
+                            icon = Icons.Filled.ArrowUpward,
+                            description = stringResource(R.string.chat_composer_send),
+                            size = 40,
+                            background = sendFill,
+                            tint = sendTint,
+                            enabled = canSend,
+                            modifier = Modifier.graphicsLayer { scaleX = sendScale; scaleY = sendScale },
+                            onClick = { submit { currentOnSend(it) } },
+                            onLongClick = sendWith?.let { { sendMenuOpen = true } },
+                            longClickLabel = stringResource(R.string.hold_send_label),
                         )
+                        // A turn that ends under the open menu takes it away: steering an idle
+                        // session is refused, and queueing is then just a send.
+                        androidx.compose.runtime.LaunchedEffect(sendWith == null) { if (sendWith == null) sendMenuOpen = false }
+                        if (sendMenuOpen && sendWith != null) {
+                            HoldMenu(
+                                anchored = true,
+                                onDismiss = { sendMenuOpen = false },
+                                actions = listOf(
+                                    HoldAction(
+                                        stringResource(R.string.hold_send_steer),
+                                        Icons.Outlined.Bolt,
+                                        detail = stringResource(R.string.chat_composer_mode_steer_hint),
+                                    ) { submit { text -> sendWith(text, "steer") } },
+                                    HoldAction(
+                                        stringResource(R.string.hold_send_queue),
+                                        Icons.Outlined.Schedule,
+                                        detail = stringResource(R.string.chat_composer_mode_queue_hint),
+                                    ) { submit { text -> sendWith(text, "queue") } },
+                                ),
+                            )
+                        }
                     }
 
                     // Grows its own width in and out, so the controls beside it slide over rather than

@@ -55,9 +55,9 @@ app/            Android UI
                   through session/attachment, not a URL)
   ui/           theme (exact DSH design tokens + motion specs), components
                   (buttons, disclosure rows, state dots, tool cards,
-                  markdown, overlays, bottom sheets, context meter),
-                  screens (connect, main shell with Discord-style drawer +
-                  details panel, chat, settings)
+                  markdown, overlays, bottom sheets, anchored menus, context
+                  meter), screens (connect, main shell with Discord-style
+                  drawer + details panel, chat, settings)
 
 The chat surface is split by responsibility rather than living in one file:
 ChatScreen (shell, pickers, send path) · ChatTopBar (two-row chrome +

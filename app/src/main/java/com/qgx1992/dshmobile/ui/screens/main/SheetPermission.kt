@@ -21,21 +21,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.qgx1992.dshmobile.R
 import com.qgx1992.dshmobile.core.wire.dto.FULL_ACCESS_PRESET
 import com.qgx1992.dshmobile.core.wire.dto.PermissionSelect
 import com.qgx1992.dshmobile.core.wire.dto.displayPermissionPreset
-import com.qgx1992.dshmobile.ui.components.DsBottomSheet
+import com.qgx1992.dshmobile.ui.components.DsAnchoredMenu
 import com.qgx1992.dshmobile.ui.components.DsButton
 import com.qgx1992.dshmobile.ui.components.DsButtonVariant
 import com.qgx1992.dshmobile.ui.components.DsDialog
+import com.qgx1992.dshmobile.ui.theme.DsShapes
 import com.qgx1992.dshmobile.ui.theme.DsSpacing
 import com.qgx1992.dshmobile.ui.theme.DsTheme
 import com.qgx1992.dshmobile.ui.theme.DsType
 
-/** The permission-preset picker. `custom` is a derived state, so it is never offered as a target. */
+/**
+ * The permission-preset picker. `custom` is a derived state, so it is never offered as a target.
+ *
+ * A menu rather than a sheet: three short rows opened from a chip on the composer's bottom edge
+ * belong beside that chip, not behind a scrim at the other end of the screen. The caller places
+ * this inside the chip's own layout so the popup anchors to it.
+ */
 @Composable
 internal fun PermissionMenu(
     select: PermissionSelect,
@@ -44,7 +52,7 @@ internal fun PermissionMenu(
     onPick: (String) -> Unit,
 ) {
     val colors = DsTheme.colors
-    DsBottomSheet(
+    DsAnchoredMenu(
         title = stringResource(R.string.permission_preset),
         onDismiss = onDismiss,
     ) {
@@ -53,8 +61,9 @@ internal fun PermissionMenu(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clip(DsShapes.cube)
                     .clickable { onPick(option.value) }
-                    .padding(vertical = DsSpacing.small),
+                    .padding(horizontal = DsSpacing.medium, vertical = DsSpacing.small),
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(Modifier.weight(1f)) {
@@ -89,6 +98,10 @@ internal fun PermissionMenu(
                 stringResource(R.string.permission_custom_hint),
                 style = DsType.caption11,
                 color = colors.warnLabel,
+                modifier = Modifier.padding(
+                    horizontal = DsSpacing.medium,
+                    vertical = DsSpacing.xsmall,
+                ),
             )
         }
     }
