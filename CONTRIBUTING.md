@@ -38,3 +38,17 @@ Thanks for your interest in DSH Mobile!
 
 Tag `v*` → the Release workflow builds and publishes a signed APK (when
 signing secrets are configured) or an unsigned APK.
+
+For a local release that a phone on the same network can install without a
+cable, also publish it to the download page served on port 8080:
+
+```sh
+DSH_VERSION_NAME=0.22.5 ./gradlew :app:assembleRelease
+node scripts/publish-apk.mjs --version 0.22.5 --note "本次改动：…" --verify
+```
+
+The script copies the APK to `$DSH_APK_DIR` (default `../PiDeck-Mobile/apk`),
+merges `SHA256SUMS.txt` without dropping other projects' entries, and rewrites
+the DSH Mobile block of `index.html`; rollback links are generated from the
+APKs that actually exist in that directory. `--verify` re-reads the result over
+HTTP (status, byte count, checksum list, landing page).
