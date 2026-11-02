@@ -47,7 +47,11 @@ All notable changes to DSH Mobile are documented here. Format based on
   clamped inside the window, and scrolling its own overflow. Both come from one new component,
   `DsAnchoredMenu`, whose position provider keeps the popup on screen whatever the anchor's place
   in the layout. Long, searchable pickers (models, presets, history, commands, references) keep the
-  sheet, which is what a sheet is for.
+  sheet, which is what a sheet is for. The card is flat — a hairline border, no elevation: a popup
+  window is sized to its content, so a drop shadow is painted inside those bounds and the part
+  outside them is cut off, which showed up as a grey band hugging the card's edges. Everything the
+  menu opens over is a bordered, un-elevated surface too, so the flat card is also the consistent
+  one.
 - **The translate control of a thought lives in its header.** It used to sit under the reasoning
   text, inside the panel's scroll area, so a long thought pushed it out of reach. It now rides in
   the panel's title row, next to "Thought process", where it stays put however far the text scrolls;

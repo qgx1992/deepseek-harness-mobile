@@ -54,13 +54,19 @@ import com.qgx1992.dshmobile.ui.theme.DsType
  * from inside the layout that should act as the anchor — the chip's own `Box`, not the screen.
  * The menu opens upward, which is where the space is for a control on the bottom edge, and falls
  * back to below the anchor when the anchor sits high on the screen.
+ *
+ * The card is flat: a hairline border and no elevation. A popup window is sized to its content, so
+ * an elevation shadow is painted inside those bounds and the part that falls outside is cut off —
+ * against a transcript that reads as a grey band hugging two or three edges of the card, darkest at
+ * the bottom. The cards underneath are separated by a border and no elevation, so this matches them
+ * as well as it avoids the artefact.
  */
 @Composable
 fun DsAnchoredMenu(
     title: String?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    maxHeightFraction: Float = 0.6f,
+    maxHeightFraction: Float = 0.5f,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = DsTheme.colors
@@ -101,13 +107,12 @@ fun DsAnchoredMenu(
     ) {
         Surface(
             modifier = enterModifier
-                .widthIn(min = 232.dp, max = 320.dp)
+                .widthIn(min = 216.dp, max = 288.dp)
                 .then(modifier),
             shape = DsShapes.menu,
             color = colors.bgLayer2,
             contentColor = colors.labelPrimary,
             border = BorderStroke(1.dp, colors.borderL2),
-            shadowElevation = 12.dp,
         ) {
             Column(
                 Modifier
