@@ -145,12 +145,14 @@ export function publishRelease({ version, tag, apkPath, notes, title, latest = f
         }
       }
     } else {
+      // The tag has to exist on GitHub: a release cannot point at a commit that was never pushed,
+      // and pointing it at a guessed branch would attach the release to the wrong build.
+      if (!tagExists(tag)) {
+        console.error(`✗ ${tag} 还不存在：先 git tag -a ${tag} 并 push，再发 Release（或加 --no-release 只发下载站）`);
+        return false;
+      }
       const args = ["release", "create", tag, "--repo", slug, "--title", title, "--notes-file", notesFile];
       if (latest) args.push("--latest");
-      // tag 还没推上去时（先发下载站、后打 tag 的流程），让 gh 就地建在这个提交上
-      if (!tagExists(tag)) {
-        args.push("--target", run("git", ["rev-parse", "HEAD"]).stdout.trim());
-      }
       if (attach && apkPath) args.push(apkPath);
       const create = run("gh", args);
       if (create.status !== 0) {
