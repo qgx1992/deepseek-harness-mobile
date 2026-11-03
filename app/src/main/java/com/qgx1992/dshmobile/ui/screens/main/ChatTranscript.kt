@@ -31,6 +31,9 @@ import com.qgx1992.dshmobile.core.text.SECRET_MASK_CHAR
 import com.qgx1992.dshmobile.core.text.SecretSpan
 import com.qgx1992.dshmobile.core.text.findSecrets
 import com.qgx1992.dshmobile.ui.components.holdable
+import com.qgx1992.dshmobile.ui.components.LocalPinnedHeader
+import com.qgx1992.dshmobile.ui.components.PinnedHeaderRow
+import com.qgx1992.dshmobile.ui.components.PinnedHeaderState
 import com.qgx1992.dshmobile.ui.components.StateDot
 import com.qgx1992.dshmobile.ui.components.StateDotState
 import com.qgx1992.dshmobile.ui.theme.DsAnimations
@@ -55,6 +58,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -65,6 +69,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.qgx1992.dshmobile.R
@@ -373,7 +379,16 @@ internal fun ChatTranscript(
         listState.animateScrollToItem(0)
     }
 
-    Box(modifier.fillMaxSize()) {
+    // A thought taller than the screen keeps its header in reach. While the viewport's top edge is
+    // inside such a panel, the copy below is drawn at that edge and taps on it collapse the panel
+    // where it stands, so the work never has to be scrolled back to be folded away.
+    val pinnedHeader = remember { PinnedHeaderState() }
+    CompositionLocalProvider(LocalPinnedHeader provides pinnedHeader) {
+    Box(
+        modifier.fillMaxSize().onGloballyPositioned {
+            pinnedHeader.placeViewport(it.boundsInWindow().top)
+        },
+    ) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
@@ -485,7 +500,18 @@ internal fun ChatTranscript(
             },
         )
     }
+    // Drawn last so it sits above the rows it covers, at the top edge itself and inset like the rows
+    // are: the moment the panel's own header crosses that edge this copy takes its place with no
+    // jump, and it leaves with the panel.
+    pinnedHeader.pinned?.let { copy ->
+        PinnedHeaderRow(
+            title = copy.title,
+            onCollapse = copy.onCollapse,
+            modifier = Modifier.align(Alignment.TopCenter).padding(horizontal = 12.dp),
+        )
     }
+    }
+}
 }
 
 /** How far from the tail a jump snaps before animating the rest of the way. */

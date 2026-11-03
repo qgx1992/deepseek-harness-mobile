@@ -40,6 +40,16 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Changed
 
+- **A long thought keeps its header while you scroll it.** An expanded thought already scrolls
+  inside its own box, so its header stays put while that text moves — but the transcript scrolls
+  too, and once the whole panel has gone up past the top edge the header went with it, leaving
+  "collapse" something you had to scroll back up to find. The transcript now draws a copy of that
+  header at its own top edge for as long as any part of the panel is under that edge, and tapping the
+  copy folds the thought where it stands. The panel reports its bounds on every placement and the
+  copy is drawn rather than remembered, so it arrives and leaves with the scroll; it uses the panel's
+  own inset and an opaque background, so the handoff from the real header to the copy has no visible
+  seam. `PinnedHeaderState` is the small piece that decides which panel owns the edge, and eight unit
+  tests hold it to that.
 - **A turn's work reads as a timeline, not as a stack of cards.** The folded group used to be a
   titled card, each step inside it another bordered card, and both around what is really one
   sequence — three nested frames for one turn. The frames are gone. The group is a rail down the

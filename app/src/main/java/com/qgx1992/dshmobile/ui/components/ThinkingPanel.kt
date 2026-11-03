@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -28,14 +30,38 @@ fun ThinkingPanel(text: String, streaming: Boolean, expanded: Boolean, onToggle:
                   content: (@Composable () -> Unit)? = null) {
     if (text.isBlank() && !streaming) return
     val colors = DsTheme.colors
-    Column(Modifier.fillMaxWidth().clip(DsShapes.block).background(colors.bgLayer1)
+    val title = stringResource(if (streaming) R.string.chat_thinking else R.string.chat_thought_process)
+    // In a transcript this panel reports where it sits, so the list can keep a copy of this header
+    // pinned to its own top edge once the real one has scrolled off. Everywhere else the local is
+    // null and none of this runs.
+    val pin = LocalPinnedHeader.current
+    val owner = remember { Any() }
+    if (pin != null) {
+        // A panel that leaves the composition mid-scroll must take its pinned copy with it.
+        DisposableEffect(pin, owner) { onDispose { pin.clear(owner) } }
+    }
+    Column(Modifier.fillMaxWidth()
+        .then(
+            if (pin == null) {
+                Modifier
+            } else {
+                Modifier.onGloballyPositioned { coords ->
+                    if (expanded) {
+                        val bounds = coords.boundsInWindow()
+                        pin.report(owner, bounds.top, bounds.bottom, title, onToggle)
+                    } else {
+                        pin.clear(owner)
+                    }
+                }
+            },
+        )
+        .clip(DsShapes.block).background(colors.bgLayer1)
         .border(1.dp, colors.borderL2, DsShapes.block)) {
         Row(Modifier.fillMaxWidth().heightIn(min = 36.dp).clickable(role = Role.Button, onClick = onToggle)
             .padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(FeatherIcons.Layers, null, Modifier.size(14.dp), tint = colors.labelCaption)
-            Text(stringResource(if (streaming) R.string.chat_thinking else R.string.chat_thought_process),
-                style = DsType.small13, color = colors.labelTertiary, modifier = Modifier.weight(1f))
+            Text(title, style = DsType.small13, color = colors.labelTertiary, modifier = Modifier.weight(1f))
             // The translate control rides in the header: a long thought scrolls under it instead of
             // hiding it at the end of the content.
             if (action != null && expanded) action()
