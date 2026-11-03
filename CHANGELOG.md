@@ -228,6 +228,12 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Fixed
 
+- **The Git tab no longer leaves its scratch directory in the tree it read.** The probe types a
+  cleanup command into the host's shell right after it has the answer, but typing is not running:
+  the tab closed the terminal before the shell had deleted anything, so `git status` in the user's
+  own repository gained an untracked `.dsh-mobile-git/` every time the tab was opened. The probe now
+  waits for its answer file to disappear before letting go of the terminal; if the shell is slow,
+  the read still wins and the directory is left for last.
 - **The drawer remembers which workspace groups you opened.** Its content leaves the composition
   every time it closes, so anything remembered inside it left with it: you opened the group you were
   about to work in, picked a session, and the next time you looked every group was folded again

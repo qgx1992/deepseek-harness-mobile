@@ -14,3 +14,6 @@ keystore.properties
 /capture-output/
 node_modules/
 .kotlin/
+# The Git tab asks the host's shell to write here for a moment; it should not
+# show up as an untracked directory in this repo while that happens.
+/.dsh-mobile-git/

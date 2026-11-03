@@ -118,8 +118,13 @@ internal class GitProbe(
             if (answer == null) throw GitProbeException(describe(shell, shells, dialect, typist))
             onStage(GitProbeStage.Reading)
             // Cleanup runs before the terminal closes and never fails the read: the answer is
-            // already in hand by this point.
-            runCatching { typist.type(GitScripts.cleanupCommand(cwd, dialect)) }
+            // already in hand by this point. Typing the command is not the same as the shell having
+            // run it, so wait for the answer file to go away — otherwise the probe leaves its
+            // scratch directory behind in the user's own working tree.
+            runCatching {
+                typist.type(GitScripts.cleanupCommand(cwd, dialect))
+                awaitGone(readyPath)
+            }
             answer
         }
     }
@@ -195,6 +200,14 @@ internal class GitProbe(
             if (attempt < POLL_ATTEMPTS - 1) delay(POLL_INTERVAL_MS)
         }
         return null
+    }
+
+    /** Best effort: wait until the probe's scratch file is gone, then stop caring. */
+    private suspend fun awaitGone(path: String, attempts: Int = 8) {
+        repeat(attempts) { attempt ->
+            if (api.workspaceFileStat(sessionId, path) is RpcResult.Err) return
+            if (attempt < attempts - 1) delay(POLL_INTERVAL_MS)
+        }
     }
 
     /** Read the whole file, page by page: a long diff does not fit in one page. */
