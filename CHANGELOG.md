@@ -7,6 +7,13 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Internal
 
+- Release tooling now publishes the GitHub Release as part of the local release:
+  `scripts/publish-apk.mjs` uploads the APK and writes the body from the tag annotation, the commits
+  since the previous tag and the build's checksum/size, then marks it Latest; `--no-release` keeps
+  the old download-page-only behaviour. `scripts/backfill-releases.mjs` fills in versions that were
+  only ever tagged (it skips tags whose APK is gone from the download directory). The Release
+  workflow now leaves an already-published release alone instead of replacing it with a draft.
+
 - `docs/DESKTOP-PARITY.md` compares the desktop harness (0.2.1-rc.5: 58 client UI plugins and the
   host API packages behind them) with this client, and records what is already covered, what is
   worth porting with the contract each item needs, and what deliberately stays desktop-only. Its

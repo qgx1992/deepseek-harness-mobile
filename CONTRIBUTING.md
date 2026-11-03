@@ -52,3 +52,26 @@ merges `SHA256SUMS.txt` without dropping other projects' entries, and rewrites
 the DSH Mobile block of `index.html`; rollback links are generated from the
 APKs that actually exist in that directory. `--verify` re-reads the result over
 HTTP (status, byte count, checksum list, landing page).
+
+The same run also publishes the GitHub Release for `v<version>`: it uploads the
+APK as the release asset and writes the body from the tag annotation, the
+commits since the previous tag, and the checksum/size of this build. The release
+is marked Latest, so the releases page always points at the build the download
+page serves. Pass `--no-release` to publish only to the local download page.
+The workflow on tag pushes skips releases that already exist, so a local publish
+is never turned into a draft afterwards.
+
+`gh` must be logged in (`gh auth status`); set `DSH_GITHUB_PROXY` (for example
+`http://127.0.0.1:7897`) when the API needs a proxy.
+
+To fill in releases that were only ever tagged:
+
+```sh
+node scripts/backfill-releases.mjs --dry-run   # what is missing
+node scripts/backfill-releases.mjs             # build them
+```
+
+It walks the `v*` tags in order, takes `DSH-Mobile-<version>-release.apk` from
+the download directory (skipping versions whose APK is gone), and skips tags
+that already have a release. `--from 0.22.0` limits the range; `--no-asset`
+creates release pages without binaries.

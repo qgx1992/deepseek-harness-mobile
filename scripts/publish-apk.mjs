@@ -12,6 +12,7 @@
  *   --history <文本>  「此前版本：」那一行（默认沿用页面上原有的文字）
  *   --verify          发布后走一遍 HTTP 复核（HEAD 字节数 + 校验清单）
  *   --port <端口>     复核用端口（默认 8080）
+ *   --no-release      不建/不更新 GitHub Release（默认会建，见 github-release.mjs）
  *
  * 为什么不是一个 copy 了事：下载站同时挂 PiDeck 的包，校验清单是合并的；
  * 页面上还有「回退到旧版」的链接列表，靠目录里实际存在的 APK 生成，不会指向不存在的文件。
@@ -21,6 +22,8 @@ import { copyFileSync, existsSync, readFileSync, readdirSync, statSync, writeFil
 import { createHash } from "node:crypto";
 import { networkInterfaces } from "node:os";
 import path from "node:path";
+
+import { publishRelease, releaseNotes, releaseTitle, repoSlug } from "./github-release.mjs";
 
 const REPO = path.resolve(import.meta.dirname, "..");
 const SOURCE = path.join(REPO, "app", "build", "outputs", "apk", "release", "app-release.apk");
@@ -84,6 +87,38 @@ for (const name of readdirSync(targetDir).sort()) {
 }
 writeFileSync(sumsFile, `${[...otherLines, `${sha256}  ${fileName}`].join("\n")}\n`, "utf8");
 
+// ---- 网络地址（报告、Release 正文、下载页都要用）----
+const lanAddresses = Object.values(networkInterfaces())
+  .flat()
+  .filter((net) => net && net.family === "IPv4" && !net.internal)
+  .map((net) => net.address);
+const port = arg("port", "8080");
+const lanUrl = lanAddresses.length ? `http://${lanAddresses[0]}:${port}/${fileName}` : null;
+
+// ---- GitHub Release：同一份包挂到仓库 Release 页（下载站是内网，这里是公开入口）----
+// 先发 Release 再写下载页：页面上的「GitHub Release」链接只在真的发出去时才出现。
+const releaseTag = `v${version}`;
+const releaseUrl = `https://github.com/${repoSlug()}/releases/tag/${releaseTag}`;
+let releasePublished = false;
+if (!flag("no-release")) {
+  const title = releaseTitle(version, releaseTag);
+  console.log(`GitHub Release ${releaseTag} · ${title}`);
+  releasePublished = publishRelease({
+    version,
+    tag: releaseTag,
+    apkPath: target,
+    notes: releaseNotes({ version, tag: releaseTag, apkPath: target, lanUrl }),
+    title,
+    latest: true,
+  });
+  if (releasePublished) {
+    console.log(`  ✓ ${releaseUrl}`);
+  } else {
+    console.error("! Release 没发出去；下载站那边的发布不受影响");
+    process.exitCode = 1;
+  }
+}
+
 // ---- 下载页：重写 DSH Mobile 那一块 ----
 const indexFile = path.join(targetDir, "index.html");
 if (existsSync(indexFile)) {
@@ -122,6 +157,7 @@ if (existsSync(indexFile)) {
       `同一份二进制，可从 ${rollbacks[0] ?? "上一版"} 直接覆盖升级${note ? "<br>" : ""}`,
       note ? `${note}<br>` : "",
       history ? `此前版本：${history}<br>` : "",
+      releasePublished ? `公开发布：<a href="${releaseUrl}">GitHub Release ${releaseTag}</a><br>` : "",
       `${rollbackLine}</div>`,
       "",
     ].join("\n");
@@ -134,11 +170,6 @@ if (existsSync(indexFile)) {
 }
 
 // ---- 报告 ----
-const lanAddresses = Object.values(networkInterfaces())
-  .flat()
-  .filter((net) => net && net.family === "IPv4" && !net.internal)
-  .map((net) => net.address);
-
 console.log(`✓ ${target}`);
 console.log(`  ${sizeMB} MB (${sizeBytes} B)  sha256=${sha256}  versionCode=${versionCode}`);
 for (const address of ["127.0.0.1", ...lanAddresses]) {
@@ -158,3 +189,4 @@ if (flag("verify")) {
   console.log(`  首页指向 ${version}：${page.includes(`DSH-Mobile-${version}-release.apk`) ? "是" : "否！"}`);
   if (head.status !== 200 || remoteSize !== sizeBytes) process.exitCode = 1;
 }
+
