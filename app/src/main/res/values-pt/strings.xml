@@ -732,6 +732,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">Atualizar o estado do Git</string>
     <string name="git_loading">Lendo a árvore de trabalho…</string>
+    <string name="git_stage_terminal">Abrindo um terminal no host…</string>
+    <string name="git_stage_typing">Perguntando ao shell do host…</string>
+    <string name="git_stage_waiting">À espera do git…</string>
+    <string name="git_stage_reading">A ler a resposta…</string>
     <string name="git_offline">Conecte-se a um host para ler o repositório dele.</string>
     <string name="git_changes">Alterações</string>
     <string name="git_no_changes">Nada sem commit.</string>

@@ -732,6 +732,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">Git स्थिति रीफ़्रेश करें</string>
     <string name="git_loading">कार्यशील ट्री पढ़ी जा रही है…</string>
+    <string name="git_stage_terminal">होस्ट पर टर्मिनल खोला जा रहा है…</string>
+    <string name="git_stage_typing">होस्ट के शेल से पूछा जा रहा है…</string>
+    <string name="git_stage_waiting">git की प्रतीक्षा…</string>
+    <string name="git_stage_reading">उत्तर पढ़ा जा रहा है…</string>
     <string name="git_offline">उसका रिपॉज़िटरी पढ़ने के लिए किसी होस्ट से कनेक्ट करें।</string>
     <string name="git_changes">बदलाव</string>
     <string name="git_no_changes">कुछ भी अनकमिटेड नहीं।</string>

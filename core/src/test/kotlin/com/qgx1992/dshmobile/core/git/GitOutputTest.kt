@@ -185,6 +185,18 @@ class GitOutputTest {
     }
 
     @Test
+    fun `reads a commit the cmd probe could only ask for as oneline`() {
+        // cmd turns `%ar%` into a variable before git runs, so that probe uses `--pretty=oneline`,
+        // which prints "hash subject" and nothing else. The row still has to render.
+        val commit = GitOutput.parseCommit("5ee92e9 Local change two")!!
+
+        assertEquals("5ee92e9", commit.shortHash)
+        assertEquals("Local change two", commit.subject)
+        assertEquals("", commit.relativeTime)
+        assertEquals("", commit.author)
+    }
+
+    @Test
     fun `shows a diff without the line-ending warning above it`() {
         val text = "\uFEFFwarning: in the working copy of 'beta.txt', LF will be replaced by CRLF\r\n" +
             "diff --git a/beta.txt b/beta.txt\r\n--- a/beta.txt\r\n+++ b/beta.txt\r\n@@ -1 +1 @@\r\n-beta\r\n+beta edited\r\n"

@@ -349,6 +349,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">Refresh git status</string>
     <string name="git_loading">Reading the working tree…</string>
+    <string name="git_stage_terminal">Opening a terminal on the host…</string>
+    <string name="git_stage_typing">Asking the shell on the host…</string>
+    <string name="git_stage_waiting">Waiting for git…</string>
+    <string name="git_stage_reading">Reading the answer…</string>
     <string name="git_offline">Connect to a host to read its repository.</string>
     <string name="git_changes">Changes</string>
     <string name="git_no_changes">Nothing uncommitted.</string>

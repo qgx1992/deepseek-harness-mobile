@@ -13,6 +13,7 @@ import org.junit.Test
 class GitScriptsTest {
     private val posix = GitShellDialect.Posix
     private val powershell = GitShellDialect.PowerShell
+    private val cmd = GitShellDialect.Cmd
 
     @Test
     fun `probe asks for status, log and root in one file`() {
@@ -46,9 +47,40 @@ class GitScriptsTest {
     }
 
     @Test
+    fun `probe under cmd carries no percent sign and renames with move`() {
+        // cmd expands `%ar%` before git ever sees it (this machine has AR=ar.exe), so the log has to
+        // avoid a format string entirely; and it has no `&&`, so the steps are chained with `&`.
+        val command = GitScripts.probeCommand("C:\\work\\repo", cmd)
+
+        assertEquals(
+            "cd /d \"C:\\work\\repo\"" +
+                " & if not exist \"C:\\work\\repo\\.dsh-mobile-git\" mkdir \"C:\\work\\repo\\.dsh-mobile-git\"" +
+                " & ( echo @@STATUS@@" +
+                " & git --no-optional-locks -c core.quotepath=false status --short --branch --untracked-files=all 2>&1" +
+                " & echo @@LOG@@" +
+                " & git -c core.quotepath=false log -n 15 --pretty=oneline --abbrev-commit 2>&1" +
+                " & echo @@ROOT@@" +
+                " & git rev-parse --show-toplevel 2>&1" +
+                " ) > \"C:\\work\\repo\\.dsh-mobile-git\\git.tmp\"" +
+                " & move /y \"C:\\work\\repo\\.dsh-mobile-git\\git.tmp\" \"C:\\work\\repo\\.dsh-mobile-git\\git.ready\" >nul",
+            command,
+        )
+        assertTrue(!command.contains("%"))
+    }
+
+    @Test
+    fun `cmd diff and cleanup use its own verbs`() {
+        val untracked = GitScripts.diffCommand("C:\\work\\repo", "fresh.txt", untracked = true, dialect = cmd)
+
+        assertTrue(untracked.contains("diff --no-color --no-index -- /dev/null fresh.txt"))
+        assertTrue(untracked.endsWith("move /y \"C:\\work\\repo\\.dsh-mobile-git\\diff.tmp\" \"C:\\work\\repo\\.dsh-mobile-git\\diff.ready\" >nul"))
+        assertEquals("rmdir /s /q \"C:\\work\\repo\\.dsh-mobile-git\"", GitScripts.cleanupCommand("C:\\work\\repo", cmd))
+    }
+
+    @Test
     fun `the result file is renamed into place only once complete`() {
         // A reader polls for `git.ready`, so it has to appear atomically or not at all.
-        listOf(posix, powershell).forEach { dialect ->
+        listOf(posix, powershell, cmd).forEach { dialect ->
             val command = GitScripts.probeCommand("/work/repo", dialect)
             assertTrue(command.contains("git.tmp"))
             assertTrue(command.indexOf("git.tmp") < command.indexOf("git.ready"))
@@ -87,6 +119,17 @@ class GitScriptsTest {
         assertEquals(posix, GitScripts.dialectFor("/bin/bash", "bash"))
         assertEquals(posix, GitScripts.dialectFor("/bin/sh"))
         assertEquals(posix, GitScripts.dialectFor(null))
+        // A stock Windows host opens cmd, so naming it must not fall through to the POSIX reading.
+        assertEquals(cmd, GitScripts.dialectFor("C:\\Windows\\System32\\cmd.exe", "cmd"))
+    }
+
+    @Test
+    fun `an unknown shell is read from the shape of the working directory`() {
+        assertEquals(cmd, GitScripts.dialectFor(null, null, "C:\\work\\repo"))
+        assertEquals(cmd, GitScripts.dialectFor("something.exe", null, "D:/work/repo"))
+        assertEquals(posix, GitScripts.dialectFor(null, null, "/work/repo"))
+        // Without a working directory nothing is assumed: the old reading is kept.
+        assertEquals(posix, GitScripts.dialectFor("something.exe"))
     }
 
     @Test

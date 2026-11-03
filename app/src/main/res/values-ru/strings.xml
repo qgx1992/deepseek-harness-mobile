@@ -732,6 +732,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">Обновить состояние Git</string>
     <string name="git_loading">Чтение рабочего дерева…</string>
+    <string name="git_stage_terminal">Открываю терминал на хосте…</string>
+    <string name="git_stage_typing">Спрашиваю shell хоста…</string>
+    <string name="git_stage_waiting">Жду git…</string>
+    <string name="git_stage_reading">Читаю ответ…</string>
     <string name="git_offline">Подключитесь к хосту, чтобы прочитать его репозиторий.</string>
     <string name="git_changes">Изменения</string>
     <string name="git_no_changes">Незакоммиченного нет.</string>

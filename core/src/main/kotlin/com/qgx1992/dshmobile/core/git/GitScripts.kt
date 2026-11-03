@@ -1,7 +1,14 @@
 package com.qgx1992.dshmobile.core.git
 
-/** Which shell the host's terminal runs, because the two need different one-liners. */
-enum class GitShellDialect { Posix, PowerShell }
+/**
+ * Which shell the host's terminal runs, because each needs a different one-liner.
+ *
+ * The third one is not a guess. A Windows host that has not configured `defaultShell` falls back to
+ * `cmd.exe` (terminal-controller's `resolveShell`), so a phone pointed at a stock desktop talks to
+ * cmd, not PowerShell — a PowerShell one-liner typed there is read as one long bad command name and
+ * produces no file at all.
+ */
+enum class GitShellDialect { Posix, PowerShell, Cmd }
 
 /**
  * The shell one-liners that ask the host's machine about its repository.
@@ -22,15 +29,26 @@ object GitScripts {
     /** Old-to-new marker git prints for a rename: `R  a.txt -> b.txt`. */
     const val RENAME_ARROW = " -> "
 
-    /** Windows shells quote differently from `sh`; nothing else about the two differs. */
-    fun dialectFor(shellPath: String?, shellName: String? = null): GitShellDialect {
+    /** Windows shells quote differently from `sh`, and cmd differs from both. */
+    fun dialectFor(
+        shellPath: String?,
+        shellName: String? = null,
+        cwd: String? = null,
+    ): GitShellDialect {
         val probe = "${shellPath.orEmpty()} ${shellName.orEmpty()}".lowercase()
-        return if (probe.contains("pwsh") || probe.contains("powershell")) {
-            GitShellDialect.PowerShell
-        } else {
-            GitShellDialect.Posix
+        return when {
+            probe.contains("cmd") -> GitShellDialect.Cmd
+            probe.contains("pwsh") || probe.contains("powershell") -> GitShellDialect.PowerShell
+            probe.contains("bash") || probe.contains("zsh") || probe.contains("fish") ||
+                probe.contains("/sh") || probe.contains("dash") -> GitShellDialect.Posix
+            // Discovery named something exotic. A drive-letter working directory means the host is
+            // Windows, where the default shell is cmd; anywhere else `sh` is the safe reading.
+            cwd != null && WINDOWS_PATH.matches(cwd) -> GitShellDialect.Cmd
+            else -> GitShellDialect.Posix
         }
     }
+
+    private val WINDOWS_PATH = Regex("^[A-Za-z]:[\\\\/].*")
 
     /** Where the probe keeps its files for this working directory. */
     fun tempDir(cwd: String): String = cwd.trimEnd('/', '\\') + "/" + TEMP_DIR
@@ -49,7 +67,13 @@ object GitScripts {
         val tmp = "$dir/git.tmp"
         val ready = "$dir/git.ready"
         val status = "git --no-optional-locks -c core.quotepath=false status --short --branch --untracked-files=all 2>&1"
-        val log = "git -c core.quotepath=false log -n 15 --format='%h%x1f%s%x1f%ar%x1f%an' 2>&1"
+        val log = if (dialect == GitShellDialect.Cmd) {
+            // cmd expands `%ar%` itself — this machine's AR is `ar.exe`, so a format string would
+            // leave "ar.exex1f" in the output. `--pretty=oneline` is the same log without any `%`.
+            "git -c core.quotepath=false log -n 15 --pretty=oneline --abbrev-commit 2>&1"
+        } else {
+            "git -c core.quotepath=false log -n 15 --format='%h%x1f%s%x1f%ar%x1f%an' 2>&1"
+        }
         val root = "git rev-parse --show-toplevel 2>&1"
         return when (dialect) {
             GitShellDialect.Posix -> buildString {
@@ -69,6 +93,17 @@ object GitScripts {
                 // 5.1 writes a BOM here and 7 does not; the reader strips either.
                 append(" | Set-Content -Path ").append(quotePowerShell(tmp)).append(" -Encoding utf8")
                 append("; Move-Item -Force ").append(quotePowerShell(tmp)).append(' ').append(quotePowerShell(ready))
+            }
+            // cmd has no `{ … }` group, so the block is spelled with `&`, and no `set -e` either:
+            // a failing git still appends its message to the file, which is what the tab shows.
+            GitShellDialect.Cmd -> buildString {
+                append("cd /d ").append(quoteCmd(winPath(cwd)))
+                append(" & if not exist ").append(quoteCmd(winPath(dir))).append(" mkdir ").append(quoteCmd(winPath(dir)))
+                append(" & ( echo ").append(GitOutput.STATUS).append(" & ").append(status)
+                append(" & echo ").append(GitOutput.LOG).append(" & ").append(log)
+                append(" & echo ").append(GitOutput.ROOT).append(" & ").append(root)
+                append(" ) > ").append(quoteCmd(winPath(tmp)))
+                append(" & move /y ").append(quoteCmd(winPath(tmp))).append(' ').append(quoteCmd(winPath(ready))).append(" >nul")
             }
         }
     }
@@ -98,6 +133,12 @@ object GitScripts {
                 append(" | Set-Content -Path ").append(quotePowerShell(tmp)).append(" -Encoding utf8")
                 append("; Move-Item -Force ").append(quotePowerShell(tmp)).append(' ').append(quotePowerShell(ready))
             }
+            GitShellDialect.Cmd -> buildString {
+                append("cd /d ").append(quoteCmd(winPath(cwd)))
+                append(" & if not exist ").append(quoteCmd(winPath(dir))).append(" mkdir ").append(quoteCmd(winPath(dir)))
+                append(" & ( ").append(diff).append(" ) > ").append(quoteCmd(winPath(tmp)))
+                append(" & move /y ").append(quoteCmd(winPath(tmp))).append(' ').append(quoteCmd(winPath(ready))).append(" >nul")
+            }
         }
     }
 
@@ -107,8 +148,16 @@ object GitScripts {
         return when (dialect) {
             GitShellDialect.Posix -> "rm -rf " + quotePosix(dir)
             GitShellDialect.PowerShell -> "Remove-Item -LiteralPath " + quotePowerShell(dir) + " -Recurse -Force -ErrorAction SilentlyContinue"
+            GitShellDialect.Cmd -> "rmdir /s /q " + quoteCmd(winPath(dir))
         }
     }
+
+    /** cmd only understands backslashes in the paths it is given here. */
+    private fun winPath(value: String): String =
+        if (WINDOWS_PATH.matches(value)) value.replace('/', '\\') else value
+
+    /** Wrap a path in double quotes for cmd, where a quote inside a path is written twice. */
+    fun quoteCmd(value: String): String = "\"" + value.replace("\"", "\"\"") + "\""
 
     /** Wrap a path in single quotes for `sh`, where a quote inside a quote closes it. */
     fun quotePosix(value: String): String = "'" + value.replace("'", "'\\''") + "'"

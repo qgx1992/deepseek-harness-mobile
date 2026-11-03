@@ -277,6 +277,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">刷新 Git 状态</string>
     <string name="git_loading">正在读取工作树…</string>
+    <string name="git_stage_terminal">正在主机上打开终端…</string>
+    <string name="git_stage_typing">正在让主机的 shell 执行 git…</string>
+    <string name="git_stage_waiting">等待 git 返回…</string>
+    <string name="git_stage_reading">正在读取结果…</string>
     <string name="git_offline">连接主机后才能读取它的仓库。</string>
     <string name="git_changes">改动</string>
     <string name="git_no_changes">没有未提交的改动。</string>

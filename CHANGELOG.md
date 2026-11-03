@@ -265,6 +265,30 @@ All notable changes to DSH Mobile are documented here. Format based on
   this client's pinned baseline, not the desktop harness's version, and no wire field carries the
   latter: `host.describe` went away in 0.1.2 and the ready frame has held only `home` ever since.
 
+### Fixed
+
+- **The Git tab answers on a Windows host: the probe speaks `cmd.exe` as well as PowerShell and
+  POSIX.** A Windows host's default terminal is `cmd.exe` — the harness picks it when no shell is
+  configured — and the probe was typing a PowerShell one-liner into it, which `cmd` takes for the name
+  of a program: it runs nothing, writes no file, and leaves the tab on "Reading the working tree…"
+  forever. The probe now asks `terminal/shells` for a shell it can drive — PowerShell first, then
+  POSIX, then `cmd` — and passes that `shellPath` to `terminal/create` instead of taking the default.
+  Each dialect gets its own command. Under `cmd` the log line cannot use `--format=%h%x1f…`, because
+  `cmd` expands `%ar%` from the environment before git ever sees it and the record comes back
+  mangled (on this machine `%ar%` is `ar.exe`), so that dialect asks for `--pretty=oneline
+  --abbrev-commit` and the commits carry the hash and subject with the author and relative time left
+  empty rather than invented.
+- **A probe that runs out of time reports a failure instead of a cancellation.** The ten-second wait
+  on the result file threw `TimeoutCancellationException`, which is a `CancellationException`, and the
+  tab read that as "this screen went away" and swallowed it — leaving the spinner up forever with
+  nothing to say. The wait now surfaces an error, bounded at 25 seconds overall, and asks whether the
+  coroutine was genuinely cancelled before it converts a timeout, so a real cancellation still
+  cancels. The message carries the shell it used, the dialect it spoke, whether the shell accepted
+  input at all, and the last lines of the terminal's own screen.
+- **The tab says which step it is on.** Opening a terminal on the host, asking the shell, waiting for
+  git and reading the answer now have a line each, in all eleven languages, so a slow host and a
+  stuck one no longer look alike.
+
 ## [0.18.0] - 2026-10-21
 
 Pressing and holding things in the app now opens a menu of what you can do with them. This

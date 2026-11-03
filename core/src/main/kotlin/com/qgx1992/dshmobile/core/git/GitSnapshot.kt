@@ -65,13 +65,13 @@ data class GitChange(
     val code: String get() = "$index$worktree"
 }
 
-/** One row of `git log --format='%h%x1f%s%x1f%ar%x1f%an'`. */
+/** One row of `git log --format='%h%x1f%s%x1f%ar%x1f%an'`; time and author are blank under cmd. */
 data class GitCommit(
     val shortHash: String,
     val subject: String,
     /** Git's own relative date — `3 days ago` — which needs no clock of ours to stay true. */
-    val relativeTime: String,
-    val author: String,
+    val relativeTime: String = "",
+    val author: String = "",
 )
 
 /**
@@ -158,11 +158,21 @@ object GitOutput {
         return GitChange(index = index, worktree = worktree, path = path, originalPath = original)
     }
 
-    /** Parse one `%h%x1f%s%x1f%ar%x1f%an` line. */
+    /** Parse one `%h%x1f%s%x1f%ar%x1f%an` line, or a plain `--pretty=oneline` line from cmd. */
     fun parseCommit(line: String): GitCommit? {
         if (line.isBlank()) return null
         val parts = line.split(UNIT_SEPARATOR)
-        if (parts.size < 4) return null
+        if (parts.size < 4) {
+            // cmd expands `%ar%` as a variable before git ever sees it, so its probe asks for
+            // `--pretty=oneline` instead: "1a2b3c4 subject". Time and author are unknown there.
+            val trimmed = line.trim()
+            val space = trimmed.indexOf(' ')
+            if (space <= 0) return null
+            return GitCommit(
+                shortHash = trimmed.substring(0, space),
+                subject = trimmed.substring(space + 1).trim(),
+            )
+        }
         return GitCommit(
             shortHash = parts.first().trim(),
             // A subject containing the separator would otherwise be silently truncated; join the

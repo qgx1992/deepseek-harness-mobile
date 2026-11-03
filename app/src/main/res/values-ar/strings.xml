@@ -732,6 +732,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">تحديث حالة Git</string>
     <string name="git_loading">جارٍ قراءة شجرة العمل…</string>
+    <string name="git_stage_terminal">جارٍ فتح طرفية على المضيف…</string>
+    <string name="git_stage_typing">جارٍ سؤال shell المضيف…</string>
+    <string name="git_stage_waiting">في انتظار git…</string>
+    <string name="git_stage_reading">جارٍ قراءة الإجابة…</string>
     <string name="git_offline">اتصل بمضيف لقراءة مستودعه.</string>
     <string name="git_changes">التغييرات</string>
     <string name="git_no_changes">لا توجد تغييرات غير مُثبّتة.</string>

@@ -732,6 +732,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">Git স্থিতি রিফ্রেশ করুন</string>
     <string name="git_loading">ওয়ার্কিং ট্রি পড়া হচ্ছে…</string>
+    <string name="git_stage_terminal">হোস্টে টার্মিনাল খোলা হচ্ছে…</string>
+    <string name="git_stage_typing">হোস্টের শেলকে জিজ্ঞাসা করা হচ্ছে…</string>
+    <string name="git_stage_waiting">git-এর অপেক্ষায়…</string>
+    <string name="git_stage_reading">উত্তর পড়া হচ্ছে…</string>
     <string name="git_offline">এর রিপোজিটরি পড়তে একটি হোস্টে সংযোগ করুন।</string>
     <string name="git_changes">পরিবর্তন</string>
     <string name="git_no_changes">কমিট না করা কিছু নেই।</string>

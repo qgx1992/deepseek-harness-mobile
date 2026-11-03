@@ -41,6 +41,7 @@ import com.qgx1992.dshmobile.core.git.GitSnapshot
 import com.qgx1992.dshmobile.core.wire.DshApiClient
 import com.qgx1992.dshmobile.core.wire.RemoteStreamMux
 import com.qgx1992.dshmobile.data.GitProbe
+import com.qgx1992.dshmobile.data.GitProbeStage
 import com.qgx1992.dshmobile.ui.components.DsButton
 import com.qgx1992.dshmobile.ui.components.DsButtonSize
 import com.qgx1992.dshmobile.ui.components.DsButtonVariant
@@ -57,7 +58,8 @@ private val MonoBody = DsType.small13.copy(fontFamily = DsType.codeFont)
 
 /** What the tab is showing: an answer, a question in flight, or the reason there is no answer. */
 internal sealed interface GitTabState {
-    data object Loading : GitTabState
+    /** Which step the probe is on — a tab that spins without saying why reads as broken. */
+    data class Loading(val stage: GitProbeStage = GitProbeStage.Preparing) : GitTabState
 
     data class Ready(val snapshot: GitSnapshot) : GitTabState
 
@@ -96,7 +98,7 @@ internal fun GitTab(
 ) {
     val colors = DsTheme.colors
     var asked by remember { mutableIntStateOf(0) }
-    var state by remember(api, mux, sessionId, cwd) { mutableStateOf<GitTabState>(GitTabState.Loading) }
+    var state by remember(api, mux, sessionId, cwd) { mutableStateOf<GitTabState>(GitTabState.Loading()) }
     var open by remember { mutableStateOf<GitChange?>(null) }
     var diff by remember { mutableStateOf<DiffState>(DiffState.Idle) }
 
@@ -109,9 +111,10 @@ internal fun GitTab(
             state = GitTabState.Failed(NO_HOST)
             return@LaunchedEffect
         }
-        state = GitTabState.Loading
+        state = GitTabState.Loading()
         state = try {
-            GitTabState.Ready(GitProbe(client, streams, sessionId).snapshot(cwd))
+            val probe = GitProbe(client, streams, sessionId) { stage -> state = GitTabState.Loading(stage) }
+            GitTabState.Ready(probe.snapshot(cwd))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -200,7 +203,7 @@ private fun GitOverview(
 
         when (state) {
             is GitTabState.Loading -> item(key = "loading") {
-                Notice(stringResource(R.string.git_loading))
+                Notice(stringResource(state.stage.label()))
             }
 
             is GitTabState.Failed -> {
@@ -346,14 +349,18 @@ private fun CommitRow(commit: GitCommit) {
         Column(Modifier.weight(1f)) {
             Text(commit.subject, style = DsType.small13, color = colors.labelPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
             // Git's own relative date, not one of ours: it stays true on a phone whose clock, time
-            // zone or idea of "now" has nothing to do with the host's.
-            Text(
-                "${commit.author} · ${commit.relativeTime}",
-                style = MonoCaption,
-                color = colors.labelTertiary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            // zone or idea of "now" has nothing to do with the host's. cmd's probe cannot carry the
+            // author and date, so a row without them simply drops the line instead of showing " · ".
+            val byline = listOf(commit.author, commit.relativeTime).filter { it.isNotBlank() }.joinToString(" · ")
+            if (byline.isNotEmpty()) {
+                Text(
+                    byline,
+                    style = MonoCaption,
+                    color = colors.labelTertiary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -459,6 +466,15 @@ private fun FailedNotice(message: String, onRetry: (() -> Unit)?) {
 private fun GitTabState.location(cwd: String?): String = when (this) {
     is GitTabState.Ready -> snapshot.root ?: cwd.orEmpty()
     else -> cwd.orEmpty()
+}
+
+/** What a loading tab says while the probe works: one line per step, so a stall is visible. */
+private fun GitProbeStage.label(): Int = when (this) {
+    GitProbeStage.Preparing -> R.string.git_loading
+    GitProbeStage.Terminal -> R.string.git_stage_terminal
+    GitProbeStage.Typing -> R.string.git_stage_typing
+    GitProbeStage.Waiting -> R.string.git_stage_waiting
+    GitProbeStage.Reading -> R.string.git_stage_reading
 }
 
 /**

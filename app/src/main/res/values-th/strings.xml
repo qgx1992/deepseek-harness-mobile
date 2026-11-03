@@ -732,6 +732,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">รีเฟรชสถานะ Git</string>
     <string name="git_loading">กำลังอ่านทรีการทำงาน…</string>
+    <string name="git_stage_terminal">กำลังเปิดเทอร์มินัลบนโฮสต์…</string>
+    <string name="git_stage_typing">กำลังถามเชลล์ของโฮสต์…</string>
+    <string name="git_stage_waiting">กำลังรอ git…</string>
+    <string name="git_stage_reading">กำลังอ่านคำตอบ…</string>
     <string name="git_offline">เชื่อมต่อโฮสต์เพื่ออ่านรีโพซิทอรีของโฮสต์นั้น</string>
     <string name="git_changes">การเปลี่ยนแปลง</string>
     <string name="git_no_changes">ไม่มีสิ่งที่ยังไม่คอมมิต</string>

@@ -732,6 +732,10 @@
     <string name="git_title">Git</string>
     <string name="git_refresh">Git کی حالت تازہ کریں</string>
     <string name="git_loading">ورکنگ ٹری پڑھی جا رہی ہے…</string>
+    <string name="git_stage_terminal">میزبان پر ٹرمینل کھولا جا رہا ہے…</string>
+    <string name="git_stage_typing">میزبان کے شیل سے پوچھا جا رہا ہے…</string>
+    <string name="git_stage_waiting">git کا انتظار…</string>
+    <string name="git_stage_reading">جواب پڑھا جا رہا ہے…</string>
     <string name="git_offline">اس کا ریپوزٹری پڑھنے کے لیے کسی ہوسٹ سے جڑیں।</string>
     <string name="git_changes">تبدیلیاں</string>
     <string name="git_no_changes">کوئی غیر کمٹ شدہ چیز نہیں।</string>

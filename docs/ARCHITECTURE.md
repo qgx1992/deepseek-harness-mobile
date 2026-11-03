@@ -72,7 +72,10 @@ touches a working tree, so `data/GitProbe` opens a terminal on the host, types
 `git status`/`git log`/`git rev-parse` into one file that the shell renames when
 complete, and reads it back via `workspaceFiles` at an absolute path — the
 parser (`core/git/GitOutput`) is pure and tested against real captured output
-from both a POSIX shell and PowerShell.
+from a POSIX shell, PowerShell and `cmd.exe`. A Windows host with no shell
+configured defaults to `cmd.exe`, so the probe picks a shell it can drive from
+`terminal/shells` (PowerShell, then POSIX, then `cmd`) and writes commands in
+that shell's dialect rather than assuming one.
 
 mock-harness/   Ktor implementation of the /api protocol for tests
 conformance/    JVM tests against a real harness checkout and a deterministic model
