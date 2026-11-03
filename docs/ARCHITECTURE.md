@@ -61,10 +61,18 @@ app/            Android UI
 
 The chat surface is split by responsibility rather than living in one file:
 ChatScreen (shell, pickers, send path) · ChatTopBar (two-row chrome +
-Chat/Trajectory tabs) · ChatTranscript · ChatNodeItem · ToolRowModel (verb +
+Chat/Trajectory/Git tabs) · ChatTranscript · ChatNodeItem · ToolRowModel (verb +
 cwd-relative summary) · Composer (draft, attachment strip: image tiles and
-file chips with upload state) · Docks · TrajectoryTab · Sheet*.kt (commands,
+file chips with upload state) · Docks · TrajectoryTab · GitTab (working tree,
+read through the host's terminal — see below) · Sheet*.kt (commands,
 models, presets, subagents, permission) · ChatProjections (defensive readers).
+
+Git is the one tab the harness cannot feed: none of its published methods
+touches a working tree, so `data/GitProbe` opens a terminal on the host, types
+`git status`/`git log`/`git rev-parse` into one file that the shell renames when
+complete, and reads it back via `workspaceFiles` at an absolute path — the
+parser (`core/git/GitOutput`) is pure and tested against real captured output
+from both a POSIX shell and PowerShell.
 
 mock-harness/   Ktor implementation of the /api protocol for tests
 conformance/    JVM tests against a real harness checkout and a deterministic model
