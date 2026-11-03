@@ -89,8 +89,15 @@ private fun RunStatus(running: Boolean) {
     }
 }
 
-/** The two views of a session the harness offers. */
-internal enum class ChatTab { Chat, Trajectory }
+/**
+ * The views of a session: the harness's own two, and one the client reads for itself.
+ *
+ * Chat and Trajectory are the harness's readings of a turn — as it reads, and as it ran. Git is
+ * ours, because the harness publishes nothing about a working tree; it is read off the same machine
+ * by running git there (see [com.qgx1992.dshmobile.data.GitProbe]). That makes it a sibling view of
+ * the session rather than a screen of its own: it belongs beside the conversation it describes.
+ */
+internal enum class ChatTab { Chat, Trajectory, Git }
 
 /**
  * The session chrome: a two-row bar plus the Chat / Trajectory tabs and the Workspace button.
@@ -342,7 +349,8 @@ private fun MetaChip(
  * The tab strip, as a compact segmented control rather than underlined tabs.
  *
  * Two short labels sitting over a full-width underline read as a page heading and cost a row of
- * their own; a 28dp track wraps to the labels and lets the chrome end there.
+ * their own; a 28dp track wraps to the labels and lets the chrome end there. Three chips still fit
+ * one thumb's width on a phone, which is why Git joins the strip instead of the overflow menu.
  */
 @Composable
 private fun ChatTabRow(tab: ChatTab, onTabChange: (ChatTab) -> Unit, onOpenWorkspace: () -> Unit, workspaceEnabled: Boolean) {
@@ -353,18 +361,29 @@ private fun ChatTabRow(tab: ChatTab, onTabChange: (ChatTab) -> Unit, onOpenWorks
             .padding(horizontal = DsSpacing.medium, vertical = DsSpacing.tiny),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Which tab is live is load-bearing, not decoration: the two views render a user message
-        // completely differently — a right-aligned bubble in Chat, a `> line` of caption text in
-        // the Trajectory ledger — so a reader who cannot tell at a glance concludes the chat itself
-        // is broken.
+        // Which tab is live is load-bearing, not decoration: the three views render the same turn
+        // completely differently — a right-aligned bubble in Chat, a `> line` of caption text in the
+        // Trajectory ledger, a list of paths in Git — so a reader who cannot tell at a glance
+        // concludes the chat itself is broken.
         DsSegmented(
             segments = listOf(
                 DsSegment(TAB_CHAT, stringResource(R.string.chat_tab)),
                 DsSegment(TAB_TRAJECTORY, stringResource(R.string.trajectory_title)),
+                DsSegment(TAB_GIT, stringResource(R.string.git_title)),
             ),
-            selectedKey = if (tab == ChatTab.Chat) TAB_CHAT else TAB_TRAJECTORY,
+            selectedKey = when (tab) {
+                ChatTab.Chat -> TAB_CHAT
+                ChatTab.Trajectory -> TAB_TRAJECTORY
+                ChatTab.Git -> TAB_GIT
+            },
             onSelect = { key ->
-                onTabChange(if (key == TAB_CHAT) ChatTab.Chat else ChatTab.Trajectory)
+                onTabChange(
+                    when (key) {
+                        TAB_TRAJECTORY -> ChatTab.Trajectory
+                        TAB_GIT -> ChatTab.Git
+                        else -> ChatTab.Chat
+                    },
+                )
             },
             role = Role.Tab,
         )
@@ -390,3 +409,4 @@ private fun ChatTabRow(tab: ChatTab, onTabChange: (ChatTab) -> Unit, onOpenWorks
 
 private const val TAB_CHAT = "chat"
 private const val TAB_TRAJECTORY = "trajectory"
+private const val TAB_GIT = "git"

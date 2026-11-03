@@ -727,4 +727,21 @@
     <string name="market_source_invalid">यह स्रोत पढ़ा नहीं जा सका।</string>
     <string name="team_task_write_scopes">राइट स्कोप</string>
     <string name="team_task_blocked_by">%1$s द्वारा अवरुद्ध</string>
+
+    <!-- The Git tab: the working tree of the session's project, read off the host. -->
+    <string name="git_title">Git</string>
+    <string name="git_refresh">Git स्थिति रीफ़्रेश करें</string>
+    <string name="git_loading">कार्यशील ट्री पढ़ी जा रही है…</string>
+    <string name="git_offline">उसका रिपॉज़िटरी पढ़ने के लिए किसी होस्ट से कनेक्ट करें।</string>
+    <string name="git_changes">बदलाव</string>
+    <string name="git_no_changes">कुछ भी अनकमिटेड नहीं।</string>
+    <string name="git_commits">हाल के कमिट</string>
+    <string name="git_no_commits">अभी कोई कमिट नहीं।</string>
+    <string name="git_no_commits_yet">कोई कमिट नहीं</string>
+    <string name="git_detached">अलग किया गया HEAD</string>
+    <string name="git_renamed_from">%1$s से</string>
+    <string name="git_back">वापस</string>
+    <string name="git_retry">फिर कोशिश करें</string>
+    <string name="git_diff_loading">डिफ़ पढ़ा जा रहा है…</string>
+    <string name="git_diff_empty">दिखाने के लिए कोई टेक्स्ट नहीं — बाइनरी या खाली।</string>
 </resources>

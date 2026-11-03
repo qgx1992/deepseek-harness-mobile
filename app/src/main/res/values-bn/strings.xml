@@ -727,4 +727,21 @@
     <string name="market_source_invalid">এই সোর্সটি পড়া যায়নি।</string>
     <string name="team_task_write_scopes">রাইট স্কোপ</string>
     <string name="team_task_blocked_by">%1$s দ্বারা অবরুদ্ধ</string>
+
+    <!-- The Git tab: the working tree of the session's project, read off the host. -->
+    <string name="git_title">Git</string>
+    <string name="git_refresh">Git স্থিতি রিফ্রেশ করুন</string>
+    <string name="git_loading">ওয়ার্কিং ট্রি পড়া হচ্ছে…</string>
+    <string name="git_offline">এর রিপোজিটরি পড়তে একটি হোস্টে সংযোগ করুন।</string>
+    <string name="git_changes">পরিবর্তন</string>
+    <string name="git_no_changes">কমিট না করা কিছু নেই।</string>
+    <string name="git_commits">সাম্প্রতিক কমিট</string>
+    <string name="git_no_commits">এখনো কোনো কমিট নেই।</string>
+    <string name="git_no_commits_yet">কোনো কমিট নেই</string>
+    <string name="git_detached">বিচ্ছিন্ন HEAD</string>
+    <string name="git_renamed_from">%1$s থেকে</string>
+    <string name="git_back">ফিরে যান</string>
+    <string name="git_retry">আবার চেষ্টা করুন</string>
+    <string name="git_diff_loading">ডিফ পড়া হচ্ছে…</string>
+    <string name="git_diff_empty">দেখানোর জন্য কোনো লেখা নেই — বাইনারি বা ফাঁকা।</string>
 </resources>

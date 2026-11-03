@@ -86,6 +86,25 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Added
 
+- **A session has a Git tab: its working tree, read off the machine that holds it.** The harness
+  publishes no git endpoint — not one of its 144 methods touches a working tree — so the tab asks
+  the host's own shell to run `git status --short --branch --untracked-files=all`, `git log` and
+  `git rev-parse --show-toplevel`, write them into one file under `.dsh-mobile-git/`, and read that
+  file back as text through `workspaceFiles/read`; the shell writes a temporary file and renames it
+  when it is done, so a file that is there is complete. One probe answers the whole tab: the branch
+  with its upstream and ahead/behind distance, every uncommitted entry with both porcelain columns
+  (`MM`, `R `, ` M` and `??` are different things to someone deciding what to commit), and the last
+  15 commits with git's own relative dates. Tapping a change runs a second probe for that file's
+  diff, shown a line at a time. Both commands pass `--no-optional-locks`, so reading a repository
+  never fights the agent for its index lock, and the file rather than the terminal's screen is the
+  interface on purpose: a screen is escape sequences and somebody's prompt theme, and a git tab
+  must not depend on either. Read-only — staging and committing stay with the agent, which is
+  already in that repository with better error handling than a phone button could offer — and it
+  reads when it opens and when you ask, not on a timer. Parsing lives in `core` as a pure function,
+  with 22 unit tests over output captured from real repositories in both shell dialects
+  (PowerShell 5.1 writes a BOM and CRLF; POSIX writes neither). A host without a terminal, a
+  session without a working directory, and a directory that is not a repository each say so in the
+  host's own words.
 - **Work details: the transcript's detail level, four steps, as the desktop Web client defines
   them.** Settings → General gained a Work details row with Compact, Standard, Detailed and
   Everything. The levels are not taste — each one is a row of the desktop's own table: whether a

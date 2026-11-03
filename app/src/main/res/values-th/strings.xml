@@ -727,4 +727,21 @@
     <string name="market_source_invalid">อ่านแหล่งนี้ไม่ได้</string>
     <string name="team_task_write_scopes">ขอบเขตการเขียน</string>
     <string name="team_task_blocked_by">ถูกบล็อกโดย %1$s</string>
+
+    <!-- The Git tab: the working tree of the session's project, read off the host. -->
+    <string name="git_title">Git</string>
+    <string name="git_refresh">รีเฟรชสถานะ Git</string>
+    <string name="git_loading">กำลังอ่านทรีการทำงาน…</string>
+    <string name="git_offline">เชื่อมต่อโฮสต์เพื่ออ่านรีโพซิทอรีของโฮสต์นั้น</string>
+    <string name="git_changes">การเปลี่ยนแปลง</string>
+    <string name="git_no_changes">ไม่มีสิ่งที่ยังไม่คอมมิต</string>
+    <string name="git_commits">คอมมิตล่าสุด</string>
+    <string name="git_no_commits">ยังไม่มีคอมมิต</string>
+    <string name="git_no_commits_yet">ยังไม่มีคอมมิต</string>
+    <string name="git_detached">HEAD แยกออก</string>
+    <string name="git_renamed_from">จาก %1$s</string>
+    <string name="git_back">กลับ</string>
+    <string name="git_retry">ลองอีกครั้ง</string>
+    <string name="git_diff_loading">กำลังอ่านดิฟ…</string>
+    <string name="git_diff_empty">ไม่มีข้อความให้แสดง — ไบนารีหรือว่าง</string>
 </resources>

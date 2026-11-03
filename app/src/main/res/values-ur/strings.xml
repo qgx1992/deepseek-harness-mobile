@@ -727,4 +727,21 @@
     <string name="market_source_invalid">یہ ذریعہ پڑھا نہیں جا سکا۔</string>
     <string name="team_task_write_scopes">رائٹ اسکوپس</string>
     <string name="team_task_blocked_by">%1$s کی طرف سے مسدود</string>
+
+    <!-- The Git tab: the working tree of the session's project, read off the host. -->
+    <string name="git_title">Git</string>
+    <string name="git_refresh">Git کی حالت تازہ کریں</string>
+    <string name="git_loading">ورکنگ ٹری پڑھی جا رہی ہے…</string>
+    <string name="git_offline">اس کا ریپوزٹری پڑھنے کے لیے کسی ہوسٹ سے جڑیں।</string>
+    <string name="git_changes">تبدیلیاں</string>
+    <string name="git_no_changes">کوئی غیر کمٹ شدہ چیز نہیں।</string>
+    <string name="git_commits">حالیہ کمٹس</string>
+    <string name="git_no_commits">ابھی کوئی کمٹ نہیں।</string>
+    <string name="git_no_commits_yet">کوئی کمٹ نہیں</string>
+    <string name="git_detached">الگ شدہ HEAD</string>
+    <string name="git_renamed_from">%1$s سے</string>
+    <string name="git_back">واپس</string>
+    <string name="git_retry">دوبارہ کوشش کریں</string>
+    <string name="git_diff_loading">ڈف پڑھی جا رہی ہے…</string>
+    <string name="git_diff_empty">دکھانے کے لیے کوئی متن نہیں — بائنری یا خالی।</string>
 </resources>

@@ -628,6 +628,15 @@ fun ChatScreen(
                             loadOlderFailed = loadOlderFailed,
                             onLoadOlder = { scope.launch { store.loadOlder() } },
                         )
+                        // Git is read from the host's own shell rather than from the harness, so it
+                        // arrives with the connection's client and mux rather than with the
+                        // conversation: there is nothing here to render until both are in hand.
+                        ChatTab.Git -> GitTab(
+                            api = store.apiForHost(hostKey),
+                            mux = store.muxForHost(hostKey),
+                            sessionId = currentSessionId,
+                            cwd = workingDirectory,
+                        )
                     }
                 }
 

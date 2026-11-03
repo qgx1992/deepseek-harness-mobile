@@ -727,4 +727,21 @@
     <string name="market_source_invalid">Não foi possível ler essa fonte.</string>
     <string name="team_task_write_scopes">Escopos de escrita</string>
     <string name="team_task_blocked_by">Bloqueada por %1$s</string>
+
+    <!-- The Git tab: the working tree of the session's project, read off the host. -->
+    <string name="git_title">Git</string>
+    <string name="git_refresh">Atualizar o estado do Git</string>
+    <string name="git_loading">Lendo a árvore de trabalho…</string>
+    <string name="git_offline">Conecte-se a um host para ler o repositório dele.</string>
+    <string name="git_changes">Alterações</string>
+    <string name="git_no_changes">Nada sem commit.</string>
+    <string name="git_commits">Commits recentes</string>
+    <string name="git_no_commits">Ainda sem commits.</string>
+    <string name="git_no_commits_yet">sem commits</string>
+    <string name="git_detached">HEAD destacado</string>
+    <string name="git_renamed_from">de %1$s</string>
+    <string name="git_back">Voltar</string>
+    <string name="git_retry">Tentar de novo</string>
+    <string name="git_diff_loading">Lendo o diff…</string>
+    <string name="git_diff_empty">Nenhum texto para mostrar — binário ou vazio.</string>
 </resources>

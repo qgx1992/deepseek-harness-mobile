@@ -727,4 +727,21 @@
     <string name="market_source_invalid">Не удалось прочитать этот источник.</string>
     <string name="team_task_write_scopes">Области записи</string>
     <string name="team_task_blocked_by">Блокирует %1$s</string>
+
+    <!-- The Git tab: the working tree of the session's project, read off the host. -->
+    <string name="git_title">Git</string>
+    <string name="git_refresh">Обновить состояние Git</string>
+    <string name="git_loading">Чтение рабочего дерева…</string>
+    <string name="git_offline">Подключитесь к хосту, чтобы прочитать его репозиторий.</string>
+    <string name="git_changes">Изменения</string>
+    <string name="git_no_changes">Незакоммиченного нет.</string>
+    <string name="git_commits">Последние коммиты</string>
+    <string name="git_no_commits">Коммитов пока нет.</string>
+    <string name="git_no_commits_yet">коммитов нет</string>
+    <string name="git_detached">Отсоединённый HEAD</string>
+    <string name="git_renamed_from">из %1$s</string>
+    <string name="git_back">Назад</string>
+    <string name="git_retry">Повторить</string>
+    <string name="git_diff_loading">Чтение diff…</string>
+    <string name="git_diff_empty">Нечего показывать — двоичный файл или пусто.</string>
 </resources>

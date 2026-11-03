@@ -727,4 +727,21 @@
     <string name="market_source_invalid">تعذر قراءة هذا المصدر.</string>
     <string name="team_task_write_scopes">نطاقات الكتابة</string>
     <string name="team_task_blocked_by">محجوبة بواسطة %1$s</string>
+
+    <!-- The Git tab: the working tree of the session's project, read off the host. -->
+    <string name="git_title">Git</string>
+    <string name="git_refresh">تحديث حالة Git</string>
+    <string name="git_loading">جارٍ قراءة شجرة العمل…</string>
+    <string name="git_offline">اتصل بمضيف لقراءة مستودعه.</string>
+    <string name="git_changes">التغييرات</string>
+    <string name="git_no_changes">لا توجد تغييرات غير مُثبّتة.</string>
+    <string name="git_commits">آخر الالتزامات</string>
+    <string name="git_no_commits">لا توجد التزامات بعد.</string>
+    <string name="git_no_commits_yet">بلا التزامات</string>
+    <string name="git_detached">HEAD منفصل</string>
+    <string name="git_renamed_from">من %1$s</string>
+    <string name="git_back">رجوع</string>
+    <string name="git_retry">إعادة المحاولة</string>
+    <string name="git_diff_loading">جارٍ قراءة الفرق…</string>
+    <string name="git_diff_empty">لا يوجد نص للعرض — ملف ثنائي أو فارغ.</string>
 </resources>
