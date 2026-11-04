@@ -5,6 +5,15 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ## [Unreleased]
 
+### Changed
+
+- **The transcript lists a turn's work step by step, with no process row.** The `Process · N steps`
+  fold, the tool-call and context group headers, the 32-step auto-fold and the *Work details* /
+  *Steps fold when* settings are gone. A transcript row is now one node — a thought, a tool call, an
+  injected context block or a reply — in the order the harness produced it, which is how the desktop
+  Web client reads a session. Rows are drawn straight from the node list, so a turn no longer has to
+  be re-folded when it settles, and every row keeps its identity from the moment it streams in.
+
 ### Internal
 
 - Release tooling now publishes the GitHub Release as part of the local release:

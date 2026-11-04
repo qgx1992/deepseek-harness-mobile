@@ -18,8 +18,9 @@
 >
 > - **A session no longer stays "running" after it finishes.** A complete follow snapshot now
 >   outranks the remembered live state, and `api-session/status` updates it as well.
-> - **Tool calls, injected context and thinking fold into one expandable `Process · N steps` row** —
->   including the turn that is still running, which used to stay expanded.
+> - **The transcript lists a turn's work step by step**, the way the desktop Web client reads: every
+>   thought, tool call, injected context and reply is its own row. Nothing folds into a
+>   `Process · N steps` row, and the running turn is not folded either.
 > - **`HISTORY_PAGE_SIZE` 60 → 500**, matching the desktop client, so the history sheet rarely has
 >   to be paged by hand.
 > - A turn rail beside the history button.
@@ -66,7 +67,7 @@ The [project site](https://dshm.zyphite.com) has a one-page overview, and the
 | Connect | Chat | Trajectory | Details |
 |:--:|:--:|:--:|:--:|
 | <img src="docs/images/home.png" width="200" alt="Connect screen with a pasted dsh web link in the address field"> | <img src="docs/images/chat.png" width="200" alt="A reply streaming in while the top bar says Working and the stop button is showing"> | <img src="docs/images/trajectory.png" width="200" alt="Trajectory tab listing every tool call of the first turn"> | <img src="docs/images/session-info.png" width="200" alt="Details panel with the session, its model, context use and activity"> |
-| Paste the link the harness prints, and you are connected and signed in. | Replies stream in. Tool calls fold into one row you can open. | Every tool call, turn by turn. | The session's model, context, goal, plan mode and jobs. |
+| Paste the link the harness prints, and you are connected and signed in. | Replies stream in. Every step — reasoning, tool calls, the answer — is its own row. | Every tool call, turn by turn. | The session's model, context, goal, plan mode and jobs. |
 
 | Subagents | Terminal | Dark theme |
 |:--:|:--:|:--:|
