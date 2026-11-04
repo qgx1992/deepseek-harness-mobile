@@ -92,6 +92,27 @@ class ToolRowModelTest {
     }
 
     @Test
+    fun `the desktop harness's namespaced tools read as their plain counterparts`() {
+        // A desktop-driven session sends `ops_bash`, `ops_grep`, … Unmapped, every one of those
+        // rows read `Tool call · ops_bash`, which said less about the call than the bare name did.
+        assertEquals(ToolRowVariant.Bash, classifyTool("ops_bash"))
+        assertEquals(ToolRowVariant.Search, classifyTool("ops_grep"))
+        assertEquals(ToolRowVariant.Search, classifyTool("ops_glob"))
+        assertEquals(ToolRowVariant.Read, classifyTool("ops_read_files"))
+        assertEquals(ToolRowVariant.Read, classifyTool("ops_inspect_local_file"))
+        assertEquals(ToolRowVariant.Write, classifyTool("ops_write"))
+        assertEquals(ToolRowVariant.Edit, classifyTool("ops_edit"))
+
+        val row = toolRowModel(
+            toolName = "ops_bash",
+            argumentsJson = """{"description":"Run app unit tests","command":"./gradlew.bat :app:test"}""",
+            cwd = null,
+        )
+        assertEquals("Bash", row.title)
+        assertEquals("Run app unit tests", row.summary)
+    }
+
+    @Test
     fun `an unclassified tool still identifies itself`() {
         val row = toolRowModel("some_new_tool", """{"whatever":1}""", cwd = null)
         assertEquals("Tool call", row.title)

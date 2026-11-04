@@ -42,6 +42,18 @@ private val TOOL_VARIANTS: Map<String, ToolRowVariant> = mapOf(
     "write" to ToolRowVariant.Write,
     "edit" to ToolRowVariant.Edit,
     "run_code" to ToolRowVariant.Code,
+    // The same tools under the desktop harness's namespaced spelling (`ops_bash`, `ops_grep`, …).
+    // Without these a session driven from the desktop read every call as a bare "Tool call", because
+    // the raw name was all the row had to go on.
+    "ops_bash" to ToolRowVariant.Bash,
+    "ops_read_files" to ToolRowVariant.Read,
+    "ops_inspect_local_file" to ToolRowVariant.Read,
+    "ops_grep" to ToolRowVariant.Search,
+    "ops_glob" to ToolRowVariant.Search,
+    "ops_write" to ToolRowVariant.Write,
+    "ops_edit" to ToolRowVariant.Edit,
+    "ops_result" to ToolRowVariant.Other,
+    "ops_discover_tools" to ToolRowVariant.Other,
     "cordis_package_inspect" to ToolRowVariant.Read,
     "cordis_runtime_inspect" to ToolRowVariant.Read,
     "cordis_run" to ToolRowVariant.Other,
