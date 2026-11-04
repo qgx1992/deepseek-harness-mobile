@@ -71,8 +71,7 @@ import com.qgx1992.dshmobile.core.wire.dto.PluginInventoryEntry
 import com.qgx1992.dshmobile.core.wire.dto.PluginInventorySnapshot
 import com.qgx1992.dshmobile.termux.HarnessControl
 import com.qgx1992.dshmobile.termux.TermuxPaths
-import com.qgx1992.dshmobile.ui.screens.main.CollapseTiming
-import com.qgx1992.dshmobile.ui.screens.main.TranscriptDetail
+import com.qgx1992.dshmobile.ui.screens.main.ArchivedSessions
 import com.qgx1992.dshmobile.ui.screens.connect.LoopbackStatus
 import com.qgx1992.dshmobile.ui.screens.connect.harnessFailureCommand
 import com.qgx1992.dshmobile.ui.screens.connect.harnessFailureMessage
@@ -178,16 +177,6 @@ fun SettingsScreen(onClose: () -> Unit, viewModel: SettingsViewModel = hiltViewM
                 SettingsCard(stringResource(R.string.settings_general)) {
                     LanguageRow(settings) { tag -> viewModel.set { it.copy(localeOverride = tag) } }
                     AppearanceRow(settings) { mode -> viewModel.set { it.copy(themePreference = mode) } }
-                    // The desktop Web client keeps this on the same General page, under "work
-                    // details"; the ids are shared, so a preference reads the same on both.
-                    TranscriptDetailRow(settings) { id ->
-                        viewModel.set { it.copy(transcriptDetail = id) }
-                    }
-                    // The desktop's second axis, kept next to the level because the two are read
-                    // together: the level says how much folds, this says when it folds.
-                    CollapseTimingRow(settings) { id ->
-                        viewModel.set { it.copy(collapseTiming = id) }
-                    }
                 }
 
                 SettingsCard(stringResource(R.string.settings_connection)) {
@@ -852,91 +841,6 @@ private fun AppearanceRow(settings: AppSettings, onSelect: (String) -> Unit) {
                 settings.themePreference == "system",
             ) { onSelect("system") }
         }
-    }
-}
-
-/**
- * The transcript's work-details level, four choices on one axis.
- *
- * Laid out two-by-two rather than as one row of four: "Compact / Standard / Detailed / Everything"
- * is a lot of word for a phone's width, and a chip that has to ellipsise its own name is a chip
- * nobody can choose between. The stored values are the desktop's ids, so the same preference reads
- * the same on both clients.
- */
-@Composable
-private fun TranscriptDetailRow(settings: AppSettings, onSelect: (String) -> Unit) {
-    val colors = DsTheme.colors
-    val selected = TranscriptDetail.of(settings.transcriptDetail)
-    val options = listOf(
-        TranscriptDetail.COMPACT to R.string.settings_transcript_compact,
-        TranscriptDetail.STANDARD to R.string.settings_transcript_standard,
-        TranscriptDetail.DETAILED to R.string.settings_transcript_detailed,
-        TranscriptDetail.VERBOSE to R.string.settings_transcript_verbose,
-    )
-    Column(modifier = Modifier.padding(vertical = DsSpacing.small)) {
-        Text(
-            stringResource(R.string.settings_transcript_detail),
-            style = DsType.std14,
-            color = colors.labelSecondary,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            stringResource(R.string.settings_transcript_detail_hint),
-            style = DsType.caption11,
-            color = colors.labelTertiary,
-        )
-        Spacer(Modifier.height(DsSpacing.small))
-        options.chunked(2).forEachIndexed { index, pair ->
-            if (index > 0) Spacer(Modifier.height(DsSpacing.small))
-            Row(horizontalArrangement = Arrangement.spacedBy(DsSpacing.small)) {
-                pair.forEach { (mode, label) ->
-                    AppearanceChip(stringResource(label), mode == selected) { onSelect(mode.id) }
-                }
-            }
-        }
-    }
-}
-
-/**
- * When a settled turn folds — the desktop's other work-details setting, `collapseTiming`.
- *
- * Two choices, so a segmented control rather than the chip grid above it: the level has four and
- * needs the room, this one has two and reads better as one row. Stored ids are the desktop's, so
- * the same preference means the same thing on both clients.
- */
-@Composable
-private fun CollapseTimingRow(settings: AppSettings, onSelect: (String) -> Unit) {
-    val colors = DsTheme.colors
-    val selected = CollapseTiming.of(settings.collapseTiming)
-    Column(modifier = Modifier.padding(vertical = DsSpacing.small)) {
-        Text(
-            stringResource(R.string.settings_collapse_timing),
-            style = DsType.std14,
-            color = colors.labelSecondary,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            stringResource(R.string.settings_collapse_timing_hint),
-            style = DsType.caption11,
-            color = colors.labelTertiary,
-        )
-        Spacer(Modifier.height(DsSpacing.small))
-        DsSegmented(
-            segments = listOf(
-                DsSegment(
-                    CollapseTiming.COMPLETION.id,
-                    stringResource(R.string.settings_collapse_completion),
-                ),
-                DsSegment(
-                    CollapseTiming.NEXT_INPUT.id,
-                    stringResource(R.string.settings_collapse_next_input),
-                ),
-            ),
-            selectedKey = selected.id,
-            onSelect = onSelect,
-            stretch = true,
-            maxLabelLines = Int.MAX_VALUE,
-        )
     }
 }
 

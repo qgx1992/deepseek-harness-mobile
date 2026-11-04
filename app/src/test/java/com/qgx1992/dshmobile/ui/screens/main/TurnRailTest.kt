@@ -158,12 +158,12 @@ class TurnRailTest {
     @Test
     fun `a turn picks the earliest row it produced`() {
         // A turn starts on an event that draws nothing, so the exact sequence is never a row.
-        val rows = listOf(
-            TranscriptRow.Message(assistant(9, "newest")),
-            TranscriptRow.Message(assistant(6, "second turn reply")),
-            TranscriptRow.Message(user(5, "second turn")),
-            TranscriptRow.Message(assistant(3, "first turn reply")),
-            TranscriptRow.Message(user(2, "first turn")),
+        val rows: List<ChatNode> = listOf(
+            assistant(9, "newest"),
+            assistant(6, "second turn reply"),
+            user(5, "second turn"),
+            assistant(3, "first turn reply"),
+            user(2, "first turn"),
         )
 
         // The turn starts at sequence 4, which draws nothing; its prompt (5) is the first row it
@@ -173,9 +173,9 @@ class TurnRailTest {
 
     @Test
     fun `an exact sequence still lands on its own row`() {
-        val rows = listOf(
-            TranscriptRow.Message(assistant(9, "newest")),
-            TranscriptRow.Message(user(5, "second turn")),
+        val rows: List<ChatNode> = listOf(
+            assistant(9, "newest"),
+            user(5, "second turn"),
         )
 
         assertEquals(1, jumpRowIndex(rows, turnSeq = 5))
@@ -183,7 +183,7 @@ class TurnRailTest {
 
     @Test
     fun `a turn newer than every row has nowhere to land`() {
-        val rows = listOf(TranscriptRow.Message(user(2, "first turn")))
+        val rows: List<ChatNode> = listOf(user(2, "first turn"))
 
         assertNull(jumpRowIndex(rows, turnSeq = 99))
     }

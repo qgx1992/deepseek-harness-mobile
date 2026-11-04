@@ -20,19 +20,6 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Work-details level used until the user picks one: no fold, every step its own row — the desktop's
- * "verbose". Also the value a preference saved under the old `detailed` default is migrated to.
- */
-private const val DEFAULT_TRANSCRIPT_DETAIL = "verbose"
-
-/**
- * When a settled turn's steps fold, until the user picks otherwise: as the answer lands.
- *
- * The desktop's `ui-chat.collapseTiming` default, so a preference reads the same on both clients.
- */
-private const val DEFAULT_COLLAPSE_TIMING = "completion"
-
 /** Persists remembered hosts and app settings. */
 @Singleton
 class HostsStore @Inject constructor(
@@ -59,12 +46,6 @@ class HostsStore @Inject constructor(
         val SESSION_SORT = stringPreferencesKey("session_sort")
         val UPDATE_CHECK = booleanPreferencesKey("update_check")
         val DISMISSED_UPDATE = stringPreferencesKey("dismissed_update")
-        /** Work-details level for the transcript; the same ids the desktop Web client uses. */
-        val TRANSCRIPT_DETAIL = stringPreferencesKey("transcript_detail")
-        /** Set once [TRANSCRIPT_DETAIL] has been read through [readTranscriptDetail]'s migration. */
-        val TRANSCRIPT_DETAIL_MIGRATED = booleanPreferencesKey("transcript_detail_migrated")
-        /** When a settled turn's steps fold: the desktop's `ui-chat.collapseTiming`. */
-        val COLLAPSE_TIMING = stringPreferencesKey("collapse_timing")
 
         /** Drawer workspace groups you folded or opened yourself, by workspace id. */
         val WORKSPACE_COLLAPSED = stringPreferencesKey("workspace_collapsed_json")
@@ -107,29 +88,7 @@ class HostsStore @Inject constructor(
             knownPorts = ports,
             updateCheckEnabled = prefs[Keys.UPDATE_CHECK] ?: true,
             dismissedUpdate = prefs[Keys.DISMISSED_UPDATE],
-            transcriptDetail = readTranscriptDetail(
-                prefs[Keys.TRANSCRIPT_DETAIL],
-                prefs[Keys.TRANSCRIPT_DETAIL_MIGRATED] ?: false,
-            ),
-            collapseTiming = prefs[Keys.COLLAPSE_TIMING] ?: DEFAULT_COLLAPSE_TIMING,
         )
-    }
-
-    /**
-     * The work-details level stored for the transcript.
-     *
-     * This app used to default to `detailed`, which folds each finished turn's work into a single
-     * process row. It now defaults to `verbose` — one row per step, the way the desktop reads — so
-     * a value saved under the old default is read as the new one, once. The read is guarded by a
-     * marker rather than by looking at the value alone, so a level picked after this version
-     * (`detailed`, if that is what someone wants back) is not rewritten on the next launch.
-     */
-    private fun readTranscriptDetail(stored: String?, migrated: Boolean): String {
-        if (migrated) return stored ?: DEFAULT_TRANSCRIPT_DETAIL
-        return when (stored) {
-            null, "detailed" -> DEFAULT_TRANSCRIPT_DETAIL
-            else -> stored
-        }
     }
 
     suspend fun settingsOnce(): AppSettings = settings.first()
@@ -324,10 +283,6 @@ class HostsStore @Inject constructor(
             prefs[Keys.NOTIFY_ACTION] = next.notifyNeedsAction
             prefs[Keys.THEME] = next.themePreference
             prefs[Keys.UPDATE_CHECK] = next.updateCheckEnabled
-            prefs[Keys.TRANSCRIPT_DETAIL] = next.transcriptDetail
-            prefs[Keys.COLLAPSE_TIMING] = next.collapseTiming
-            // Anything written from here on is a deliberate choice, so the migration stops applying.
-            prefs[Keys.TRANSCRIPT_DETAIL_MIGRATED] = true
             next.localeOverride?.let { prefs[Keys.LOCALE] = it } ?: prefs.remove(Keys.LOCALE)
         }
     }

@@ -134,21 +134,21 @@ class SessionHistoryTest {
 
     @Test
     fun `a message owns the row its sequence names`() {
-        val rows = listOf(
-            TranscriptRow.Message(assistant(10, "newest")),
-            TranscriptRow.Tools(listOf(toolCall(8), toolCall(9))),
-            TranscriptRow.Message(user(7, "older")),
+        val rows: List<ChatNode> = listOf(
+            assistant(10, "newest"),
+            toolCall(8),
+            user(7, "older"),
         )
 
         assertEquals(0, historyRowIndex(rows, 10L))
         assertEquals(2, historyRowIndex(rows, 7L))
-        // A tool group's row carries its first call's sequence, so the group is reachable too.
+        // Every node is its own row, so a tool call is reachable too.
         assertEquals(1, historyRowIndex(rows, 8L))
     }
 
     @Test
     fun `a sequence no loaded row carries has no index`() {
-        val rows = listOf(TranscriptRow.Message(user(7, "only")))
+        val rows: List<ChatNode> = listOf(user(7, "only"))
 
         // A pick can outlive its message: a rewind drops rows while the open sheet still lists them.
         assertNull(historyRowIndex(rows, 3L))

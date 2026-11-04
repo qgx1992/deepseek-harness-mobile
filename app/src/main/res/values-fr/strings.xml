@@ -234,16 +234,6 @@
     <string name="settings_appearance_light">Clair</string>
     <string name="settings_appearance_dark">Sombre</string>
     <string name="settings_appearance_system">Système</string>
-    <string name="settings_transcript_detail">Détail du travail</string>
-    <string name="settings_transcript_detail_hint">Quelle part du travail d\'un tour la transcription affiche. Les réponses et vos propres messages restent toujours visibles.</string>
-    <string name="settings_transcript_compact">Compact</string>
-    <string name="settings_transcript_standard">Standard</string>
-    <string name="settings_transcript_detailed">Détaillé</string>
-    <string name="settings_transcript_verbose">Tout</string>
-    <string name="settings_collapse_timing">Quand les étapes se replient</string>
-    <string name="settings_collapse_timing_hint">Ne concerne que les niveaux qui replient le travail d\'un tour : replier dès l\'arrivée de la réponse, ou garder le tour ouvert jusqu\'à votre prochain message.</string>
-    <string name="settings_collapse_completion">À l\'arrivée de la réponse</string>
-    <string name="settings_collapse_next_input">Au prochain message</string>
     <string name="settings_readonly_banner">Les paramètres sont en lecture seule via le réseau. Ouvrez le Harness sur son propre ordinateur pour les modifier.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_turn">Notifier à la fin d’un tour</string>
@@ -587,10 +577,7 @@
     <string name="settings_update_check_now">Vérifier maintenant</string>
     <string name="settings_update_up_to_date">Vous avez la dernière version.</string>
     <string name="settings_update_unreachable">Impossible de joindre GitHub.</string>
-    <string name="chat_tool_group_count">Outils : %1$d</string>
-    <string name="chat_tool_group_failed">%1$d échecs</string>
     <string name="chat_thought_process">Raisonnement</string>
-    <string name="chat_process_title">Processus</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">Ce téléphone</string>
     <string name="connect_mode_loopback_hint">Parlez à un harness qui tourne sur ce téléphone : dans Termux, ou redirigé ici avec adb reverse. Rien ne quitte l’appareil et le harness traite l’app comme locale. Il connecte tout de même ce téléphone une fois.</string>

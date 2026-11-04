@@ -75,9 +75,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.qgx1992.dshmobile.R
 import com.qgx1992.dshmobile.core.session.AssistantMessageNode
+import com.qgx1992.dshmobile.core.session.ChatNode
 import com.qgx1992.dshmobile.core.session.ConversationSnapshot
 import com.qgx1992.dshmobile.core.session.TurnEndNode
-import com.qgx1992.dshmobile.core.session.TurnStartNode
 import com.qgx1992.dshmobile.core.session.UserMessageNode
 import com.qgx1992.dshmobile.ui.components.DsButton
 import com.qgx1992.dshmobile.ui.components.DsButtonSize
@@ -157,42 +157,17 @@ internal fun ChatTranscript(
     onSuggestion: ((String) -> Unit)? = null,
     /** Bumped each time the reader sends: their own message is always worth landing on. */
     sentTick: Int = 0,
-    /**
-     * How much of a turn's work the transcript shows.
-     *
-     * The desktop Web client's "work details" setting, resolved by the caller from the stored
-     * preference: this composable applies the policy but never decides it, which keeps the mirror
-     * of that screen's rules in one readable enum ([TranscriptDetail]).
-     */
-    detail: TranscriptDetail = TranscriptDetail.DEFAULT,
-    /**
-     * When a settled turn folds away — as its answer lands, or only once a newer prompt exists.
-     *
-     * The other half of the desktop's "work details": [detail] says how much folds, this says when.
-     * Both are resolved by the caller from the stored preference.
-     */
-    timing: CollapseTiming = CollapseTiming.DEFAULT,
 ) {
     // Only the nodes that draw something: a zero-height item still costs its gap, and a turn's
     // worth of structural events stacks those gaps into a blank band under the chrome.
     //
-    // Reversed here rather than at the call site: the fold's natural order is oldest-first, and
-    // that is the order every other reader of `nodes` wants.
-    val rows = remember(conversation?.nodes, context.running, detail, timing) {
-        val nodes = conversation?.nodes.orEmpty()
-        val visible = renderableChatNodes(nodes, context.running)
-        // Verbose asks for the work row by row: no group headers either, so adjacent tool calls
-        // render as their own cards in the order they ran.
-        val grouped = if (detail.groupsSteps) groupToolRows(visible) else directRows(visible)
-        foldProcessRows(
-            rows = grouped,
-            // Read from the unfiltered nodes: a turn start draws no row, so the row list alone
-            // cannot say where one turn ends and the next begins.
-            turnStarts = nodes.filterIsInstance<TurnStartNode>().map { it.seq }.sorted(),
-            running = context.running,
-            detail = detail,
-            timing = timing,
-        ).asReversed()
+    // One row per node, in the order the harness produced it. Nothing folds: a turn lists its
+    // reasoning, its calls, the context it was handed and its reply the way the desktop reads
+    // them, instead of collapsing the work between a prompt and its answer into one summary row.
+    // Reversed here rather than at the call site: oldest-first is the order every other reader of
+    // `nodes` wants.
+    val rows = remember(conversation?.nodes, context.running) {
+        renderableChatNodes(conversation?.nodes.orEmpty(), context.running).asReversed()
     }
     val hasMore = conversation?.hasMore == true
     val itemCount = rows.size + if (hasMore) 1 else 0
@@ -268,7 +243,7 @@ internal fun ChatTranscript(
     // page just landed without changing the row count, keep paging (bounded) until something
     // above the cut appears.
     val rowCount = rows.size
-    val dividerOnTop = (rows.lastOrNull() as? TranscriptRow.Message)?.node.let { it is UserMessageNode && it.isRewindMarker }
+    val dividerOnTop = rows.lastOrNull().let { it is UserMessageNode && it.isRewindMarker }
     var lastPagedRowCount by remember(sessionId) { mutableIntStateOf(-1) }
     var cutPages by remember(sessionId) { mutableIntStateOf(0) }
     LaunchedEffect(rowCount, loadingOlder, hasMore, dividerOnTop) {
@@ -301,8 +276,8 @@ internal fun ChatTranscript(
     }
 
     // A pick from the history sheet or the turn rail. The sheet knows only sequences; which row
-    // index a sequence owns is decided by the grouping above, so the lookup happens here rather
-    // than there.
+    // index a sequence owns is decided by the visibility filter above, so the lookup happens here
+    // rather than there.
     //
     // Keyed on the pick alone. Re-running on every row change would restart a jump halfway through
     // whenever a running reply added a row, and both sheets page history in before they report a
@@ -356,15 +331,11 @@ internal fun ChatTranscript(
     // The streaming row's key is shared by every reply in turn, so it cannot mark a place.
     val newestKey = rows.firstNotNullOfOrNull { row -> transcriptRowKey(row).takeIf { it != STREAMING_ROW_KEY } }
     LaunchedEffect(followTail, newestKey) { if (followTail) seenNewestKey = newestKey }
-    // A step the reader saw can fold into its turn's Process row when the turn answers, which is
-    // exactly while they are away; that row then stands in for it, or the count drops to nothing
-    // just as the reply lands.
+    // Every row is its own node and keeps its own key for good, so the place the reader left off
+    // is simply the row that key names.
     val unseen = remember(rows, seenNewestKey) {
         if (seenNewestKey == null) 0
-        else rows.indexOfFirst { row ->
-            transcriptRowKey(row) == seenNewestKey ||
-                (row is TranscriptRow.Process && row.rows.any { transcriptRowKey(it) == seenNewestKey })
-        }.coerceAtLeast(0)
+        else rows.indexOfFirst { row -> transcriptRowKey(row) == seenNewestKey }.coerceAtLeast(0)
     }
     val awayFromTail by remember(listState) {
         derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 240 }
@@ -428,8 +399,7 @@ internal fun ChatTranscript(
                 // instead: there is only ever one provisional row, and it is the same row before
                 // and after it settles.
                 key = ::transcriptRowKey,
-            ) { row ->
-                val node = (row as? TranscriptRow.Message)?.node
+            ) { node ->
                 val streaming = node is AssistantMessageNode && node.streaming
                 // Rows fade in as they land, and nothing slides. Every line a streaming reply adds
                 // pushes the rows above it up; a placement animation made them trail that push on
@@ -455,12 +425,7 @@ internal fun ChatTranscript(
                     else -> Modifier
                 }
                 Column(arrival.then(breathing)) {
-                    when (row) {
-                        is TranscriptRow.Message -> ChatNodeItem(node = row.node, context = context)
-                        is TranscriptRow.Tools -> ToolGroupRow(row.calls, context, initiallyExpanded = detail.expandsHistoryGroups)
-                        is TranscriptRow.Context -> ContextGroupRow(row.nodes, context, initiallyExpanded = detail.expandsHistoryGroups)
-                        is TranscriptRow.Process -> ProcessRow(row, context)
-                    }
+                    ChatNodeItem(node = node, context = context)
                 }
             }
         }
@@ -616,10 +581,8 @@ private fun maskedAnnotated(
 
 
 /** The lazy key of a transcript row; see the keying note in [ChatTranscript]. */
-private fun transcriptRowKey(row: TranscriptRow): Any {
-    val node = (row as? TranscriptRow.Message)?.node
-    return if (node is AssistantMessageNode && node.streaming) STREAMING_ROW_KEY else row.seq
-}
+private fun transcriptRowKey(node: ChatNode): Any =
+    if (node is AssistantMessageNode && node.streaming) STREAMING_ROW_KEY else node.seq
 
 /** A round "back to the newest message" button, with a count of what arrived while away. */
 @Composable

@@ -234,16 +234,6 @@
     <string name="settings_appearance_light">लाइट</string>
     <string name="settings_appearance_dark">डार्क</string>
     <string name="settings_appearance_system">सिस्टम</string>
-    <string name="settings_transcript_detail">कार्य विवरण</string>
-    <string name="settings_transcript_detail_hint">ट्रांसक्रिप्ट एक टर्न का कितना काम दिखाता है। उत्तर और आपके अपने संदेश हमेशा दिखते रहते हैं।</string>
-    <string name="settings_transcript_compact">संक्षिप्त</string>
-    <string name="settings_transcript_standard">मानक</string>
-    <string name="settings_transcript_detailed">विस्तृत</string>
-    <string name="settings_transcript_verbose">सब कुछ</string>
-    <string name="settings_collapse_timing">चरण कब सिमटें</string>
-    <string name="settings_collapse_timing_hint">यह केवल उन स्तरों पर लागू होता है जो किसी टर्न के चरण सिमेटते हैं: उत्तर आते ही सिमेट दें, या अगला संदेश भेजने तक टर्न खुला रखें।</string>
-    <string name="settings_collapse_completion">उत्तर आने पर</string>
-    <string name="settings_collapse_next_input">अगले संदेश पर</string>
     <string name="settings_readonly_banner">सेटिंग्स नेटवर्क पर केवल-पढ़ने के लिए हैं। उन्हें बदलने के लिए Harness को उसके अपने कंप्यूटर पर खोलें।</string>
     <string name="settings_notifications">सूचनाएं</string>
     <string name="settings_notifications_turn">टर्न पूरा होने पर सूचित करें</string>
@@ -587,10 +577,7 @@
     <string name="settings_update_check_now">अभी जाँचें</string>
     <string name="settings_update_up_to_date">आपके पास नवीनतम संस्करण है।</string>
     <string name="settings_update_unreachable">GitHub से संपर्क नहीं हो सका।</string>
-    <string name="chat_tool_group_count">टूल कॉल: %1$d</string>
-    <string name="chat_tool_group_failed">%1$d विफल</string>
     <string name="chat_thought_process">विचार प्रक्रिया</string>
-    <string name="chat_process_title">कार्यप्रणाली</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">यह फ़ोन</string>
     <string name="connect_mode_loopback_hint">इसी फ़ोन पर चल रहे harness से बात करें — Termux में, या adb reverse से यहाँ फ़ॉरवर्ड किया हुआ। कुछ भी डिवाइस से बाहर नहीं जाता, और harness ऐप को लोकल मानता है। फिर भी यह इस फ़ोन को एक बार साइन इन करता है।</string>

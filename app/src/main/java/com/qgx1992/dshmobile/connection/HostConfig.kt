@@ -156,25 +156,6 @@ data class AppSettings(
     val updateCheckEnabled: Boolean = true,
     /** A release the user has already declined, so it is offered once rather than every launch. */
     val dismissedUpdate: String? = null,
-    /**
-     * How much of a turn's work the transcript shows: `compact`, `standard`, `detailed`, `verbose`.
-     *
-     * The desktop Web client keeps the same four choices under `ui-chat.transcriptView`; this app
-     * defaults to `verbose` so a turn's work is listed step by step instead of being folded into one
-     * process row. Stored as the wire id rather than an ordinal so a preference survives the enum
-     * growing, and read through
-     * [com.qgx1992.dshmobile.ui.screens.main.TranscriptDetail.of], which owns the fallbacks.
-     */
-    val transcriptDetail: String = "verbose",
-    /**
-     * When a settled turn's steps fold away: `completion` (as the answer lands) or `next-input`
-     * (only once a newer prompt exists).
-     *
-     * The desktop's second work-details axis, `ui-chat.collapseTiming`, and its default. Only the
-     * levels that fold a finished turn at all ([transcriptDetail] above `verbose`) are affected; read
-     * through [com.qgx1992.dshmobile.ui.screens.main.CollapseTiming.of], which owns the fallbacks.
-     */
-    val collapseTiming: String = "completion",
 )
 
 /** The three ways the app can reach a harness. Persisted as [AppSettings.connectMode]. */

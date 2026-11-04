@@ -234,16 +234,6 @@
     <string name="settings_appearance_light">فاتح</string>
     <string name="settings_appearance_dark">داكن</string>
     <string name="settings_appearance_system">النظام</string>
-    <string name="settings_transcript_detail">تفاصيل العمل</string>
-    <string name="settings_transcript_detail_hint">كم من عمل الجولة يعرضه السجل. تبقى الإجابات ورسائلك مرئية دائمًا.</string>
-    <string name="settings_transcript_compact">موجز</string>
-    <string name="settings_transcript_standard">قياسي</string>
-    <string name="settings_transcript_detailed">تفصيلي</string>
-    <string name="settings_transcript_verbose">كل شيء</string>
-    <string name="settings_collapse_timing">متى تُطوى الخطوات</string>
-    <string name="settings_collapse_timing_hint">لا ينطبق إلا على المستويات التي تطوي خطوات دور: أطوِها بمجرد وصول الإجابة، أو أبقِ الدور مفتوحًا حتى تُرسل الرسالة التالية.</string>
-    <string name="settings_collapse_completion">بعد وصول الإجابة</string>
-    <string name="settings_collapse_next_input">عند الرسالة التالية</string>
     <string name="settings_readonly_banner">الإعدادات للقراءة فقط عبر الشبكة. افتح Harness على جهاز الكمبيوتر الخاص به لتغييرها.</string>
     <string name="settings_notifications">الإشعارات</string>
     <string name="settings_notifications_turn">الإشعار عند اكتمال جولة</string>
@@ -587,10 +577,7 @@
     <string name="settings_update_check_now">تحقق الآن</string>
     <string name="settings_update_up_to_date">لديك أحدث إصدار.</string>
     <string name="settings_update_unreachable">تعذر الوصول إلى GitHub.</string>
-    <string name="chat_tool_group_count">استدعاءات الأدوات: %1$d</string>
-    <string name="chat_tool_group_failed">%1$d فشلت</string>
     <string name="chat_thought_process">عملية التفكير</string>
-    <string name="chat_process_title">سير العمل</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">هذا الهاتف</string>
     <string name="connect_mode_loopback_hint">تواصل مع harness يعمل على هذا الهاتف نفسه — في Termux، أو مُعاد توجيهه إلى هنا عبر adb reverse. لا شيء يغادر الجهاز، ويعامل harness التطبيق كعميل محلي. ومع ذلك يسجّل دخول هذا الهاتف مرة واحدة.</string>

@@ -100,7 +100,7 @@ private fun loadedTurnEntries(nodes: List<ChatNode>, running: Boolean): List<Tur
  * thing the turn produced — exactly where a reader wants to begin. An exact match still wins, so
  * the history picker's own behaviour is unchanged.
  */
-internal fun jumpRowIndex(rows: List<TranscriptRow>, turnSeq: Long): Int? {
+internal fun jumpRowIndex(rows: List<ChatNode>, turnSeq: Long): Int? {
     val exact = rows.indexOfFirst { it.seq == turnSeq }
     if (exact >= 0) return exact
     return rows.indexOfLast { it.seq >= turnSeq }.takeIf { it >= 0 }

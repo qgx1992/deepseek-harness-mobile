@@ -286,16 +286,6 @@
     <string name="settings_appearance_light">Light</string>
     <string name="settings_appearance_dark">Dark</string>
     <string name="settings_appearance_system">System</string>
-    <string name="settings_transcript_detail">Work details</string>
-    <string name="settings_transcript_detail_hint">How much of a turn\'s work the transcript shows. Answers and your own messages always stay visible.</string>
-    <string name="settings_transcript_compact">Compact</string>
-    <string name="settings_transcript_standard">Standard</string>
-    <string name="settings_transcript_detailed">Detailed</string>
-    <string name="settings_transcript_verbose">Everything</string>
-    <string name="settings_collapse_timing">Steps fold when</string>
-    <string name="settings_collapse_timing_hint">Only the levels that fold a turn\'s work use this: drop the steps as the answer lands, or keep the turn open until you send the next message.</string>
-    <string name="settings_collapse_completion">Answer lands</string>
-    <string name="settings_collapse_next_input">Next message</string>
     <string name="settings_readonly_banner">Settings are read-only over the network. Open the harness on its own computer to change them.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_turn">Notify when a turn completes</string>
@@ -608,10 +598,7 @@
     <string name="settings_update_check_now">Check now</string>
     <string name="settings_update_up_to_date">You have the latest version.</string>
     <string name="settings_update_unreachable">Could not reach GitHub.</string>
-    <string name="chat_tool_group_count">Tool calls: %1$d</string>
-    <string name="chat_tool_group_failed">%1$d failed</string>
     <string name="chat_thought_process">Thought process</string>
-    <string name="chat_process_title">Process</string>
     <!-- ==== This phone (Termux) mode, harness control and install via Termux ==== -->
     <string name="connect_mode_loopback">This phone</string>
     <string name="connect_mode_loopback_hint">Talk to a harness running on this phone — in Termux, or forwarded here with adb reverse. Nothing leaves the device, and the harness treats the app as local. It still signs this phone in once.</string>

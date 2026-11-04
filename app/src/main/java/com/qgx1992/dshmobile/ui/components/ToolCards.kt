@@ -17,12 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.qgx1992.dshmobile.ui.theme.DsAnimations
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -58,20 +52,10 @@ fun ToolCard(
     iconOverride: ImageVector? = null,
     /** Terminal state from the call's own result; null derives the running bit from the card. */
     state: DisclosureState? = null,
-    header: (@Composable () -> Unit)? = null,
-    /** Opens the call's hold menu from the default header; a custom [header] wires its own. */
+    /** Opens the call's hold menu from the header. */
     onHold: (() -> Unit)? = null,
     holdLabel: String = "",
 ) {
-    if (header != null) {
-        header()
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn(DsAnimations.fade) + expandVertically(DsAnimations.expand),
-            exit = fadeOut(DsAnimations.fade) + shrinkVertically(DsAnimations.expand),
-        ) { ToolCardBody(view) }
-        return
-    }
     DisclosureRow(
         title = titleOverride ?: view.displayTitle(),
         summary = summaryOverride ?: view.summary(),

@@ -234,16 +234,6 @@
     <string name="settings_appearance_light">Светлая</string>
     <string name="settings_appearance_dark">Тёмная</string>
     <string name="settings_appearance_system">Системная</string>
-    <string name="settings_transcript_detail">Детализация работы</string>
-    <string name="settings_transcript_detail_hint">Сколько работы хода показывает транскрипт. Ответы и ваши сообщения остаются видимыми всегда.</string>
-    <string name="settings_transcript_compact">Компактно</string>
-    <string name="settings_transcript_standard">Стандартно</string>
-    <string name="settings_transcript_detailed">Подробно</string>
-    <string name="settings_transcript_verbose">Всё</string>
-    <string name="settings_collapse_timing">Когда шаги сворачиваются</string>
-    <string name="settings_collapse_timing_hint">Действует только для уровней, которые сворачивают работу хода: свернуть сразу по приходу ответа или оставить ход раскрытым до следующего сообщения.</string>
-    <string name="settings_collapse_completion">По приходу ответа</string>
-    <string name="settings_collapse_next_input">При следующем сообщении</string>
     <string name="settings_readonly_banner">Настройки доступны только для чтения через сеть. Откройте Harness на его собственном компьютере, чтобы изменить их.</string>
     <string name="settings_notifications">Уведомления</string>
     <string name="settings_notifications_turn">Уведомлять о завершении хода</string>
@@ -587,10 +577,7 @@
     <string name="settings_update_check_now">Проверить сейчас</string>
     <string name="settings_update_up_to_date">У вас последняя версия.</string>
     <string name="settings_update_unreachable">Не удалось подключиться к GitHub.</string>
-    <string name="chat_tool_group_count">Вызовы: %1$d</string>
-    <string name="chat_tool_group_failed">Ошибок: %1$d</string>
     <string name="chat_thought_process">Ход рассуждений</string>
-    <string name="chat_process_title">Процесс</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">Этот телефон</string>
     <string name="connect_mode_loopback_hint">Работа с harness, запущенным на этом телефоне: в Termux или проброшенным сюда через adb reverse. Ничто не покидает устройство, и harness считает приложение локальным. Один раз он всё же выполнит вход для этого телефона.</string>

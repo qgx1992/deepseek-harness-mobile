@@ -234,16 +234,6 @@
     <string name="settings_appearance_light">লাইট</string>
     <string name="settings_appearance_dark">ডার্ক</string>
     <string name="settings_appearance_system">সিস্টেম</string>
-    <string name="settings_transcript_detail">কাজের বিবরণ</string>
-    <string name="settings_transcript_detail_hint">ট্রান্সক্রিপ্টে একটি টার্নের কতটা কাজ দেখানো হবে। উত্তর ও আপনার নিজের বার্তা সবসময় দেখা যাবে।</string>
-    <string name="settings_transcript_compact">সংক্ষিপ্ত</string>
-    <string name="settings_transcript_standard">মানক</string>
-    <string name="settings_transcript_detailed">বিস্তারিত</string>
-    <string name="settings_transcript_verbose">সবকিছু</string>
-    <string name="settings_collapse_timing">ধাপগুলো কখন গুটাবে</string>
-    <string name="settings_collapse_timing_hint">শুধু যে স্তরগুলো একটি টার্নের ধাপ গুটায় সেগুলোতেই কাজ করে: উত্তর আসামাত্র গুটিয়ে নিন, অথবা পরের বার্তা পাঠানোর আগে টার্নটি খোলা রাখুন।</string>
-    <string name="settings_collapse_completion">উত্তর আসলে</string>
-    <string name="settings_collapse_next_input">পরের বার্তায়</string>
     <string name="settings_readonly_banner">সেটিংস নেটওয়ার্কে শুধুমাত্র পাঠযোগ্য। সেগুলো পরিবর্তন করতে নিজের কম্পিউটারে Harness খুলুন।</string>
     <string name="settings_notifications">বিজ্ঞপ্তি</string>
     <string name="settings_notifications_turn">টার্ন সম্পন্ন হলে জানান</string>
@@ -587,10 +577,7 @@
     <string name="settings_update_check_now">এখনই পরীক্ষা করুন</string>
     <string name="settings_update_up_to_date">আপনার কাছে সর্বশেষ সংস্করণ আছে।</string>
     <string name="settings_update_unreachable">GitHub-এ পৌঁছানো যায়নি।</string>
-    <string name="chat_tool_group_count">টুল কল: %1$d</string>
-    <string name="chat_tool_group_failed">%1$d ব্যর্থ</string>
     <string name="chat_thought_process">চিন্তার প্রক্রিয়া</string>
-    <string name="chat_process_title">প্রক্রিয়া</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">এই ফোন</string>
     <string name="connect_mode_loopback_hint">এই ফোনেই চলমান harness-এর সাথে কথা বলুন — Termux-এ, বা adb reverse দিয়ে এখানে ফরওয়ার্ড করা। কিছুই ডিভাইসের বাইরে যায় না, আর harness অ্যাপটিকে লোকাল হিসেবে দেখে। তবুও এটি এই ফোনকে একবার সাইন ইন করায়।</string>

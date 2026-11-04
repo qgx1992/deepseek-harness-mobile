@@ -60,12 +60,12 @@ internal fun historyEntries(
     .asReversed()
 
 /**
- * A prompt is its own row — only tool calls and injected context group — so the row carries it.
+ * A prompt is its own row — the transcript draws one row per node — so the row carries it.
  *
  * The sheet lists prompts from the same loaded nodes the rows are built from, so a miss means the
  * message went away under an open sheet (a rewind, a session switch), not that it is still to load.
  */
-internal fun historyRowIndex(rows: List<TranscriptRow>, seq: Long): Int? =
+internal fun historyRowIndex(rows: List<ChatNode>, seq: Long): Int? =
     rows.indexOfFirst { it.seq == seq }.takeIf { it >= 0 }
 
 /**

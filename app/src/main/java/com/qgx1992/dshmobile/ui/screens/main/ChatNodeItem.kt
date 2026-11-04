@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,14 +35,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.expandVertically
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.qgx1992.dshmobile.R
@@ -75,7 +71,6 @@ import com.qgx1992.dshmobile.ui.components.HoldAction
 import com.qgx1992.dshmobile.ui.components.HoldMenu
 import com.qgx1992.dshmobile.ui.components.MarkdownText
 import com.qgx1992.dshmobile.ui.components.SelectTextDialog
-import com.qgx1992.dshmobile.ui.components.clickableWithHold
 import com.qgx1992.dshmobile.ui.components.StateDot
 import com.qgx1992.dshmobile.ui.components.StateDotState
 import com.qgx1992.dshmobile.ui.components.ThinkingPanel
@@ -488,7 +483,7 @@ private fun ActionIcon(
 // ---------------------------------------------------------------------------
 
 @Composable
-internal fun ToolCallRow(node: ToolCallNode, context: ChatNodeContext, compact: Boolean = false) {
+internal fun ToolCallRow(node: ToolCallNode, context: ChatNodeContext) {
     val colors = DsTheme.colors
     val result = context.nodes
         .filterIsInstance<ToolResultNode>()
@@ -524,7 +519,7 @@ internal fun ToolCallRow(node: ToolCallNode, context: ChatNodeContext, compact: 
     val elapsed = if (startedAt != null && endedAt != null) {
         com.qgx1992.dshmobile.ui.components.formatDurationMs((endedAt - startedAt).coerceAtLeast(0))
     } else null
-    if (!compact && elapsed != null) Text(elapsed, style = DsType.caption11, color = colors.labelCaption)
+    if (elapsed != null) Text(elapsed, style = DsType.caption11, color = colors.labelCaption)
     ToolCard(
         view = card,
         expanded = expanded,
@@ -535,22 +530,6 @@ internal fun ToolCallRow(node: ToolCallNode, context: ChatNodeContext, compact: 
         state = state,
         onHold = { holdOpen = true },
         holdLabel = holdLabel,
-        header = if (compact) ({
-            Row(Modifier.fillMaxWidth().heightIn(min = 32.dp)
-                .clickableWithHold(holdLabel, onHold = { holdOpen = true }, role = Role.Button) { expanded = !expanded }
-                .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                Icon(if (node.name == "read_image") FeatherIcons.Image else row.variant.featherIcon(), null, Modifier.size(14.dp), tint = colors.labelTertiary)
-                Text(row.title, style = DsType.small13, color = colors.labelSecondary)
-                Text(row.summary.orEmpty(), Modifier.weight(1f), style = DsType.caption11,
-                    color = colors.labelCaption, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (expanded && elapsed != null) Text(elapsed, style = DsType.caption11, color = colors.labelCaption)
-                Text(when (state) { DisclosureState.Error -> "!"; DisclosureState.Running -> "…"; else -> "✓" },
-                    style = DsType.caption11, color = if (state == DisclosureState.Error) colors.error else colors.labelTertiary)
-                val chevron by animateFloatAsState(if (expanded) 90f else 0f, DsAnimations.chevron, label = "toolChevron")
-                Icon(FeatherIcons.ChevronRight, null, Modifier.size(14.dp).graphicsLayer { rotationZ = chevron }, tint = colors.labelTertiary)
-            }
-        }) else null,
     )
     if (holdOpen) ToolHoldMenu(node, result, row.filePath, context) { holdOpen = false }
     AnimatedVisibility(

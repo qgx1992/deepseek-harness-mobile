@@ -234,16 +234,6 @@
     <string name="settings_appearance_light">浅色</string>
     <string name="settings_appearance_dark">深色</string>
     <string name="settings_appearance_system">跟随系统</string>
-    <string name="settings_transcript_detail">工作细节</string>
-    <string name="settings_transcript_detail_hint">会话里显示一个回合的多少过程内容。回复和你自己的消息始终可见。</string>
-    <string name="settings_transcript_compact">简洁</string>
-    <string name="settings_transcript_standard">标准</string>
-    <string name="settings_transcript_detailed">详细</string>
-    <string name="settings_transcript_verbose">完全展开</string>
-    <string name="settings_collapse_timing">折叠时机</string>
-    <string name="settings_collapse_timing_hint">只有会折叠步骤的档位用得上：回答落地就收，还是留到你发下一条消息再收。</string>
-    <string name="settings_collapse_completion">回答结束后</string>
-    <string name="settings_collapse_next_input">下次发消息时</string>
     <string name="settings_readonly_banner">设置通过网络为只读。请在 Harness 所在的电脑上打开它以更改设置。</string>
     <string name="settings_notifications">通知</string>
     <string name="settings_notifications_turn">回合完成时通知</string>
@@ -606,10 +596,7 @@
     <string name="settings_update_check_now">立即检查</string>
     <string name="settings_update_up_to_date">已是最新版本。</string>
     <string name="settings_update_unreachable">无法连接到 GitHub。</string>
-    <string name="chat_tool_group_count">工具调用：%1$d</string>
-    <string name="chat_tool_group_failed">失败：%1$d</string>
     <string name="chat_thought_process">思考过程</string>
-    <string name="chat_process_title">过程</string>
     <!-- ==== This phone (Termux) ==== -->
     <string name="connect_mode_loopback">本机</string>
     <string name="connect_mode_loopback_hint">连接运行在本手机上的 harness：在 Termux 中运行，或通过 adb reverse 转发到本机。数据不会离开设备，harness 会把应用视为本地客户端。它仍会为本手机登录一次。</string>

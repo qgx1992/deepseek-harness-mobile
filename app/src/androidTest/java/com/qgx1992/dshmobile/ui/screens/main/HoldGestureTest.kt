@@ -174,9 +174,6 @@ class HoldGestureTest {
             step = 1,
         )
         transcript(listOf(user(1, prompt), call, result))
-        // Calls sit in a collapsed group; the hold is on the call's own row inside it.
-        compose.onNodeWithText(context.getString(R.string.chat_tool_group_count, 1)).performClick()
-        compose.waitForIdle()
 
         holdOn("List the sources")
         compose.onNodeWithText(string(R.string.hold_copy_command)).performClick()
