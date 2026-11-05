@@ -24,7 +24,7 @@ internal fun automationListModel(
         (statusFilter.status == null || task.status == statusFilter.status) &&
             (task.title.contains(query, ignoreCase = true) ||
                 task.prompt.contains(query, ignoreCase = true) ||
-                task.sessionId.contains(query, ignoreCase = true))
+                task.destinationSessionId.contains(query, ignoreCase = true))
     }
     val emptyState = when {
         matches.isNotEmpty() -> null

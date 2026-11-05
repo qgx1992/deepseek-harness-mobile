@@ -10,6 +10,33 @@ question surfaces are additive. Where 0.1.7 changed a shape the app still reads 
 0.1.6 one too; [0.12.0 contract additions](#0120-contract-additions-harness-017)
 lists both.
 
+## 0.20.0 contract changes (harness 0.2.2-rc.1)
+
+Read from the installed 0.2.2-rc.1 bundle (`@deepseek-ai/dsh-schedule`, generated
+`lib/typert.host.js`), not from a source checkout, so no commit is pinned for it.
+
+- `schedule/update` and `schedule/delete` are gone. `schedule/edit` takes
+  `{request:{id, action:"update"|"delete", patch?, expectedUpdatedAt?}}`: the update patch is
+  named (`title`, `prompt`, `timing`, `target`, `active`) rather than the whole observed record,
+  and `expectedUpdatedAt` carries the optimistic revision instead of `expected`. Its answer is a
+  union of the stored record, `{id, deleted:true}`, `{id, code:"schedule_not_found"}` and
+  `{id, code:"schedule_conflict"}`. A host without it answers `capability-unavailable`, which is
+  the app's cue to use the folded pair.
+- `schedule/list` is Host level: `{request:{active?, limit?, offset?}}` answers
+  `{items, shown, total, limit, offset}` and **takes no `sessionId`**. A per-Session listing is the
+  caller's own filter, not the host's. `schedule/history` takes `{request:{id, limit, before?}}`.
+- A stored task names its destination as `target` — `{kind:"session", sessionId}`,
+  `{kind:"new_once", sessionId, create}` or `{kind:"new", create}` — instead of a flat
+  `sessionId`, and carries `involvedSessionIds` plus an optional `updatedAt`. The app reads both
+  shapes and addresses a row by its destination Session.
+- `session/attachment` declares `{sessionId, attachment}` where `attachment` is the full
+  `ImageAttachmentRef` (`attachmentId`, `mediaType`, `bytes`, `width`, `height`, optional `name`
+  and `originalDimensions`); a bare `{sessionId, attachmentId}` is refused as
+  `gateway/arguments-invalid`. The app sends the reference and only retries the flat id when a host
+  answers exactly that error.
+- Session format is still v4, and the event vocabulary only gained types, so nothing else this
+  client speaks changed.
+
 ## 0.19.0 contract additions (harness 0.2.1-rc.5)
 
 Three surfaces the desktop client (0.2.1-rc.5) serves and this app now speaks. They

@@ -58,6 +58,7 @@ import com.qgx1992.dshmobile.core.wire.dto.RemoteEventFrame
 import com.qgx1992.dshmobile.core.wire.dto.RemoteEventOutcome
 import com.qgx1992.dshmobile.core.wire.dto.RemoteEventRejection
 import com.qgx1992.dshmobile.core.wire.dto.SessionAddress
+import com.qgx1992.dshmobile.core.wire.dto.ImageAttachmentRef
 import com.qgx1992.dshmobile.core.wire.dto.SessionAttachmentRequest
 import com.qgx1992.dshmobile.core.wire.dto.SessionCancelRequest
 import com.qgx1992.dshmobile.core.wire.dto.SessionControlFrame
@@ -2411,10 +2412,10 @@ class SessionStore @Inject constructor(
         }
     }
 
-    suspend fun fetchAttachment(attachmentId: String, sessionId: String? = currentSessionId.value, host: String? = activeHostKey): ByteArray? {
+    suspend fun fetchAttachment(attachment: ImageAttachmentRef, sessionId: String? = currentSessionId.value, host: String? = activeHostKey): ByteArray? {
         val sid = sessionId ?: return null
         val api = host?.let(::apiForHost) ?: return null
-        return when (val r = api.sessionAttachment(SessionAttachmentRequest(sid, attachmentId))) {
+        return when (val r = api.sessionAttachment(SessionAttachmentRequest(sid, attachment))) {
             is RpcResult.Ok -> runCatching { Base64.decode(r.value.data, Base64.DEFAULT) }.getOrNull()
             is RpcResult.Err -> {
                 setConnectionError(r.error.message)

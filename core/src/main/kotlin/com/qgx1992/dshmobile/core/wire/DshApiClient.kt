@@ -23,6 +23,7 @@ import com.qgx1992.dshmobile.core.wire.dto.PluginInventorySnapshot
 import com.qgx1992.dshmobile.core.wire.dto.REMOTE_EVENT_RESULT_ENDPOINT
 import com.qgx1992.dshmobile.core.wire.dto.RemoteEventOutcome
 import com.qgx1992.dshmobile.core.wire.dto.RemoteEventResult
+import com.qgx1992.dshmobile.core.wire.dto.SessionAttachmentLegacyRequest
 import com.qgx1992.dshmobile.core.wire.dto.SessionAttachmentRequest
 import com.qgx1992.dshmobile.core.wire.dto.SessionAttachmentValue
 import com.qgx1992.dshmobile.core.wire.dto.SessionCancelRequest
@@ -355,9 +356,20 @@ class DshApiClient(
     suspend fun sessionPrompt(request: SessionPromptRequest): RpcResult<SessionPromptValue> =
         callRequest("session/prompt", request)
 
-    /** `session/attachment` — reads one durable image after session-log reference proof. */
-    suspend fun sessionAttachment(request: SessionAttachmentRequest): RpcResult<SessionAttachmentValue> =
-        callRequest("session/attachment", request)
+    /**
+     * `session/attachment` — reads one durable image after session-log reference proof.
+     *
+     * The reference travels whole; a host that predates the nested shape answers
+     * `gateway/arguments-invalid`, and only then is the flat id retried.
+     */
+    suspend fun sessionAttachment(request: SessionAttachmentRequest): RpcResult<SessionAttachmentValue> {
+        val nested = callRequest<SessionAttachmentRequest, SessionAttachmentValue>("session/attachment", request)
+        if (nested !is RpcResult.Err || nested.error.code != ARGUMENTS_INVALID) return nested
+        return callRequest(
+            "session/attachment",
+            SessionAttachmentLegacyRequest(request.sessionId, request.attachment.attachmentId),
+        )
+    }
 
     /** `session/updateQueue` — edits, removes, or strictly steers one pending queued occurrence. */
     suspend fun sessionUpdateQueue(request: SessionUpdateQueueRequest): RpcResult<SessionUpdateQueueValue> =

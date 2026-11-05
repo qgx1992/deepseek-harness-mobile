@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.qgx1992.dshmobile.core.wire.dto.ImageAttachmentRef
 import com.qgx1992.dshmobile.ui.theme.DsShapes
 import com.qgx1992.dshmobile.ui.theme.DsTheme
 import com.qgx1992.dshmobile.ui.theme.DsType
@@ -474,9 +475,14 @@ private fun GenericBody(card: ToolCardView.GenericCard) {
                     )
                     // A tool that returns a screenshot arrives here, not on the message path.
                     is ContentBlockView.ImageBlock -> AttachmentImage(
-                        attachmentId = block.attachmentId,
-                        intrinsicWidth = block.width,
-                        intrinsicHeight = block.height,
+                        attachment = ImageAttachmentRef(
+                            attachmentId = block.attachmentId,
+                            mediaType = block.mediaType,
+                            bytes = block.bytes,
+                            width = block.width,
+                            height = block.height,
+                            name = block.name,
+                        ),
                         contentDescription = block.name,
                     )
                 }

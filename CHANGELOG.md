@@ -14,6 +14,20 @@ All notable changes to DSH Mobile are documented here. Format based on
   Web client reads a session. Rows are drawn straight from the node list, so a turn no longer has to
   be re-folded when it settles, and every row keeps its identity from the moment it streams in.
 
+### Fixed
+
+- **Images load again on harness 0.2.2-rc.1.** `session/attachment` wants the whole stored reference
+  (`{sessionId, attachment:{attachmentId, mediaType, bytes, width, height, …}}`), not a flat
+  `attachmentId`; the flat form is refused as `gateway/arguments-invalid`, so every inline image and
+  every screenshot a tool returned fell back to "couldn't load". The request now carries the
+  reference, and a host that only knows the flat form is retried that way.
+- **Automation keeps working on harness 0.2.2-rc.1.** That release folded `schedule/update` and
+  `schedule/delete` into `schedule/edit`, made `schedule/list` Host level (no `sessionId`) and moved
+  a task's destination into `target`. Saving or deleting a task, and the per-session list, therefore
+  failed against it. The client now speaks `schedule/edit` (named patch, `expectedUpdatedAt`) and
+  addresses a row by its destination Session, and falls back to the 0.2.1 endpoints when the host
+  answers `capability-unavailable`.
+
 ### Internal
 
 - Release tooling now publishes the GitHub Release as part of the local release:

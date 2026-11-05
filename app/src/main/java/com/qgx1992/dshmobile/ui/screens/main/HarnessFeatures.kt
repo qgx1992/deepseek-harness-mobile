@@ -118,7 +118,7 @@ internal fun AutomationScreen(sessionId: String? = null, onClose: () -> Unit, on
     suspend fun refresh() {
         val api = store.apiForHost(host) ?: error(offline)
         val result = store.featureCall(HarnessFeature.AUTOMATION, api) { api.automationCatalog() }.featureValue()
-        if (host == store.activeHostKey) tasks = result.filter { sessionId == null || it.sessionId == sessionId }
+        if (host == store.activeHostKey) tasks = result.filter { sessionId == null || it.destinationSessionId == sessionId }
     }
     fun run(block: suspend () -> Unit) { scope.launch {
         busy = true; error = null
@@ -160,7 +160,7 @@ internal fun AutomationScreen(sessionId: String? = null, onClose: () -> Unit, on
             }
         }
     }
-    selected?.let { task -> key(host, task.sessionId, task.id) {
+    selected?.let { task -> key(host, task.destinationSessionId, task.id) {
         AutomationEditor(store, host, task, onClose = { selected = null; revision++ }, onSessionOpened = onClose)
     } }
 }
@@ -172,7 +172,7 @@ private fun AutomationEditor(store: SessionStore, host: String?, task: Automatio
     var prompt by remember(task) { mutableStateOf(task.prompt) }
     var timing by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf(TimingEditorDraft.from(task)) }
-    var tab by remember(task.sessionId, task.id) { mutableIntStateOf(0) }
+    var tab by remember(task.destinationSessionId, task.id) { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf(false) }
     var deleteConfirm by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -180,11 +180,13 @@ private fun AutomationEditor(store: SessionStore, host: String?, task: Automatio
     val sessions by store.sessions.collectAsStateWithLifecycle()
     val archived by store.archivedSessionIds.collectAsStateWithLifecycle()
     val connection by store.connectionState.collectAsStateWithLifecycle()
+    val destination = task.destinationSessionId
     val linkMessage = when {
+        destination.isBlank() -> null
         connection.phase == com.qgx1992.dshmobile.connection.ConnectionPhase.DISCONNECTED -> R.string.common_offline
         connection.phase != com.qgx1992.dshmobile.connection.ConnectionPhase.CONNECTED -> R.string.common_loading
-        task.sessionId in archived -> R.string.ux_a_session_archived
-        sessions.none { it.sessionId == task.sessionId } -> R.string.ux_a_session_unavailable
+        destination in archived -> R.string.ux_a_session_archived
+        sessions.none { it.sessionId == destination } -> R.string.ux_a_session_unavailable
         else -> null
     }
     val offline = stringResource(R.string.common_offline)
@@ -209,18 +211,20 @@ private fun AutomationEditor(store: SessionStore, host: String?, task: Automatio
             FeatureField(title, { title = it }, R.string.harness_title, active && !busy)
             FeatureField(prompt, { prompt = it }, R.string.harness_prompt, active && !busy)
             ScheduleSummary(task)
-            FeatureAction(stringResource(R.string.harness_open_session), !busy && linkMessage == null) { run {
-                if (host == store.activeHostKey) {
-                    store.openSession(task.sessionId)
-                    if (host == store.activeHostKey && store.currentSessionId.value == task.sessionId) onSessionOpened()
-                }
-            } }
-            linkMessage?.let { Text(stringResource(it), style = DsType.small13, color = DsTheme.colors.labelSecondary) }
+            if (destination.isNotBlank()) {
+                FeatureAction(stringResource(R.string.harness_open_session), !busy && linkMessage == null) { run {
+                    if (host == store.activeHostKey) {
+                        store.openSession(destination)
+                        if (host == store.activeHostKey && store.currentSessionId.value == destination) onSessionOpened()
+                    }
+                } }
+                linkMessage?.let { Text(stringResource(it), style = DsType.small13, color = DsTheme.colors.labelSecondary) }
+            }
             if (active) {
                 ToggleRow(stringResource(R.string.harness_change_timing), timing, enabled = !busy) { timing = !timing }
                 if (timing) AutomationTimingFields(draft, { draft = it }, !busy)
                 FeatureAction(stringResource(R.string.common_save), !busy && title.trim().isNotEmpty() && title.trim().length <= 120 && prompt.trim().isNotEmpty() && (!timing || draft.valid), DsButtonVariant.Primary) { run(saveFailure) { api ->
-                    val result = store.featureCall(HarnessFeature.AUTOMATION, api) { api.automationUpdate(AutomationUpdate(task.sessionId, task.id, task.expectedRecord(), title.trim(), prompt.trim(), if (timing) draft.change() else null)) }.featureValue()
+                    val result = store.featureCall(HarnessFeature.AUTOMATION, api) { api.automationUpdate(AutomationUpdate(destination, task.id, task.expectedRecord(), title.trim(), prompt.trim(), if (timing) draft.change() else null)) }.featureValue()
                     if (result.code == null && result.record != null) onClose() else {
                         message = when (result.code) { "schedule_conflict" -> conflict; "schedule_not_found" -> notFound; else -> saveFailure }
                         diagnostics = listOfNotNull(result.code, result.message).joinToString("\n")
@@ -239,7 +243,9 @@ private fun AutomationEditor(store: SessionStore, host: String?, task: Automatio
     if (deleteConfirm) DsDialog(stringResource(R.string.common_delete), { deleteConfirm = false }) {
         Text(task.title, style = DsType.std14, color = DsTheme.colors.labelPrimary)
         FeatureAction(stringResource(R.string.common_delete), variant = DsButtonVariant.Danger) { deleteConfirm = false; run(deleteFailure) { api ->
-            val result = store.featureCall(HarnessFeature.AUTOMATION, api) { api.automationDelete(task.sessionId, task.id) }.featureValue()
+            val result = store.featureCall(HarnessFeature.AUTOMATION, api) {
+                api.automationDelete(task.id, expectedUpdatedAt = task.updatedAt, legacySessionId = task.sessionId.takeIf { it.isNotBlank() })
+            }.featureValue()
             if (result.deleted == true) onClose() else { message = if (result.code == "schedule_not_found") notFound else deleteFailure; diagnostics = listOfNotNull(result.code, result.message).joinToString("\n") }
         } }
         FeatureAction(stringResource(R.string.common_cancel)) { deleteConfirm = false }

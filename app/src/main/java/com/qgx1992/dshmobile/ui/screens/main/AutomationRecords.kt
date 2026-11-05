@@ -54,7 +54,7 @@ internal fun AutomationRecords(store: SessionStore, host: String?, task: Automat
         try {
             val api = store.apiForHost(host) ?: error(offline)
             val page = store.featureCall(HarnessFeature.AUTOMATION, api) {
-                api.automationHistory(task.sessionId, task.id, before)
+                api.automationHistory(task.id, before, legacySessionId = task.sessionId.takeIf { it.isNotBlank() })
             }.featureValue()
             if (host != store.activeHostKey) return
             if (page.code != null) {
@@ -80,7 +80,7 @@ internal fun AutomationRecords(store: SessionStore, host: String?, task: Automat
         }
     }
 
-    LaunchedEffect(host, task.sessionId, task.id) { load() }
+    LaunchedEffect(host, task.id, task.updatedAt) { load() }
     val formatter = scheduleFormatter()
     val locale = LocalConfiguration.current.locales[0]
     if (busy) FeatureProgress()

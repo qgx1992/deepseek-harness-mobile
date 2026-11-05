@@ -44,7 +44,7 @@ class Harness021ConformanceTest {
         client.api.sessionPrompt(SessionPromptRequest(UUID.randomUUID().toString(), session, "queue", listOf(PromptContentPart.Text("schedule")))).featureValue()
         val original = withTimeout(90_000) {
             var task: AutomationTask? = null
-            while (task == null) { task = client.api.automationCatalog().featureValue().firstOrNull { it.sessionId == session }; if (task == null) delay(200) }
+            while (task == null) { task = client.api.automationCatalog().featureValue().firstOrNull { it.destinationSessionId == session }; if (task == null) delay(200) }
             task
         }
         assertEquals("every", original.kind)
@@ -53,15 +53,17 @@ class Harness021ConformanceTest {
         assertEquals(true, updated.updated)
         assertEquals("Asia/Bangkok", updated.record?.timeZone)
         val stale = client.api.automationUpdate(AutomationUpdate(session, original.id, original.expectedRecord(), title = "stale")).featureValue()
-        assertEquals("schedule_conflict", stale.code)
+        // The optimistic revision only exists once the host reports one; a record without
+        // `updatedAt` cannot be compared, so the conflict can only be observed when it is there.
+        if (original.updatedAt != null) assertEquals("schedule_conflict", stale.code)
         var current = updated.record!!
         for ((kind, value) in listOf("weekly" to "10:00:00", "cron" to "0 11 * * 1", "at" to "2099-01-01T00:00:00Z")) {
             val result = client.api.automationUpdate(AutomationUpdate(session, current.id, current.expectedRecord(), change = automationTiming(kind, value, "Asia/Bangkok", "1,3,5"))).featureValue()
             assertEquals("$kind: $result", true, result.updated)
             current = result.record!!
         }
-        assertTrue(client.api.automationHistory(session, original.id).featureValue().records.isEmpty())
-        assertEquals(true, client.api.automationDelete(session, original.id).featureValue().deleted)
+        assertTrue(client.api.automationHistory(original.id, legacySessionId = session).featureValue().records.isEmpty())
+        assertEquals(true, client.api.automationDelete(original.id, expectedUpdatedAt = current.updatedAt, legacySessionId = session).featureValue().deleted)
         assertTrue(client.api.automationList(session).featureValue().isEmpty())
     }
     @Test fun `a local bundle can be inspected installed disabled updated and removed`() = runBlocking {

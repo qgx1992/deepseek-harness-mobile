@@ -358,9 +358,25 @@ data class EncodedFileUploadRequest(
     @SerialName("name") val name: String? = null,
 )
 
-/** Request payload of `session.attachment`. */
+/**
+ * Request payload of `session.attachment`.
+ *
+ * The host reads the stored object by [ImageAttachmentRef.attachmentId] alone — the other fields
+ * are informational — but it requires the whole reference: a bare id is refused as
+ * `gateway/arguments-invalid`, which is why this nests the reference instead of flattening it.
+ */
 @Serializable
 data class SessionAttachmentRequest(
+    @SerialName("sessionId") val sessionId: String,
+    @SerialName("attachment") val attachment: ImageAttachmentRef,
+)
+
+/**
+ * Request payload of `session.attachment` as harness releases before 0.2.2 spelled it, kept so a
+ * host that only knows the flat shape still resolves images.
+ */
+@Serializable
+internal data class SessionAttachmentLegacyRequest(
     @SerialName("sessionId") val sessionId: String,
     @SerialName("attachmentId") val attachmentId: String,
 )

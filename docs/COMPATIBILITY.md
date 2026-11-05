@@ -6,6 +6,7 @@ DSH Mobile speaks the DeepSeek Harness web-client protocol over `/api`. The prot
 
 | DSH Mobile | Harness | Notes |
 |---|---|---|
+| 0.22.14 | 0.2.2-rc.1 | Automation's list, edit and delete follow `schedule/edit` and the Host-level `schedule/list`; a 0.2.1 host keeps the older `schedule/update`/`schedule/delete` pair. `session/attachment` takes the whole stored reference, with the flat id retried for older hosts. Session format stays v4, and the event types only gained members |
 | 0.18.0 | 0.2.1-rc.2 | Same protocol baseline as 0.17.0. Rewind to this message, from holding a sent message, needs dsh-rewind-plugin on the host |
 | 0.17.0 | 0.2.1-rc.2 | All 15 real-host conformance scenarios pass on rc.2, including a typed round trip through `terminal/attach`. The terminal falls back to follow-and-call on hosts before 0.2.1-alpha.3 |
 | 0.16.0 | 0.2.1-alpha.2 | All 14 real-host conformance scenarios passed across full and targeted runs; Android and signing gates in [validation](VALIDATION-0.16.0.md) |
@@ -113,6 +114,19 @@ in the validation document.
 ## Breaking changes by harness release
 
 See [protocol notes](PROTOCOL.md) for the shapes.
+
+### 0.2.2-rc.1
+
+Automation moved onto one `schedule/edit` method: `schedule/update` and `schedule/delete` are gone,
+the update patch names `title`/`prompt`/`timing`/`target`/`active` instead of taking the whole
+observed record, and the optimistic revision is `expectedUpdatedAt` rather than `expected`.
+`schedule/list` is Host level and takes no `sessionId`; `schedule/history` dropped it too. A stored
+task now names its destination in `target` instead of a flat `sessionId`, so the app addresses a row
+by its destination Session. All of it is behind a `capability-unavailable` fallback to the 0.2.1
+pair, so an older host keeps working. `session/attachment` also takes the whole stored
+`ImageAttachmentRef` under `attachment`; the old flat `attachmentId` is refused as
+`gateway/arguments-invalid`, and the app falls back to it only for a host that answers that. Session
+format stays v4 and the event vocabulary only gained types.
 
 ### 0.2.1
 

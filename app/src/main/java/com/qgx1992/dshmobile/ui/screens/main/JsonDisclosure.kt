@@ -25,7 +25,17 @@ internal fun JsonDisclosure(title: String, value: JsonElement, depth: Int = 0) {
             if (value is JsonObject) {
                 val imageId = (value["attachmentId"] as? JsonPrimitive)?.contentOrNull
                 if (imageId != null && (value["type"]?.jsonPrimitive?.contentOrNull == "image" || value["mediaType"]?.jsonPrimitive?.contentOrNull?.startsWith("image/") == true)) {
-                    com.qgx1992.dshmobile.ui.components.AttachmentImage(attachmentId = imageId, intrinsicWidth = (value["width"] as? JsonPrimitive)?.intOrNull ?: 512, intrinsicHeight = (value["height"] as? JsonPrimitive)?.intOrNull ?: 512)
+                    // The host reads the stored object by id; the rest of the reference is echoed
+                    // back, so missing fields fall back to what this payload does carry.
+                    com.qgx1992.dshmobile.ui.components.AttachmentImage(
+                        attachment = com.qgx1992.dshmobile.core.wire.dto.ImageAttachmentRef(
+                            attachmentId = imageId,
+                            mediaType = (value["mediaType"] as? JsonPrimitive)?.contentOrNull ?: "image/png",
+                            bytes = (value["bytes"] as? JsonPrimitive)?.intOrNull ?: 0,
+                            width = (value["width"] as? JsonPrimitive)?.intOrNull ?: 512,
+                            height = (value["height"] as? JsonPrimitive)?.intOrNull ?: 512,
+                        ),
+                    )
                 }
             }
             if (value is JsonPrimitive && value.isString && title in setOf("path", "absolutePath", "file_path", "filePath")) {

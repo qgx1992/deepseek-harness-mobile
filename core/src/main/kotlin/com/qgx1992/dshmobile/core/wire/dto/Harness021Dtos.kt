@@ -22,7 +22,13 @@ data class UserQuestionsView(
     val settled: List<SettledQuestion> = emptyList(),
 )
 
-/** Host storage records, distinct from the frozen v1 schedule/change event vocabulary. */
+/**
+ * Host storage records, distinct from the frozen v1 schedule/change event vocabulary.
+ *
+ * Harness 0.2.2-rc.1 replaced the flat `sessionId` decoration with `target`: the record now names a
+ * destination (`session`, `new_once` or `new`) instead of pointing at one Session. Both shapes are
+ * read, and [destinationSessionId] is the one value the UI works with.
+ */
 @Serializable
 data class AutomationTask(
     val id: String,
@@ -39,6 +45,26 @@ data class AutomationTask(
     val weekdays: List<Int>? = null,
     val expression: String? = null,
     val lastDelivery: DeliveryRecord? = null,
+    val target: AutomationTarget? = null,
+    val involvedSessionIds: List<String> = emptyList(),
+    val updatedAt: String? = null,
+    val executionActive: Boolean? = null,
+) {
+    /**
+     * The Session every delivery lands in, or "" while a `new` target has yet to create one.
+     *
+     * Older hosts decorate the record with a flat [sessionId]; newer ones nest it in [target].
+     */
+    val destinationSessionId: String
+        get() = target?.sessionId?.takeIf { it.isNotBlank() } ?: sessionId
+}
+
+/** Where a scheduled delivery goes; `create` is only present on the `new_once`/`new` kinds. */
+@Serializable
+data class AutomationTarget(
+    val kind: String = "",
+    val sessionId: String? = null,
+    val create: JsonObject? = null,
 )
 
 @Serializable

@@ -1,6 +1,7 @@
 package com.qgx1992.dshmobile.core.wire
 
 import com.qgx1992.dshmobile.core.wire.dto.*
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.serializer
 import kotlinx.serialization.json.*
 
@@ -11,24 +12,180 @@ private fun named(vararg pairs: Pair<String, JsonElement>) = JsonObject(mapOf(*p
 private fun str(value: String) = JsonPrimitive(value)
 private fun request(value: JsonElement) = named("request" to value)
 
+/**
+ * The complete observed record, without the decorations a host adds to a catalogue row.
+ *
+ * Only the pre-0.2.2 `schedule/update` takes this object; `schedule/edit` takes the named `patch`
+ * instead, so the newer decorations (`target`, `involvedSessionIds`, `executionActive`) are left
+ * out rather than sent to a host that would refuse them. `updatedAt` stays: an editor sends it
+ * back as `expectedUpdatedAt`.
+ */
 fun AutomationTask.expectedRecord(): JsonObject = JsonObject(
     WireJson.encodeToJsonElement(AutomationTask.serializer(), this).jsonObject.filterKeys {
-        it !in setOf("sessionId", "status", "lastDelivery")
+        it !in setOf("sessionId", "status", "lastDelivery", "target", "involvedSessionIds", "executionActive")
     },
 )
 
+private inline fun <T, R> RpcResult<T>.mapValue(transform: (T) -> R): RpcResult<R> = when (this) {
+    is RpcResult.Err -> this
+    is RpcResult.Ok -> RpcResult.Ok(transform(value))
+}
+
+/** Read a list answer: 0.2.2 wraps it in `{items}`, older hosts answered with the array itself. */
+private fun JsonElement.automationTasks(): List<AutomationTask> {
+    val rows = (this as? JsonObject)?.get("items") ?: this
+    return runCatching {
+        WireJson.decodeFromJsonElement(ListSerializer(AutomationTask.serializer()), rows)
+    }.getOrDefault(emptyList())
+}
+
+/**
+ * Read a `schedule/edit` answer, which is a union of the stored record, `{deleted:true}` and the
+ * two typed refusals. The old `schedule/update`/`schedule/delete` answers map the same way, so one
+ * reader covers both generations.
+ */
+internal fun automationMutation(value: JsonElement): AutomationMutation {
+    val obj = value as? JsonObject ?: return AutomationMutation(message = value.toString())
+    val id = (obj["id"] as? JsonPrimitive)?.contentOrNull
+    return when {
+        obj.containsKey("deleted") ->
+            AutomationMutation(id = id, deleted = (obj["deleted"] as? JsonPrimitive)?.booleanOrNull ?: true)
+        obj.containsKey("kind") -> AutomationMutation(
+            id = id,
+            updated = true,
+            record = runCatching { WireJson.decodeFromJsonElement(AutomationTask.serializer(), obj) }.getOrNull(),
+        )
+        obj.containsKey("code") -> AutomationMutation(
+            id = id,
+            code = (obj["code"] as? JsonPrimitive)?.contentOrNull,
+            message = (obj["message"] as? JsonPrimitive)?.contentOrNull,
+        )
+        else -> AutomationMutation(id = id, message = value.toString())
+    }
+}
+
+/**
+ * The `schedule/edit` update branch: named `patch` members plus the optimistic revision.
+ *
+ * [AutomationUpdate.change] is already the `timing` object [automationTiming] builds, which is the
+ * vocabulary `patch.timing` declares; [AutomationUpdate.expected] carries `updatedAt` when the row
+ * came from a host that reports it.
+ */
+private fun editUpdateRequest(value: AutomationUpdate): JsonObject = buildJsonObject {
+    put("id", value.id)
+    put("action", "update")
+    put("patch", buildJsonObject {
+        value.title?.let { put("title", it) }
+        value.prompt?.let { put("prompt", it) }
+        value.change?.let { put("timing", it) }
+    })
+    value.expected["updatedAt"]?.let { it as? JsonPrimitive }?.contentOrNull?.let { put("expectedUpdatedAt", it) }
+}
+
 suspend fun DshApiClient.automationCatalog(): RpcResult<List<AutomationTask>> = featureCall("schedule/catalog")
-suspend fun DshApiClient.automationList(sessionId: String): RpcResult<List<AutomationTask>> =
-    featureCall("schedule/list", request(named("sessionId" to str(sessionId))))
-suspend fun DshApiClient.automationHistory(sessionId: String, id: String, before: String? = null): RpcResult<AutomationHistory> =
-    featureCall("schedule/history", request(buildJsonObject {
-        put("sessionId", sessionId); put("id", id); put("limit", 25)
-        before?.let { put("before", it) }
-    }))
-suspend fun DshApiClient.automationUpdate(value: AutomationUpdate): RpcResult<AutomationMutation> =
-    featureCall("schedule/update", request(WireJson.encodeToJsonElement(AutomationUpdate.serializer(), value)))
-suspend fun DshApiClient.automationDelete(sessionId: String, id: String): RpcResult<AutomationMutation> =
-    featureCall("schedule/delete", request(named("sessionId" to str(sessionId), "id" to str(id))))
+
+/**
+ * Every stored task, newest first.
+ *
+ * 0.2.2-rc.1 lists at Host level: `schedule/list` takes only paging and never a Session, so the
+ * caller filters on [AutomationTask.destinationSessionId]. A host that predates that answers
+ * `capability-unavailable`, and [sessionId] then restores the per-Session listing.
+ */
+suspend fun DshApiClient.automationList(sessionId: String? = null): RpcResult<List<AutomationTask>> {
+    val page = call("schedule/list", request(buildJsonObject { put("limit", 500) }), JsonElement.serializer())
+    if (page is RpcResult.Err) {
+        if (page.error.code != "capability-unavailable" || sessionId == null) return page
+        return call(
+            "schedule/list",
+            request(named("sessionId" to str(sessionId))),
+            JsonElement.serializer(),
+        ).mapValue { it.automationTasks() }
+    }
+    return page.mapValue { it.automationTasks() }
+}
+
+/**
+ * One page of one task's saved deliveries.
+ *
+ * 0.2.2-rc.1 dropped the `sessionId` argument; [legacySessionId] sends it again for an older host.
+ */
+suspend fun DshApiClient.automationHistory(
+    id: String,
+    before: String? = null,
+    legacySessionId: String? = null,
+): RpcResult<AutomationHistory> {
+    val page = call(
+        "schedule/history",
+        request(buildJsonObject {
+            put("id", id); put("limit", 25)
+            before?.let { put("before", it) }
+        }),
+        AutomationHistory.serializer(),
+    )
+    if (page is RpcResult.Err && page.error.code == "capability-unavailable" && legacySessionId != null) {
+        return call(
+            "schedule/history",
+            request(buildJsonObject {
+                put("sessionId", legacySessionId); put("id", id); put("limit", 25)
+                before?.let { put("before", it) }
+            }),
+            AutomationHistory.serializer(),
+        )
+    }
+    return page
+}
+
+/**
+ * Save one task through `schedule/edit`.
+ *
+ * Harness 0.2.2-rc.1 folded `schedule/update` and `schedule/delete` into `schedule/edit`, whose
+ * update branch takes a named `patch` rather than the whole observed record. A host that only
+ * knows the old pair answers `capability-unavailable`, so the observation [AutomationUpdate.expected]
+ * is sent to `schedule/update` as it was before.
+ */
+suspend fun DshApiClient.automationUpdate(value: AutomationUpdate): RpcResult<AutomationMutation> {
+    val edit = call("schedule/edit", request(editUpdateRequest(value)), JsonElement.serializer())
+    if (edit is RpcResult.Err) {
+        if (edit.error.code != "capability-unavailable") return edit
+        return call(
+            "schedule/update",
+            request(WireJson.encodeToJsonElement(AutomationUpdate.serializer(), value)),
+            JsonElement.serializer(),
+        ).mapValue { automationMutation(it) }
+    }
+    return edit.mapValue { automationMutation(it) }
+}
+
+/**
+ * Delete one task through `schedule/edit`'s delete branch, with its deliveries.
+ *
+ * [expectedUpdatedAt] is the row's last seen revision; a newer stored revision answers
+ * `schedule_conflict` instead of deleting. Older hosts keep `schedule/delete`, which needs the
+ * [legacySessionId].
+ */
+suspend fun DshApiClient.automationDelete(
+    id: String,
+    expectedUpdatedAt: String? = null,
+    legacySessionId: String? = null,
+): RpcResult<AutomationMutation> {
+    val edit = call(
+        "schedule/edit",
+        request(buildJsonObject {
+            put("id", id); put("action", "delete")
+            expectedUpdatedAt?.let { put("expectedUpdatedAt", it) }
+        }),
+        JsonElement.serializer(),
+    )
+    if (edit is RpcResult.Err) {
+        if (edit.error.code != "capability-unavailable" || legacySessionId == null) return edit
+        return call(
+            "schedule/delete",
+            request(named("sessionId" to str(legacySessionId), "id" to str(id))),
+            JsonElement.serializer(),
+        ).mapValue { automationMutation(it) }
+    }
+    return edit.mapValue { automationMutation(it) }
+}
 
 suspend fun DshApiClient.answerContinuedQuestion(sessionId: String, callId: String, answer: AskUserQuestionAnswer): RpcResult<Boolean> =
     featureCall("userQuestions/answer", named("agentId" to str(sessionId), "callId" to str(callId),

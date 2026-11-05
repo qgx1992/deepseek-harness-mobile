@@ -10,6 +10,7 @@ import com.qgx1992.dshmobile.core.wire.dto.JobListRequest
 import com.qgx1992.dshmobile.core.wire.dto.GoalRef
 import com.qgx1992.dshmobile.core.wire.dto.MessageFeedbackDeleteRequest
 import com.qgx1992.dshmobile.core.wire.dto.MessageFeedbackPutRequest
+import com.qgx1992.dshmobile.core.wire.dto.ImageAttachmentRef
 import com.qgx1992.dshmobile.core.wire.dto.SessionAttachmentRequest
 import com.qgx1992.dshmobile.core.wire.dto.SessionCancelRequest
 import com.qgx1992.dshmobile.core.wire.dto.SessionCreateRequest
@@ -198,7 +199,15 @@ class EndpointCatalogueConformanceTest {
         check("session/fork", client.api.sessionFork(SessionForkRequest(missing)))
         check("session/fork (atSeq)", client.api.sessionFork(SessionForkRequest(missing, atSeq = 1)))
         check("job/kill", client.api.jobKill(sessionId, "bash-999"))
-        check("session/attachment", client.api.sessionAttachment(SessionAttachmentRequest(sessionId, missing)))
+        check(
+            "session/attachment",
+            client.api.sessionAttachment(
+                SessionAttachmentRequest(
+                    sessionId,
+                    ImageAttachmentRef(attachmentId = missing, mediaType = "image/png", bytes = 0, width = 1, height = 1),
+                ),
+            ),
+        )
         check(
             "session/selectModel",
             client.api.sessionSelectModel(
