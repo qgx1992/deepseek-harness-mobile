@@ -57,23 +57,32 @@ private fun JsonElement.automationTasks(): List<AutomationTask> {
  * Read a `schedule/edit` answer, which is a union of the stored record, `{deleted:true}` and the
  * two typed refusals. The old `schedule/update`/`schedule/delete` answers map the same way, so one
  * reader covers both generations.
+ *
+ * The old pair answers with a wrapper (`{id, updated, record}`) rather than the bare stored record,
+ * so a `record` member or an explicit `updated` flag also reads as an update.
  */
 internal fun automationMutation(value: JsonElement): AutomationMutation {
     val obj = value as? JsonObject ?: return AutomationMutation(message = value.toString())
     val id = (obj["id"] as? JsonPrimitive)?.contentOrNull
+    fun storedRecord(): AutomationTask? = runCatching {
+        val row = (obj["record"] as? JsonObject) ?: obj
+        WireJson.decodeFromJsonElement(AutomationTask.serializer(), row)
+    }.getOrNull()
     return when {
         obj.containsKey("deleted") ->
             AutomationMutation(id = id, deleted = (obj["deleted"] as? JsonPrimitive)?.booleanOrNull ?: true)
-        obj.containsKey("kind") -> AutomationMutation(
-            id = id,
-            updated = true,
-            record = runCatching { WireJson.decodeFromJsonElement(AutomationTask.serializer(), obj) }.getOrNull(),
-        )
         obj.containsKey("code") -> AutomationMutation(
             id = id,
             code = (obj["code"] as? JsonPrimitive)?.contentOrNull,
             message = (obj["message"] as? JsonPrimitive)?.contentOrNull,
         )
+        obj.containsKey("kind") || obj.containsKey("record") ||
+            (obj["updated"] as? JsonPrimitive)?.booleanOrNull == true ->
+            AutomationMutation(
+                id = id,
+                updated = (obj["updated"] as? JsonPrimitive)?.booleanOrNull ?: true,
+                record = storedRecord(),
+            )
         else -> AutomationMutation(id = id, message = value.toString())
     }
 }

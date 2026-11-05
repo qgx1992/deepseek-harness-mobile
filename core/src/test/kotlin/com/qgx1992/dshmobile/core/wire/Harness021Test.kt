@@ -53,6 +53,12 @@ class Harness021Test {
         assertEquals(true, automationMutation(WireJson.parseToJsonElement("""{"id":"t","deleted":true}""")).deleted)
         assertEquals("schedule_conflict", automationMutation(WireJson.parseToJsonElement("""{"id":"t","code":"schedule_conflict"}""")).code)
         assertEquals("schedule_not_found", automationMutation(WireJson.parseToJsonElement("""{"id":"t","code":"schedule_not_found"}""")).code)
+        // The pre-0.2.2 pair wrapped the stored row in `{updated, record}` rather than returning it bare.
+        val legacy = automationMutation(WireJson.parseToJsonElement(
+            """{"id":"t","updated":true,"record":{"id":"t","kind":"every","title":"n","prompt":"p","scheduledAt":"2099-01-01T00:00:00Z","sessionId":"s"}}""",
+        ))
+        assertEquals(true, legacy.updated)
+        assertEquals("s", legacy.record?.destinationSessionId)
     }
     @Test fun `legacy question requests still decode without a wait`() {
         assertNull(WireJson.decodeFromString(AskUserQuestionRequestEvent.serializer(), """{"questions":[]}""").wait)
