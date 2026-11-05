@@ -13,6 +13,20 @@ private fun str(value: String) = JsonPrimitive(value)
 private fun request(value: JsonElement) = named("request" to value)
 
 /**
+ * Codes an older host answers when it does not understand the newer `schedule` request shape.
+ *
+ * 0.2.2-rc.1 reshaped `schedule/list` and `schedule/history`, so a host that predates it fails the
+ * gateway's boundary validation (`gateway/input-invalid`, or `gateway/arguments-invalid`) as well as
+ * refusing an unknown method (`capability-unavailable`). Any of the three means "send the legacy
+ * field set instead", so the fallbacks below cover all of them.
+ */
+private val LEGACY_SCHEDULE_REJECTED = setOf(
+    "capability-unavailable",
+    "gateway/arguments-invalid",
+    "gateway/input-invalid",
+)
+
+/**
  * The complete observed record, without the decorations a host adds to a catalogue row.
  *
  * Only the pre-0.2.2 `schedule/update` takes this object; `schedule/edit` takes the named `patch`
@@ -88,13 +102,14 @@ suspend fun DshApiClient.automationCatalog(): RpcResult<List<AutomationTask>> = 
  * Every stored task, newest first.
  *
  * 0.2.2-rc.1 lists at Host level: `schedule/list` takes only paging and never a Session, so the
- * caller filters on [AutomationTask.destinationSessionId]. A host that predates that answers
- * `capability-unavailable`, and [sessionId] then restores the per-Session listing.
+ * caller filters on [AutomationTask.destinationSessionId]. A host that predates that rejects the
+ * paging-only shape (see [LEGACY_SCHEDULE_REJECTED]), and [sessionId] then restores the per-Session
+ * listing.
  */
 suspend fun DshApiClient.automationList(sessionId: String? = null): RpcResult<List<AutomationTask>> {
     val page = call("schedule/list", request(buildJsonObject { put("limit", 500) }), JsonElement.serializer())
     if (page is RpcResult.Err) {
-        if (page.error.code != "capability-unavailable" || sessionId == null) return page
+        if (page.error.code !in LEGACY_SCHEDULE_REJECTED || sessionId == null) return page
         return call(
             "schedule/list",
             request(named("sessionId" to str(sessionId))),
@@ -122,7 +137,7 @@ suspend fun DshApiClient.automationHistory(
         }),
         AutomationHistory.serializer(),
     )
-    if (page is RpcResult.Err && page.error.code == "capability-unavailable" && legacySessionId != null) {
+    if (page is RpcResult.Err && page.error.code in LEGACY_SCHEDULE_REJECTED && legacySessionId != null) {
         return call(
             "schedule/history",
             request(buildJsonObject {
@@ -140,13 +155,13 @@ suspend fun DshApiClient.automationHistory(
  *
  * Harness 0.2.2-rc.1 folded `schedule/update` and `schedule/delete` into `schedule/edit`, whose
  * update branch takes a named `patch` rather than the whole observed record. A host that only
- * knows the old pair answers `capability-unavailable`, so the observation [AutomationUpdate.expected]
- * is sent to `schedule/update` as it was before.
+ * knows the old pair refuses `schedule/edit` (see [LEGACY_SCHEDULE_REJECTED]), so the observation
+ * [AutomationUpdate.expected] is sent to `schedule/update` as it was before.
  */
 suspend fun DshApiClient.automationUpdate(value: AutomationUpdate): RpcResult<AutomationMutation> {
     val edit = call("schedule/edit", request(editUpdateRequest(value)), JsonElement.serializer())
     if (edit is RpcResult.Err) {
-        if (edit.error.code != "capability-unavailable") return edit
+        if (edit.error.code !in LEGACY_SCHEDULE_REJECTED) return edit
         return call(
             "schedule/update",
             request(WireJson.encodeToJsonElement(AutomationUpdate.serializer(), value)),
@@ -177,7 +192,7 @@ suspend fun DshApiClient.automationDelete(
         JsonElement.serializer(),
     )
     if (edit is RpcResult.Err) {
-        if (edit.error.code != "capability-unavailable" || legacySessionId == null) return edit
+        if (edit.error.code !in LEGACY_SCHEDULE_REJECTED || legacySessionId == null) return edit
         return call(
             "schedule/delete",
             request(named("sessionId" to str(legacySessionId), "id" to str(id))),
