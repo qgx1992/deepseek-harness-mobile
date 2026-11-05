@@ -27,6 +27,11 @@ All notable changes to DSH Mobile are documented here. Format based on
   failed against it. The client now speaks `schedule/edit` (named patch, `expectedUpdatedAt`) and
   addresses a row by its destination Session, and falls back to the 0.2.1 endpoints when the host
   answers `capability-unavailable`.
+- **A host older than 0.2.2-rc.1 still reads automation.** Such a host fails the gateway's boundary
+  validation (`gateway/input-invalid`) for the reshaped `schedule/list` and `schedule/history`
+  requests instead of reporting the method missing, so the retry never ran and listing a task threw;
+  its `schedule/update` answer, `{updated, record}`, was also read as neither an update nor a
+  refusal. Both generations of the answer and the request now decode.
 
 ### Internal
 
