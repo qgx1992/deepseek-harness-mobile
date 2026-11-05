@@ -94,6 +94,14 @@ private fun encodeQueryComponent(value: String): String =
 /** The gateway's refusal of an argument object that does not match the host method's parameters. */
 private const val ARGUMENTS_INVALID = "gateway/arguments-invalid"
 
+/**
+ * The two ways a gateway says it cannot read a nested object we sent: an unknown key
+ * ([ARGUMENTS_INVALID]) or a known key whose value fails its codec (`input-invalid`). Older
+ * hosts answer `session/attachment` with the second, because they keep the `attachment` key as a
+ * string and then choke on an object.
+ */
+private val ATTACHMENT_SHAPE_REJECTED = setOf(ARGUMENTS_INVALID, "gateway/input-invalid")
+
 /** The mux has no HTTP 404; the gateway reports an absent/withdrawn export in its envelope. */
 fun RpcError.classifyCapability(): RpcError = when (code) {
     "gateway/invocation-unavailable", "gateway/definition-unavailable" -> copy(code = "capability-unavailable")
@@ -360,11 +368,13 @@ class DshApiClient(
      * `session/attachment` — reads one durable image after session-log reference proof.
      *
      * The reference travels whole; a host that predates the nested shape answers
-     * `gateway/arguments-invalid`, and only then is the flat id retried.
+     * `gateway/arguments-invalid` when it refuses the unknown key, or `gateway/input-invalid`
+     * when it keeps the key and fails the attachment's own codec, and only then is the flat
+     * id retried.
      */
     suspend fun sessionAttachment(request: SessionAttachmentRequest): RpcResult<SessionAttachmentValue> {
         val nested = callRequest<SessionAttachmentRequest, SessionAttachmentValue>("session/attachment", request)
-        if (nested !is RpcResult.Err || nested.error.code != ARGUMENTS_INVALID) return nested
+        if (nested !is RpcResult.Err || nested.error.code !in ATTACHMENT_SHAPE_REJECTED) return nested
         return callRequest(
             "session/attachment",
             SessionAttachmentLegacyRequest(request.sessionId, request.attachment.attachmentId),
