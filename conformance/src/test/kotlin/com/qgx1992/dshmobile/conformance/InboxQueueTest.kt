@@ -119,8 +119,10 @@ class InboxQueueTest {
                 WireJson.decodeFromJsonElement(SessionControlFrame.serializer(), raw)
             }.getOrNull() ?: continue
             if (frame !is SessionControlFrame.Projection) continue
-            if (frame.sessionId != sessionId || frame.key != "inbox") continue
-            val items = InboxProjection.itemsFrom(frame.value)
+            if (frame.sessionId != sessionId) continue
+            val items = frame.changes
+                .filter { it.key == "inbox" }
+                .flatMap { InboxProjection.itemsFrom(it.value) }
             if (items.isNotEmpty()) return items
         }
     }

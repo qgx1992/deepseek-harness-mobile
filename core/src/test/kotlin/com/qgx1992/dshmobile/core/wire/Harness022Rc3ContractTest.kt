@@ -6,6 +6,7 @@ import com.qgx1992.dshmobile.core.session.OtherNode
 import com.qgx1992.dshmobile.core.session.SessionEventEnvelope
 import com.qgx1992.dshmobile.core.wire.dto.RemoteStreamClientMessage
 import com.qgx1992.dshmobile.core.wire.dto.RemoteStreamClientMessageSerializer
+import com.qgx1992.dshmobile.core.wire.dto.SessionControlFrame
 import com.qgx1992.dshmobile.core.wire.dto.TerminalEnvironment
 import com.qgx1992.dshmobile.core.wire.dto.TerminalFrame
 import com.qgx1992.dshmobile.core.wire.dto.WorkspaceFollowFrame
@@ -19,9 +20,16 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Shapes transcribed from `dsh-v0.2.1-rc.2` (`protocol/687f282.json`), the current baseline. */
-class Harness021Rc2ContractTest {
-    private val fixture = WireJson.parseToJsonElement(javaClass.getResource("/protocol/687f282.json")!!.readText()).jsonObject
+/**
+ * Shapes transcribed from `dsh-v0.2.2-rc.3` (`protocol/38a6a5c.json`), the current baseline.
+ *
+ * The one client-visible wire change since 0.2.1-rc.2 is the `session/control` projection delta:
+ * rc.3 carries a `changes:[{key,val}]` batch per committed event instead of a single `{key, value}`
+ * frame, pinned here as `controlProjection`. rc.3's own release (a chat-import plugin plus a Windows
+ * updater fix) added nothing else.
+ */
+class Harness022Rc3ContractTest {
+    private val fixture = WireJson.parseToJsonElement(javaClass.getResource("/protocol/38a6a5c.json")!!.readText()).jsonObject
 
     @Test fun `the fixture is the pinned baseline`() {
         assertEquals(DshCore.PROTOCOL_COMMIT, fixture.getValue("upstreamCommit").jsonPrimitive.content)
@@ -76,5 +84,12 @@ class Harness021Rc2ContractTest {
         assertEquals(listOf("kept"), frame.pinnedSessionIds)
         assertTrue(frame.workspaces.isEmpty())
         assertTrue(fixture.getValue("workspaceReplace") is JsonObject)
+    }
+
+    @Test fun `a control projection delta carries a changes batch`() {
+        val frame = WireJson.decodeFromJsonElement(SessionControlFrame.serializer(), fixture.getValue("controlProjection"))
+        assertTrue(frame is SessionControlFrame.Projection)
+        frame as SessionControlFrame.Projection
+        assertEquals(listOf("inbox"), frame.changes.map { it.key })
     }
 }

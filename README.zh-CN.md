@@ -127,7 +127,7 @@ harness 可以在 [Termux](https://f-droid.org/packages/com.termux/) 里运行�
 
 ## 兼容性
 
-DSH Mobile 针对 **DeepSeek Harness 0.2.1-rc.2** 测试。最早到 0.1.6 的旧版 harness 大部分功能仍然可用，但较新的功能需要较新的 harness。[兼容性表](docs/COMPATIBILITY.md)列出了每个应用版本对应的 harness 版本。
+DSH Mobile 针对 **DeepSeek Harness 0.2.2-rc.3** 测试。最早到 0.1.6 的旧版 harness 大部分功能仍然可用，但较新的功能需要较新的 harness。[兼容性表](docs/COMPATIBILITY.md)列出了每个应用版本对应的 harness 版本。
 
 ## 从源码构建
 

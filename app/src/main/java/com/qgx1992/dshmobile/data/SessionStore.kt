@@ -1111,25 +1111,31 @@ class SessionStore @Inject constructor(
             is SessionControlFrame.Queue -> applyQueue(frame.sessionId, frame.items)
             is SessionControlFrame.Jobs -> applyJobs(frame.sessionId, frame.jobs)
             is SessionControlFrame.Projection -> {
-                if (frame.key == "userQuestions") questionSessions.projection(frame.sessionId, frame.seq, frame.value)
-                if (frame.key == "inbox") questionSessions.inbox(frame.sessionId, frame.value)
-                // The inbox projection is the queue now, and it arrives for every live session —
-                // not just the open one — so the chat list's per-session dock reads it here.
-                if (frame.key == INBOX_PROJECTION) {
-                    val items = InboxProjection.itemsFrom(frame.value).map(::queuedInboxItemToQueueItem)
-                    queuesBySession.value = queuesBySession.value + (frame.sessionId to items)
-                }
-                synchronized(lock) {
-                    // Another client (the web GUI) can pick a preset after our list read, and the
-                    // list row is what the top-bar chip and the details pill draw from.
-                    if (frame.key == AGENT_PRESET_PROJECTION &&
-                        foldAgentPresetLocked(frame.sessionId, frame.seq, frame.value)
-                    ) {
-                        emitSessionsLocked()
+                // One event may now change several projections at once (rc.2/rc.3 batch them in
+                // `changes`), so every entry is applied before the frame is done.
+                for (change in frame.changes) {
+                    val key = change.key
+                    val value = change.value
+                    if (key == "userQuestions") questionSessions.projection(frame.sessionId, frame.seq, value)
+                    if (key == "inbox") questionSessions.inbox(frame.sessionId, value)
+                    // The inbox projection is the queue now, and it arrives for every live session —
+                    // not just the open one — so the chat list's per-session dock reads it here.
+                    if (key == INBOX_PROJECTION) {
+                        val items = InboxProjection.itemsFrom(value).map(::queuedInboxItemToQueueItem)
+                        queuesBySession.value = queuesBySession.value + (frame.sessionId to items)
                     }
-                    if (frame.sessionId == currentId) {
-                        mergeProjectionLocked(frame.key, frame.seq, frame.value)
-                        rebuildCurrentLocked()
+                    synchronized(lock) {
+                        // Another client (the web GUI) can pick a preset after our list read, and the
+                        // list row is what the top-bar chip and the details pill draw from.
+                        if (key == AGENT_PRESET_PROJECTION &&
+                            foldAgentPresetLocked(frame.sessionId, frame.seq, value)
+                        ) {
+                            emitSessionsLocked()
+                        }
+                        if (frame.sessionId == currentId) {
+                            mergeProjectionLocked(key, frame.seq, value)
+                            rebuildCurrentLocked()
+                        }
                     }
                 }
             }

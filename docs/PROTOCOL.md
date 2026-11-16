@@ -4,11 +4,21 @@ What DSH Mobile speaks, in one page. Authoritative shapes live in the harness
 repository — `packages/api/*/src/types.ts`,
 `packages/api/gateway/src/stream-protocol.ts`, `packages/llm/llm/src/assistant-stream.ts`
 and `packages/client/file-upload/src/*` — and this document records the
-subset the app implements, against harness **0.2.1-rc.2**, plus three surfaces taken from
+subset the app implements, against harness **0.2.2-rc.3**, plus three surfaces taken from
 **0.2.1-rc.5** that the app treats as optional additions. New management and
 question surfaces are additive. Where 0.1.7 changed a shape the app still reads the
 0.1.6 one too; [0.12.0 contract additions](#0120-contract-additions-harness-017)
 lists both.
+
+## 0.2.2-rc.3 (batched projection deltas)
+
+The baseline fixture is `protocol/38a6a5c.json`, transcribed from `dsh-v0.2.2-rc.3` (commit
+`38a6a5c965aa99ab525161efb7cc5cf1fe62fced`). The `session/control` projection deltas are one
+`projection` frame per committed event carrying a `changes` array of `{key, val}` entries
+(`SessionProjectionUpdate.changes`), where the older shape was a single `{key, value}` frame; the
+client reads the batch and still reads the legacy single-key frame. The session log format stays v4
+and the event vocabulary only gained members. rc.3 itself (a chat-import plugin plus a Windows
+updater fix) added no further wire change.
 
 ## 0.20.0 contract changes (harness 0.2.2-rc.1)
 
@@ -645,6 +655,10 @@ Several facts the UI needs never arrive as an RPC result — they are pushed as
 snapshot. The two baselines are produced independently, so neither is
 authoritative on its own: the client keeps whichever carries the higher
 watermark.
+
+Each delta frame carries a `changes` array (`[{key, val}, …]`, one entry per key the committed event
+changed; harness 0.2.2 line onward). An older host sent one `{key, value}` per frame, which the
+client still reads.
 
 | Key | Carries |
 |---|---|

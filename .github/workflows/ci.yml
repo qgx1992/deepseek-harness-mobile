@@ -43,8 +43,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: deepseek-ai/deepseek-harness
-          ref: 687f282e8625c6b8d11ff58211a90524be2e4317
-          path: build/harness-0.2.1-rc.2
+          ref: 38a6a5c965aa99ab525161efb7cc5cf1fe62fced
+          path: build/harness-0.2.2-rc.3
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -53,7 +53,7 @@ jobs:
           version: 11.28.5
           run_install: false
       - name: Build pinned harness
-        working-directory: build/harness-0.2.1-rc.2
+        working-directory: build/harness-0.2.2-rc.3
         run: |
           pnpm install --frozen-lockfile
           # POSIX session checkpoints require the native flock addon before any model turn.

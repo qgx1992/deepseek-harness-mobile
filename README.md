@@ -166,7 +166,7 @@ giving out shell access.
 
 ## Compatibility
 
-DSH Mobile is tested against **DeepSeek Harness 0.2.1-rc.2**. Older harness versions back to
+DSH Mobile is tested against **DeepSeek Harness 0.2.2-rc.3**. Older harness versions back to
 0.1.6 still work for the most part, but newer features need a newer harness. The
 [compatibility table](docs/COMPATIBILITY.md) lists which app version goes with which harness.
 

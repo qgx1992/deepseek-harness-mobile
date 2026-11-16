@@ -145,7 +145,7 @@ tu ordenador. Iniciar sesión equivale a dar acceso a un shell.
 
 ## Compatibilidad
 
-DSH Mobile se prueba con **DeepSeek Harness 0.2.1-rc.2**. Las versiones anteriores del harness,
+DSH Mobile se prueba con **DeepSeek Harness 0.2.2-rc.3**. Las versiones anteriores del harness,
 hasta la 0.1.6, siguen funcionando en su mayor parte, pero las funciones nuevas necesitan un
 harness más reciente. La [tabla de compatibilidad](docs/COMPATIBILITY.md) indica qué versión de la
 aplicación corresponde a cada versión del harness.

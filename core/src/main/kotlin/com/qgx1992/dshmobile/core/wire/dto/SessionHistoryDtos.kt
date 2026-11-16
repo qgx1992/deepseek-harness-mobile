@@ -533,15 +533,28 @@ sealed class SessionControlFrame {
         @SerialName("jobs") val jobs: List<JobView> = emptyList(),
     ) : SessionControlFrame()
 
-    /** One projection unit's finished value and its durable watermark. */
+    /**
+     * One committed event's projection changes for a session.
+     *
+     * Harness 0.2.2-rc.2 batched what had been a single `{key, value}` frame into one `changes`
+     * array (`[{key, val}, ...]`, one entry per key the event changed), so a frame may now carry
+     * several keys at once. The client fans the batch out; a legacy single-key frame decodes to a
+     * one-element list, and a `value` spelling of the payload is accepted beside rc.2/rc.3's `val`.
+     */
     @Serializable
     data class Projection(
         @SerialName("type") override val type: String = "projection",
         @SerialName("sessionId") val sessionId: String,
-        @SerialName("key") val key: String,
-        @SerialName("value") val value: JsonElement,
         @SerialName("seq") val seq: Int,
+        @SerialName("changes") val changes: List<ProjectionChange> = emptyList(),
     ) : SessionControlFrame()
+
+    /** One key's finished value inside a [Projection] frame. */
+    @Serializable
+    data class ProjectionChange(
+        @SerialName("key") val key: String,
+        @SerialName("val") val value: JsonElement,
+    )
 
     /** A frame of an unknown `type`, preserved verbatim. */
     data class Unknown(
@@ -585,9 +598,34 @@ object SessionControlFrameSerializer : KSerializer<SessionControlFrame> {
             "baseline" -> decodeFromJsonElement(SessionControlFrame.Baseline.serializer(), json)
             "queue" -> decodeFromJsonElement(SessionControlFrame.Queue.serializer(), json)
             "jobs" -> decodeFromJsonElement(SessionControlFrame.Jobs.serializer(), json)
-            "projection" -> decodeFromJsonElement(SessionControlFrame.Projection.serializer(), json)
+            "projection" -> decodeControlProjection(json)
             else -> SessionControlFrame.Unknown(type, json)
         }
+    }
+
+    /**
+     * Read a `projection` frame in either shape: rc.2/rc.3's batched `changes:[{key,val}]`, or the
+     * pre-rc.2 single `{key, value}`. Entry-level faults are skipped rather than dropping the whole
+     * frame, so one malformed change cannot blind the caller to an event's other changes.
+     */
+    private fun decodeControlProjection(json: JsonObject): SessionControlFrame.Projection {
+        val sessionId = json["sessionId"]?.jsonPrimitive?.contentOrNull ?: ""
+        val seq = json["seq"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 0
+        val changes: List<SessionControlFrame.ProjectionChange> = when {
+            json["changes"] is JsonArray -> (json["changes"] as JsonArray).mapNotNull { entry ->
+                val obj = entry as? JsonObject ?: return@mapNotNull null
+                val key = obj["key"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                val value = obj["val"] ?: obj["value"] ?: return@mapNotNull null
+                SessionControlFrame.ProjectionChange(key, value)
+            }
+            json.containsKey("key") -> {
+                val key = json["key"]?.jsonPrimitive?.contentOrNull ?: ""
+                val value = json["value"] ?: kotlinx.serialization.json.JsonNull
+                listOf(SessionControlFrame.ProjectionChange(key, value))
+            }
+            else -> emptyList()
+        }
+        return SessionControlFrame.Projection(sessionId = sessionId, seq = seq, changes = changes)
     }
 }
 

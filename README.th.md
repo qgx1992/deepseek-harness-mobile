@@ -139,7 +139,7 @@ harness รันใน [Termux](https://f-droid.org/packages/com.termux/) ไ�
 
 ## ความเข้ากันได้
 
-DSH Mobile ทดสอบกับ **DeepSeek Harness 0.2.1-rc.2** ส่วน harness เวอร์ชันเก่าย้อนไปถึง
+DSH Mobile ทดสอบกับ **DeepSeek Harness 0.2.2-rc.3** ส่วน harness เวอร์ชันเก่าย้อนไปถึง
 0.1.6 ส่วนใหญ่ยังใช้งานได้ แต่ฟีเจอร์ใหม่ ๆ ต้องใช้ harness ที่ใหม่กว่า
 [ตารางความเข้ากันได้](docs/COMPATIBILITY.md) บอกว่าแอปเวอร์ชันไหนใช้คู่กับ harness เวอร์ชันไหน
 

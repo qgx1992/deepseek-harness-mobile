@@ -1,6 +1,6 @@
 # LAN setup for DSH Mobile
 
-This guide targets harness `0.2.1-rc.2`. The patch instructions below remain
+This guide targets harness `0.2.2-rc.3`. The patch instructions below remain
 available for `0.2.0-rc.1`, `0.1.7-rc.x`, and `0.1.6-alpha.x`.
 
 The harness authenticates every API call and WebSocket stream. On startup it prints a

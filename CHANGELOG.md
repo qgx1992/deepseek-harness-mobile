@@ -7,6 +7,14 @@ All notable changes to DSH Mobile are documented here. Format based on
 
 ### Changed
 
+- **The protocol baseline moves to DeepSeek Harness 0.2.2-rc.3.** `DshCore.PROTOCOL_BASELINE` and
+  `PROTOCOL_COMMIT` now read `0.2.2-rc.3` / `38a6a5c`, checked against the installed rc.3 bundle.
+  rc.2 changed one wire the client reads — `session/control` projection deltas are now one `changes`
+  batch per event instead of one `{key, value}` frame (see Fixed) — and its other work (named and
+  multi-level subagents, AgentTeam, worktree review, a plugin sidebar) rode the same wire; rc.3 (a
+  chat-import plugin plus a Windows updater fix) added no further wire change. Settings → About shows
+  the new baseline.
+
 - **The transcript lists a turn's work step by step, with no process row.** The `Process · N steps`
   fold, the tool-call and context group headers, the 32-step auto-fold and the *Work details* /
   *Steps fold when* settings are gone. A transcript row is now one node — a thought, a tool call, an
@@ -15,6 +23,13 @@ All notable changes to DSH Mobile are documented here. Format based on
   be re-folded when it settles, and every row keeps its identity from the moment it streams in.
 
 ### Fixed
+
+- **The queue dock and every live projection work again on current harness.** `session/control` now
+  sends one `projection` frame per committed event carrying a `changes` array of `{key, val}`
+  entries, where an older host sent a single `{key, value}` frame. The client decoded none of the
+  batched frames, so the inbox dock, the task board and every other live projection stayed empty
+  while only the unary reads refreshed. It now fans the batch out and still reads the legacy
+  single-key frame.
 
 - **Images load again on harness 0.2.2-rc.1.** `session/attachment` wants the whole stored reference
   (`{sessionId, attachment:{attachmentId, mediaType, bytes, width, height, …}}`), not a flat
@@ -34,6 +49,13 @@ All notable changes to DSH Mobile are documented here. Format based on
   refusal. Both generations of the answer and the request now decode.
 
 ### Internal
+
+- The baseline fixture is now `core/src/test/resources/protocol/38a6a5c.json`, transcribed from
+  `dsh-v0.2.2-rc.3`: the 0.2.1-rc.2 shapes plus a `controlProjection` sample of the batched
+  `{key, val}` delta, and the two header fields that pin it to rc.3. The contract test that decodes
+  it is `Harness022Rc3ContractTest`, `SessionControlFrameChangesTest` pins the batched and legacy
+  projection shapes, and the harness-conformance CI job checks out harness `38a6a5c`
+  (dsh-v0.2.2-rc.3) instead of `687f282`.
 
 - Release tooling now publishes the GitHub Release as part of the local release:
   `scripts/publish-apk.mjs` uploads the APK and writes the body from the tag annotation, the commits

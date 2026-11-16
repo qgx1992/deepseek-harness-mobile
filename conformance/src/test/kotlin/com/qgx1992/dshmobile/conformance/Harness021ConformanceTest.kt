@@ -16,7 +16,7 @@ class Harness021ConformanceTest {
     @Before fun boot() {
         Assume.assumeTrue("new surfaces excluded from the explicit legacy run", System.getenv("DSH_LEGACY_CONFORMANCE") != "true")
         Assume.assumeTrue("built checkout required", HarnessProcess.available())
-        model = MockModel.start(listOf("tool_call_success", "success"), toolName = "schedule_create", toolArguments = """{"title":"check","prompt":"check","every_seconds":3600}""")
+        model = MockModel.start(listOf("tool_call_success", "success"), toolName = "schedule_create", toolArguments = """{"title":"check","prompt":"check","rrule":"DTSTART:20990101T000000Z\nRRULE:FREQ=DAILY","target":"this_session"}""")
         harness = HarnessProcess.start(model)
         client = HarnessClient(harness)
     }
@@ -47,7 +47,7 @@ class Harness021ConformanceTest {
             while (task == null) { task = client.api.automationCatalog().featureValue().firstOrNull { it.destinationSessionId == session }; if (task == null) delay(200) }
             task
         }
-        assertEquals("every", original.kind)
+        assertEquals("rrule", original.kind)
         assertEquals(original.id, client.api.automationList(session).featureValue().single().id)
         val updated = client.api.automationUpdate(AutomationUpdate(session, original.id, original.expectedRecord(), title = "daily", change = automationTiming("daily", "09:30:00", "Asia/Bangkok", ""))).featureValue()
         assertEquals(true, updated.updated)

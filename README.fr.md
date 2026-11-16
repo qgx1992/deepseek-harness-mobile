@@ -148,7 +148,7 @@ ordinateur. Autoriser une connexion revient à donner un accès shell.
 
 ## Compatibilité
 
-DSH Mobile est testé avec **DeepSeek Harness 0.2.1-rc.2**. Les versions plus anciennes du harness,
+DSH Mobile est testé avec **DeepSeek Harness 0.2.2-rc.3**. Les versions plus anciennes du harness,
 jusqu'à la 0.1.6, fonctionnent encore pour l'essentiel, mais les fonctions récentes demandent un
 harness récent. Le [tableau de compatibilité](docs/COMPATIBILITY.md) indique quelle version de
 l'application va avec quel harness.
